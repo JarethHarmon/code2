@@ -1,3 +1,19 @@
+# Description #
+	> This was originally a group project for college. I have rewritten it to be cleaner and to be entirely my own code.
+	
+	Server:
+		> prints public IP of the computer it was run on
+		> listens for a connection from the client
+		> loads the input files (basically csv but delimited by tabs instead of commas) into arrays
+		> waits for a query from the assistant
+		> searches the arrays using threads
+		> returns the employee info if found
+	Client:
+		> waits for the user to enter the IP of the server
+		> prompts and waits for input from the user
+		> searches history file for the query and prints the result if found
+		> else sends the query to the server and then waits for and prints the result
+	
 # Compile #
 	# WSL (CMD prompt) #
 		// need to run both of these commands on the drive that this program is stored (if running on WSL)
