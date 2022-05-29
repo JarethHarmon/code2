@@ -1,0 +1,10 @@
+147095	Nathaniel T Williams	Public Svc Aide-Public Works	2401.8	0	0	PT	0.36	2	147	3	0	0
+148608	Gary C Schoenfeld	Pool Lifeguard	31.43	0	0	PT	0.48	4	220	3	0	0
+112119	Amy M Eng	Insp, Fire Dept	134472	35292.46	8068.32	FT	0.68	4	185	2	1	0
+148621	India C Sabater	Recreation Leader	15.5	0	0	PT	0.5	5	134	3	0	1
+148618	Charles F Williams Iii	Pool Lifeguard	17.26	0	0	PT	0.16	3	203	3	0	1
+15	DAVID FRANKLIN	BATTALION CHIEF, (FIRE DEPARTMENT)	174872.64	74050.3	37424.11	PT	0.36	2	137	3	0	1
+133464	Valerie R Richardson	Community Police Services Aide	54812.03	842.68	3385.86	FT	0.76	4	169	10	0	0
+73082	Richard E McGee	Battalion Chief, Fire Suppress	186236.43	24303.91	22830.72	PT	0.2	4	256	5	0	1
+110544	Richard L Corriea	Commander 3	184734.01	0	137409.09	PT	0.21	5	226	3	0	1
+110544	Richard L Corriea	Commander 3	184734.01	0	137409.09	PT	0.21	5	226	3	0	1

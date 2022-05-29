@@ -1,0 +1,7 @@
+green collider 	: world collisions
+blue collider : hurtboxes
+red collider : hitboxes
+yellow collider : player detection zone
+orange collider : powerup detection zone
+pink collider : powerup
+purple collider : soft collision
