@@ -1,5 +1,6 @@
 # Description #
 	> This was originally a group project for college. I have rewritten it to be cleaner and to be entirely my own code.
+	> Makes use of pthreads, named pipes (mkfifo()), sockets, ..
 	
 	Server:
 		> prints public IP of the computer it was run on
