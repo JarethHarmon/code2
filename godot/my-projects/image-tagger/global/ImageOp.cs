@@ -17,4 +17,19 @@ public class ImageOp : Node
 		ulong hash = algo.Hash(stream);
 		GD.Print(hash);
 	}
+	
+	/* uses ImageMagick so this method will be compatible with most formats I will likely create a less compatible 
+	 * function for common image types that tries to be faster than ImageMagick */
+	static void SaveThumbnail(string image_path, string thumbnail_path) {
+		try {
+			var im = new MagickImage(image_path);
+			im.Format = MagickFormat.Jpg;
+			im.Quality = 50;
+			im.Interlace = Interlace.Plane;
+			im.Resize(256, 256);
+			im.Strip();
+			im.Write(thumbnail_path);
+		} catch (Exception ex) { GD.Print("SaveThumbnail(): ", ex); return; }
+	}
+	
 }
