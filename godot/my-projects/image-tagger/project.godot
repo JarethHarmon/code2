@@ -11,8 +11,9 @@ config_version=4
 [application]
 
 config/name="Image Tagger"
-config/icon="res://icon.png"
+run/main_scene="res://scenes/main.tscn"
+config/icon="res://misc/icon.png"
 
 [rendering]
 
-environment/default_environment="res://default_env.tres"
+environment/default_environment="res://misc/default_env.tres"
