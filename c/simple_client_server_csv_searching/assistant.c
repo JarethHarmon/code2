@@ -66,15 +66,11 @@ int check_if_in_history(Query q) {
 		line_number++; // needs to be incremented first because of continue
 		
 		strtok(line, delim); // emp_id
-		//printf("===%s===\n", line);
-		//printf("===%s:::%s===\n", strtok(NULL, delim), q.employee_name);
 		//if (strncmp(q.employee_name, strtok(NULL, delim), 75)) continue; // emp_name
 		if (strcasestr(strtok(NULL, delim), q.employee_name) == NULL) continue;
-		//printf("===%s:::%s===\n", strtok(NULL, delim), q.job_title);
 		//if (strncmp(q.job_title, strtok(NULL, delim), 75)) continue; // job_title
 		if (strcasestr(strtok(NULL, delim), q.job_title) == NULL) continue;
 		strtok(NULL, delim); strtok(NULL, delim); strtok(NULL, delim); // base_pay, overtime_pay, benefit
-		//printf("===%s:::%s===\n", strtok(NULL, delim), q.status);
 		//if (strncmp(q.status, strtok(NULL, delim), 75)) continue;
 		if (strcasestr(strtok(NULL, delim), q.status) == NULL) continue;
 		
