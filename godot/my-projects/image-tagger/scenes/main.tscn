@@ -17,6 +17,7 @@ margin_right = 1920.0
 
 [node name="vbox" parent="preview_container/ViewportContainer/Viewport/preview_view" index="0"]
 ViewportDisplay = NodePath("../../../../../viewport_display")
+FileD = NodePath("../../../../../FileDialog")
 
 [node name="viewport_display" type="TextureRect" parent="."]
 anchor_right = 1.0
@@ -29,7 +30,20 @@ Cam = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/Cam
 ColorGrade = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/ColorGrade")
 EdgeDefaultMotionMix = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/EdgeCustomDefaultMix")
 
+[node name="FileDialog" type="FileDialog" parent="."]
+anchor_left = 0.1
+anchor_top = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.9
+window_title = "Open a File"
+mode = 0
+access = 2
+show_hidden_files = true
+current_dir = "/git/code2/godot/my-projects/image-tagger"
+current_path = "/git/code2/godot/my-projects/image-tagger/"
+
 [connection signal="gui_input" from="viewport_display" to="viewport_display" method="_on_viewport_display_gui_input"]
+[connection signal="file_selected" from="FileDialog" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_FileDialog_file_selected"]
 
 [editable path="preview_container"]
 [editable path="preview_container/ViewportContainer/Viewport/preview_view"]
