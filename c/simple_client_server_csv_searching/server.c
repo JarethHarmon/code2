@@ -103,6 +103,7 @@ void *salaries(void *b) {
 			strcpy(salaries_search_result.overtime_pay, list_salaries[i].overtime_pay);
 			strcpy(salaries_search_result.benefit, list_salaries[i].benefit);
 			strcpy(salaries_search_result.status, list_salaries[i].status);
+			break;
 		}
 	}
 	pthread_exit(NULL);
@@ -118,6 +119,7 @@ void *satisfaction(void *a) {
 			strcpy(satisfaction_search_result.years_at_company, list_satisfaction[i].years_at_company);
 			strcpy(satisfaction_search_result.work_accidents, list_satisfaction[i].work_accidents);
 			strcpy(satisfaction_search_result.promotions_last_5_years, list_satisfaction[i].promotions_last_5_years);
+			break;
 		}
 	}
 	pthread_exit(NULL);
@@ -166,6 +168,7 @@ int server(int sock) {
 				if ((strcasestr(list_id_name[i].emp_name, q.employee_name) != NULL) && ((strcasestr(list_salaries[i].job_title, q.job_title) != NULL)) && ((strcasestr(list_salaries[i].status, q.status) != NULL))) {
 					strcpy(employee_info.emp_id, list_id_name[i].emp_id);
 					strcpy(employee_info.emp_name, list_id_name[i].emp_name);
+					break;
 				}
 			}
 			
