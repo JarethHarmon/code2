@@ -16,10 +16,6 @@ public class ImageScanner : Node
 	private List<IEnumerable<System.IO.DirectoryInfo>> folders = new List<IEnumerable<System.IO.DirectoryInfo>>();
 	private Dictionary<string, List<(string, string, DateTime, long)>> files = new Dictionary<string, List<(string, string, DateTime, long)>>();
 	
-	public override void _Ready() {
-		ScanDirectories("W:/test");
-	}
-	
 	public void ScanDirectories(string path) {
 		var now = DateTime.Now;
 		var di = new System.IO.DirectoryInfo(@path);
