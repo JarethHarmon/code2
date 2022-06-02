@@ -8,9 +8,9 @@ using ImageMagick;
 using Alphaleonis.Win32.Filesystem;
 
 public class SHA256Info {
-	public int index { get; set; } 			// not needed if FindOne() is faster or the same
+	//public int index { get; set; } 			// not needed if FindOne() is faster or the same
 	public string sha256 { get; set; }
-	public bool filter { get; set; }		// probably change into a Dictionary of settings
+	public bool filter { get; set; }		// probably change into a Dictionary of settings (actually flags would be better)
 	public HashSet<string> paths { get; set; }
 	public HashSet<string> tags { get; set; }
 }
@@ -69,5 +69,21 @@ public class Database : Node
 		catch (Exception ex) { GD.Print("LoadRangeSHA256() : ", ex); } 
 	}
 	
+	/* needs try/catch */
+	public void InsertSHAInfo(string sha2561, bool filter1, string[] paths1, string[] tags1) {
+		var sha_info = new SHA256Info {
+			sha256 = sha2561,
+			filter = filter1,
+			paths = new HashSet<string>(paths1),
+			tags = new HashSet<string>(tags1)
+		};
+		sha256s.Insert(sha_info);
+	}
+	
+	
+	public bool GetFilterSHA(string sha256) { return (sha256_info.ContainsKey(sha256)) ? sha256_info[sha256].filter : false; }
+	public string[] GetPathsSHA(string sha256) { return (sha256_info.ContainsKey(sha256)) ? (sha256_info[sha256].paths != null) ? sha256_info[sha256].paths.ToArray() : new string[0] : new string[0]; } /* returns empty string array if paths is null or key is not found, otherwise returns the paths array */
+	public string[] GetTagsSHA(string sha256) { return (sha256_info.ContainsKey(sha256)) ? (sha256_info[sha256].tags != null) ? sha256_info[sha256].tags.ToArray() : new string[0] : new string[0]; }
+	/* not 100% sure the above 2 lines work yet, but it does not have any compile errors (never used encapsulated ternary operators before) */
 	
 }
