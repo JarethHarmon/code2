@@ -43,6 +43,7 @@ func _ready() -> void:
 	var e:int = Directory.new().make_dir_recursive(lss.thumbail_folder)
 	call_deferred("initial_load")
 
+# retrieves thumbnails from Database, splits a section off into page_files, calls prep_load_thumbnails() to start the load threads
 func initial_load() -> void:
 	# filtered_files = Database.GetSHAs()
 	pass
@@ -84,19 +85,36 @@ func _thread(thread_id:int) -> void:
 			stop = true
 		OS.delay_msec(50)
 
-func load_thumbnail(sha256:String, index:int) -> void: pass
+func load_thumbnail(sha256:String, index:int) -> void: 
+	lt.lock()
+	if loaded_thumbnails.has(sha256):
+		lt.unlock()
+		if stop_all: return
+		threadsafe_set_icon(sha256, index)
+	else:
+		lt.unlock()
+		var i:Image = Image.new()
+		var e:int = i.load(lss.thumbail_folder.plus_file(sha256) + ".jpg")
+		if e != OK: return
+		if stop_all: return
+		
+		var it:ImageTexture = ImageTexture.new()
+		it.create_from_image(i, 4)					# flags here should be dependent on some variable
+		lt.lock()
+		loaded_thumbnails[sha256] = it
+		lt.unlock()
+		
+		if stop_all: return
+		threadsafe_set_icon(sha256, index)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+func threadsafe_set_icon(sha256:String, index:int) -> void:
+	lt.lock()
+	var it:ImageTexture = loaded_thumbnails[sha256]
+	lt.unlock()
+	if stop_all: return
+	
+	sc.lock()
+	set_item_icon(index, it)
+	# set text
+	sc.unlock()
 
