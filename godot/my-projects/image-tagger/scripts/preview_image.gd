@@ -5,15 +5,17 @@ const BASE_MAX_DIMENSIONS=16384
 # export (NodePath) var ListItems ; onready var item_list:ItemList = get_node(ListItems)
 export (NodePath) var ViewportDisplay ; onready var viewport_display = get_node(ViewportDisplay)
 export (NodePath) var FileD ; onready var fd:FileDialog = get_node(FileD)
+export (NodePath) var ColorGrade ; onready var color_grade:Control = get_node(ColorGrade)
+export (NodePath) var EdgeMix ; onready var edge_mix:Control = get_node(EdgeMix)
 
-func _input(event) -> void:
-	if fd.visible: return
-	if event is InputEventMouseButton:
-		if event.button_index == BUTTON_LEFT: 
-			fd.mode = 0
-			fd.access = 2
-			fd.window_title = "Choose an image"
-			fd.popup()
+#func _input(event) -> void:
+#	if fd.visible: return
+#	if event is InputEventMouseButton:
+#		if event.button_index == BUTTON_LEFT: 
+#			fd.mode = 0
+#			fd.access = 2
+#			fd.window_title = "Choose an image"
+#			fd.popup()
 			
 func _on_FileDialog_file_selected(path) -> void:
 	var i:Image = Image.new()
@@ -49,5 +51,12 @@ func calc_size(it:ImageTexture) -> Vector2:
 		else: size *= ratio_s.x
 	return size
 
-
-
+func _on_choose_image_pressed() -> void:
+	if fd.visible: return
+	fd.mode = 0
+	fd.access = 2
+	fd.window_title = "Choose an image"
+	fd.popup()
+	
+func _on_color_grade_toggled(button_pressed) -> void: color_grade.visible = button_pressed
+func _on_edge_mix_toggled(button_pressed): edge_mix.visible = button_pressed

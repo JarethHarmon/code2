@@ -19,6 +19,8 @@ mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 3 )
+ColorGrade = NodePath("../ColorGrade")
+EdgeMix = NodePath("../EdgeCustomDefaultMix")
 
 [node name="hbox_0" parent="vbox" instance=ExtResource( 1 )]
 anchor_right = 0.0

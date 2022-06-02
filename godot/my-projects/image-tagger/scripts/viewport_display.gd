@@ -78,3 +78,13 @@ func _on_viewport_display_gui_input(event) -> void:
 		camera.position -= rot_mult * camera.zoom * drag_speed
 		camera.position = lerp(camera.position, camera.position - (rot_mult * camera.zoom * drag_speed), drag_step)
 
+func _on_choose_image_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_color_grade_toggled(button_pressed):
+	pass # Replace with function body.
+
+
+func _on_edge_mix_toggled(button_pressed):
+	pass # Replace with function body.

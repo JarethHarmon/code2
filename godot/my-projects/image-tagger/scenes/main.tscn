@@ -68,8 +68,78 @@ Cam = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/Cam
 ColorGrade = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/ColorGrade")
 EdgeDefaultMotionMix = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/EdgeCustomDefaultMix")
 
+[node name="margin" type="MarginContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_constants/margin_right = 5
+custom_constants/margin_top = 5
+custom_constants/margin_left = 5
+custom_constants/margin_bottom = 5
+
+[node name="vb" type="VBoxContainer" parent="margin"]
+margin_left = 5.0
+margin_top = 5.0
+margin_right = 1915.0
+margin_bottom = 1075.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SPACE" type="Control" parent="margin/vb"]
+margin_right = 1910.0
+margin_bottom = 1037.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="hb" type="HBoxContainer" parent="margin/vb"]
+margin_top = 1041.0
+margin_right = 1910.0
+margin_bottom = 1070.0
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="choose_image" type="Button" parent="margin/vb/hb"]
+margin_right = 127.0
+margin_bottom = 29.0
+text = "Choose Image"
+
+[node name="SPACE1" type="Control" parent="margin/vb/hb"]
+margin_left = 131.0
+margin_right = 147.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+
+[node name="color_grade" type="CheckButton" parent="margin/vb/hb"]
+margin_left = 151.0
+margin_right = 317.0
+margin_bottom = 29.0
+pressed = true
+text = "Color Grading"
+
+[node name="SPACE2" type="Control" parent="margin/vb/hb"]
+margin_left = 321.0
+margin_right = 337.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+
+[node name="edge_mix" type="CheckButton" parent="margin/vb/hb"]
+margin_left = 341.0
+margin_right = 469.0
+margin_bottom = 29.0
+pressed = true
+text = "Edge Mix"
+
 [connection signal="file_selected" from="FileDialog" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_FileDialog_file_selected"]
 [connection signal="gui_input" from="viewport_display" to="viewport_display" method="_on_viewport_display_gui_input"]
+[connection signal="pressed" from="margin/vb/hb/choose_image" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_choose_image_pressed"]
+[connection signal="toggled" from="margin/vb/hb/color_grade" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_color_grade_toggled"]
+[connection signal="toggled" from="margin/vb/hb/edge_mix" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_edge_mix_toggled"]
 
 [editable path="preview_container"]
 [editable path="preview_container/ViewportContainer/Viewport/preview_view"]
