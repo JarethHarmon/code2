@@ -19,13 +19,15 @@ var loaded_thumbnails:Dictionary = {}	# a dictionary storing the thumbnails them
 var file_index:int = 0					# an integer storing the index of the current thumbnail
 		
 var load_threads:Array = []				# an array of threads used for loading thumbnails
-var curr_index:int = 0
+var curr_index:int = 0					# the index in filtered_files(), will be changed by next/prev page buttons; will likely change if/when I start retrieving a subset of SHA256s from Database
+var page_image_count:int = 0			# the number of images that are supposed to be loaded for the current page (cannot use page_files.size() because it is treated as a queue)
+var page_count:int = 0					# the total number of pages, based on images_per_page
 
 var prepping:bool = false
 var stop_all:bool = false
 
 var lss:Dictionary = {
-	"files_per_page" : 100,
+	"images_per_page" : 100,
 	"load_threads" : 5,
 	"thumbail_folder" : "user://thumbnails"
 }
@@ -46,7 +48,14 @@ func _ready() -> void:
 # retrieves thumbnails from Database, splits a section off into page_files, calls prep_load_thumbnails() to start the load threads
 func initial_load() -> void:
 	# filtered_files = Database.GetSHAs()
-	pass
+	page_count = ceil(filtered_files.size() as float / lss.images_per_page as float) as int
+	page_image_count = min(lss.images_per_page, filtered_files.size())
+	for i in page_image_count: self.add_item(filtered_files[i])
+	
+	# set text
+	# create page_number buttons
+	# set page logic
+	prep_load_thumbnails()
 
 func prep_load_thumbnails() -> void:
 	if prepping: return
@@ -61,7 +70,7 @@ func prep_load_thumbnails() -> void:
 	lt.lock() ; loaded_thumbnails.clear() ; lt.unlock()
 	pf.lock()
 	page_files.clear()
-	page_files = filtered_files.slice(curr_index, min(curr_index+lss.files_per_page-1, filtered_files.size()-1)) 
+	page_files = filtered_files.slice(curr_index, min(curr_index+lss.images_per_page-1, filtered_files.size()-1)) 
 	pf.unlock()
 	
 	stop_all = false
