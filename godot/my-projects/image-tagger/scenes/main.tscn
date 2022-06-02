@@ -1,7 +1,15 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://scenes/preview_container.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scripts/viewport_display.gd" type="Script" id=2]
+[ext_resource path="res://themes/theme_4 (arial font).tres" type="Theme" id=3]
+
+[sub_resource type="Gradient" id=2]
+offsets = PoolRealArray( 0, 0.994872 )
+colors = PoolColorArray( 0, 0, 0, 1, 0.403922, 0.431373, 0.403922, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
 
 [sub_resource type="ViewportTexture" id=1]
 viewport_path = NodePath("preview_container/ViewportContainer/Viewport")
@@ -10,6 +18,7 @@ viewport_path = NodePath("preview_container/ViewportContainer/Viewport")
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
+theme = ExtResource( 3 )
 
 [node name="preview_container" parent="." instance=ExtResource( 1 )]
 margin_left = 1920.0
@@ -18,17 +27,6 @@ margin_right = 1920.0
 [node name="vbox" parent="preview_container/ViewportContainer/Viewport/preview_view" index="0"]
 ViewportDisplay = NodePath("../../../../../viewport_display")
 FileD = NodePath("../../../../../FileDialog")
-
-[node name="viewport_display" type="TextureRect" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
-texture = SubResource( 1 )
-expand = true
-stretch_mode = 7
-script = ExtResource( 2 )
-Cam = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/Camera2D")
-ColorGrade = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/ColorGrade")
-EdgeDefaultMotionMix = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/EdgeCustomDefaultMix")
 
 [node name="FileDialog" type="FileDialog" parent="."]
 anchor_left = 0.1
@@ -42,8 +40,36 @@ show_hidden_files = true
 current_dir = "/git/code2/godot/my-projects/image-tagger"
 current_path = "/git/code2/godot/my-projects/image-tagger/"
 
-[connection signal="gui_input" from="viewport_display" to="viewport_display" method="_on_viewport_display_gui_input"]
+[node name="background_color" type="TextureRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = SubResource( 3 )
+expand = true
+
+[node name="background_image" type="TextureRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand = true
+
+[node name="viewport_display" type="TextureRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = SubResource( 1 )
+expand = true
+stretch_mode = 7
+script = ExtResource( 2 )
+Cam = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/Camera2D")
+ColorGrade = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/ColorGrade")
+EdgeDefaultMotionMix = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/EdgeCustomDefaultMix")
+
 [connection signal="file_selected" from="FileDialog" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_FileDialog_file_selected"]
+[connection signal="gui_input" from="viewport_display" to="viewport_display" method="_on_viewport_display_gui_input"]
 
 [editable path="preview_container"]
 [editable path="preview_container/ViewportContainer/Viewport/preview_view"]
