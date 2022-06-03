@@ -22,12 +22,8 @@ void fragment() {
 	float depth_diff = abs(depth_left - depth_right);
 	depth_diff += abs(depth_up - depth_down);
 	
-	if (depth_diff > limit) {
-		COLOR = vec4(0.0, 0.0, 0.0, 1.0) * LineWeight;
-		//COLOR = vec4(0f, 0f, 0f, 0f);
-	} else {
-		COLOR = vec4(textureLod(SCREEN_TEXTURE, SCREEN_UV, GradationSize).rgb, Weight);
-	}
+	if (depth_diff > limit) COLOR = vec4(0.0, 0.0, 0.0, 1.0) * LineWeight;
+	else COLOR = vec4(textureLod(SCREEN_TEXTURE, SCREEN_UV, GradationSize).rgb, Weight);
 }"
 
 [resource]

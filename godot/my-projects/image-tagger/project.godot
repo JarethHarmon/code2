@@ -8,12 +8,22 @@
 
 config_version=4
 
+_global_script_classes=[ {
+"base": "",
+"class": "Gob",
+"language": "NativeScript",
+"path": "res://addons/gob/gob.gdns"
+} ]
+_global_script_class_icons={
+"Gob": ""
+}
+
 [application]
 
 config/name="Image Tagger"
 run/main_scene="res://scenes/main.tscn"
 run/low_processor_mode=true
-config/icon="res://misc/icon.png"
+config/icon="res://assets/icon.png"
 
 [autoload]
 
