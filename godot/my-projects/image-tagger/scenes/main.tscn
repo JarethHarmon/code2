@@ -135,6 +135,16 @@ margin_bottom = 29.0
 pressed = true
 text = "Edge Mix"
 
+[node name="Label" type="Label" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -233.0
+margin_top = -164.0
+margin_right = 194.0
+margin_bottom = 160.0
+
 [connection signal="file_selected" from="FileDialog" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_FileDialog_file_selected"]
 [connection signal="gui_input" from="viewport_display" to="viewport_display" method="_on_viewport_display_gui_input"]
 [connection signal="pressed" from="margin/vb/hb/choose_image" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_choose_image_pressed"]

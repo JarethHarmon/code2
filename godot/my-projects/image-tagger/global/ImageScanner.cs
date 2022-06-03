@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using Alphaleonis.Win32.Filesystem;
 
 // need to add support for long file paths with alphaleonis
+// need to consider using namespaces (instead of?) global autoload singletons
 
 public class ImageScanner : Node
 {
-	public const int MAX_PATH_LENGTH = 256;
 	public HashSet<string> supported_extensions = new HashSet<string>{".PNG", ".JPG"};
 	
 	public List<string> blacklisted_folders = new List<string>{"System Volume Information", "$RECYCLE.BIN"};
@@ -48,7 +48,6 @@ public class ImageScanner : Node
 		} catch (Exception ex) { GD.Print(dir.FullName, "\n", ex); return image_count; }
 		return image_count;
 	}
-	
-	public byte[] LoadFile(string path) { return (path.Length() < MAX_PATH_LENGTH) ? System.IO.File.ReadAllBytes(path) : Alphaleonis.Win32.Filesystem.File.ReadAllBytes(path); }
+
 
 }
