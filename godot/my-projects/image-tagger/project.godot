@@ -30,6 +30,7 @@ config/icon="res://assets/icon.png"
 Database="*res://global/Database.cs"
 ImageOp="*res://global/ImageOp.cs"
 ImageScanner="*res://global/ImageScanner.cs"
+Import="*res://global/import.gd"
 
 [display]
 

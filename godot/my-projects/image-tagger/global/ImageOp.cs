@@ -13,6 +13,12 @@ public class ImageOp : Node
 {
 	public const int MAX_PATH_LENGTH = 256;
 	public Label label;
+	public Node import;
+	
+	public override void _Ready() { 
+		import = (Node) GetNode("/root/Import"); 
+		ImportImage("W:/test/5.png");
+	}
 	
 	public void CalcDifferenceHash(string path) {
 		var stream = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(path);
@@ -61,8 +67,9 @@ public class ImageOp : Node
 		} catch (Exception ex) { GD.Print("SaveThumbnail(): ", ex); return; }
 	}
 	
-	public void ImportImage(string image_path) {
-		
+	public void ImportImage(String image_path) {
+		//GD.Print(ulong.Parse((string) import.Call("get_unsigned_komi_hash", image_path)));
+		ulong komi_hash = ulong.Parse((string)import.Call("get_unsigned_komi_hash", image_path));
 	}
 	
 }
