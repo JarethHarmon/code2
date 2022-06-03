@@ -2,7 +2,6 @@
 #include <Node.hpp>
 #include <memory>
 #include <set>
-#include <io.h>
 #include <string>
 #include <cstring>
 #include "komihash.h"
@@ -24,20 +23,18 @@ public:
     {
     }
 
-    // return as 64bit int (will be automatically signed)
-    //      + slightly faster without string conversions
-    //      + should still be just as accurate (at least within the confines of the program)
-    //      + can process and store with Godot (meaning should result in less storage space (64 bits vs 256bits or 64bytes (if stored as string))
-    //      - may not be accurate/safe to auto-convert between signed and unsigned int
-    //      - my hashes would not be automatically compatible with those from a proper implementation
-
     String get_unsigned_komi_hash(String file_path)
     {
-        FILE *fptr;
+        FILE* fptr;
         char* buffer;
         long filelen;
 
+        // this is why I don't like c++: the official method of using ccs does not work at all, and instead you have to use setlocale()
+        setlocale(LC_ALL, ".65001");
         fptr = fopen(file_path.utf8().get_data(), "rb");
+        //fptr = fopen(file_path.utf8().get_data(), "rb, ccs=UTF-8");
+        if (fptr == NULL) return file_path;
+
         fseek(fptr, 0, SEEK_END);
         filelen = ftell(fptr);
         rewind(fptr);
@@ -56,7 +53,10 @@ public:
         char* buffer;
         long filelen;
 
+        setlocale(LC_ALL, ".65001");
         fptr = fopen(file_path.utf8().get_data(), "rb");
+        if (fptr == NULL) return 1;
+
         fseek(fptr, 0, SEEK_END);
         filelen = ftell(fptr);
         rewind(fptr);

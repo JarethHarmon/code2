@@ -14,10 +14,16 @@ public class ImageOp : Node
 	public const int MAX_PATH_LENGTH = 256;
 	public Label label;
 	public Node import;
+	public ImageScanner iscan;
+	
+	public string thumbnail_path = "W:/test/thumbnails/";
 	
 	public override void _Ready() { 
+		System.IO.Directory.CreateDirectory(thumbnail_path);
 		import = (Node) GetNode("/root/Import"); 
-		ImportImage("W:/test/5.png");
+		iscan = (ImageScanner) GetNode("/root/ImageScanner");
+		iscan.ScanDirectories(@"W:/test");
+		foreach (string path in iscan.GetImages()) ImportImage(path);
 	}
 	
 	public void CalcDifferenceHash(string path) {
@@ -31,7 +37,6 @@ public class ImageOp : Node
 	static string CalcSHA256Hash(string path) {
 		try {
 			var sha256 = SHA256.Create();
-			//byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(LoadFile(path)));
 			byte[] hash = sha256.ComputeHash(LoadFile(path));
 			StringBuilder build = new StringBuilder();
 			for (int i = 0; i < hash.Length; i++) build.Append(hash[i].ToString("x2"));
@@ -63,13 +68,20 @@ public class ImageOp : Node
 			im.Interlace = Interlace.Plane;
 			im.Resize(256, 256);
 			im.Strip();
+			if (System.IO.File.Exists(thumbnail_path)) thumbnail_path += ".jpg";
 			im.Write(thumbnail_path);
 		} catch (Exception ex) { GD.Print("SaveThumbnail(): ", ex); return; }
 	}
 	
 	public void ImportImage(String image_path) {
-		//GD.Print(ulong.Parse((string) import.Call("get_unsigned_komi_hash", image_path)));
-		ulong komi_hash = ulong.Parse((string)import.Call("get_unsigned_komi_hash", image_path));
+		var file_info = new System.IO.FileInfo(image_path);
+		string s_komi_hash = (string) import.Call("get_unsigned_komi_hash", image_path);
+		ulong komi_hash = ulong.Parse(s_komi_hash); 
+		long file_size = file_info.Length;
+		var date_creation = file_info.CreationTimeUtc;
+		
+		string save_path = thumbnail_path + s_komi_hash + ".jpg";
+		SaveThumbnail(image_path, save_path);
 	}
 	
 }

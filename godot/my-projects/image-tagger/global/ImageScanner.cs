@@ -48,6 +48,13 @@ public class ImageScanner : Node
 		} catch (Exception ex) { GD.Print(dir.FullName, "\n", ex); return image_count; }
 		return image_count;
 	}
-
+	
+	public string[] GetImages() {
+		var images = new List<string>();
+		foreach (string folder in files.Keys.ToArray())
+			foreach ((string, string, DateTime, long) image in files[folder])
+				images.Add(folder + "/" + image.Item1);
+		return images.ToArray();
+	}
 
 }
