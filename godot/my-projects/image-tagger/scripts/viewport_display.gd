@@ -39,6 +39,10 @@ var edmm_line_weight:float = 0.0
 var edmm_graduation_size:float = 2.5
 var edmm_weight:float = 0.5
 
+func _ready() -> void:
+	var gob:Gob = Gob.new()
+	print(gob.get_unsigned_komi_hash("W:/test/5.png"))
+
 func zoom_point(amount:float, position:Vector2) -> void:
 	var prev_zoom:Vector2 = camera.zoom
 	camera.zoom += camera.zoom * amount
