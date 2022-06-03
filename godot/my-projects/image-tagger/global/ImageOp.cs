@@ -16,14 +16,19 @@ public class ImageOp : Node
 	public Node import;
 	public ImageScanner iscan;
 	
-	public string thumbnail_path = "W:/test/thumbnails/";
+	public string thumbnail_path = "";
 	
 	public override void _Ready() { 
-		System.IO.Directory.CreateDirectory(thumbnail_path);
 		import = (Node) GetNode("/root/Import"); 
 		iscan = (ImageScanner) GetNode("/root/ImageScanner");
-		iscan.ScanDirectories(@"W:/test");
-		foreach (string path in iscan.GetImages()) ImportImage(path);
+		//iscan.ScanDirectories(@"W:/test");
+		//foreach (string path in iscan.GetImages()) ImportImage(path);
+	}
+	
+	public void ImportImages(string path) {
+		iscan.ScanDirectories(@path);
+		foreach (string image_path in iscan.GetImages()) ImportImage(image_path);
+		iscan.Clear();
 	}
 	
 	public void CalcDifferenceHash(string path) {
@@ -68,20 +73,22 @@ public class ImageOp : Node
 			im.Interlace = Interlace.Plane;
 			im.Resize(256, 256);
 			im.Strip();
+			// temporary code to check if hashes collide too often; so far >4500 hashed with 0 collisions
 			if (System.IO.File.Exists(thumbnail_path)) thumbnail_path += ".jpg";
 			im.Write(thumbnail_path);
 		} catch (Exception ex) { GD.Print("SaveThumbnail(): ", ex); return; }
 	}
-	
-	public void ImportImage(String image_path) {
-		var file_info = new System.IO.FileInfo(image_path);
-		string s_komi_hash = (string) import.Call("get_unsigned_komi_hash", image_path);
-		ulong komi_hash = ulong.Parse(s_komi_hash); 
-		long file_size = file_info.Length;
-		var date_creation = file_info.CreationTimeUtc;
 		
-		string save_path = thumbnail_path + s_komi_hash + ".jpg";
-		SaveThumbnail(image_path, save_path);
+	public void ImportImage(string image_path) {
+		try {
+			string s_komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
+			string save_path = thumbnail_path + s_komihash + ".jpg"; 
+			ulong komihash = ulong.Parse(s_komihash);
+			SaveThumbnail(image_path, save_path);
+			// add hash to database (also need to add metadata like file_size/extension/creation_time_utc/etc)
+			// need to decide when/how this should interact with ImageScanner to be most efficient
+		}
+		catch (Exception ex) { GD.Print("ImportImage(): ", ex); return; }
 	}
 	
 }

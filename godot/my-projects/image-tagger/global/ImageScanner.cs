@@ -31,7 +31,9 @@ public class ImageScanner : Node
 				if (supported_extensions.Contains(f.Extension.ToUpperInvariant())) {
 					fs.Add((f.Name, f.Extension, f.CreationTimeUtc, f.Length)); 
 					image_count++;
-					//GD.Print(f.Name, f.Extension);
+					// need to either remove the files Dictionary and add metadata/calc komihash/thumbnail here
+					// or iterate through all the files after this finishes (probably in this class for access to files)
+					// either way it needs to be threaded, so whatever it is will be called by GDScript
 				}
 			}
 			
@@ -56,5 +58,11 @@ public class ImageScanner : Node
 				images.Add(folder + "/" + image.Item1);
 		return images.ToArray();
 	}
-
+	
+	// consider EnsureCapacity()
+	public void Clear() {
+		folders.Clear();
+		files.Clear();
+	}
+	
 }
