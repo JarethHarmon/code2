@@ -19,5 +19,5 @@ data_*/
 ip.txt
 *.bak
 bin/
-dev/*
-!/dev/src/
+**/dev/*
+!**/dev/src
