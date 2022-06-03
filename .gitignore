@@ -18,3 +18,4 @@ data_*/
 # File-specific ignores
 ip.txt
 *.bak
+bin/
