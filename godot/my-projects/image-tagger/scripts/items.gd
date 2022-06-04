@@ -37,8 +37,7 @@ func _notification(what) -> void:
 	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST: 
 		stop_all = true
 		for t in load_threads: if t.is_alive() or t.is_active(): t.wait_to_finish()
-		Database.Destroy()
-		get_tree().quit()
+		# need to notify main that it is safe to exit
 
 func _ready() -> void:
 	# var e:int = Directory.new().make_dir_recursive(lss.thumbail_folder)

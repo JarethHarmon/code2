@@ -74,6 +74,7 @@ func _on_viewport_display_gui_input(event) -> void:
 	elif event is InputEventMouseMotion and dragging:
 		var rot = deg2rad(camera.rotation_degrees)
 		var sin_rot = sin(rot) ; var cos_rot = cos(rot)
+		# ensures that dragging works correctly when the camera is rotated
 		var rot_mult:Vector2 = Vector2((cos_rot * event.relative.x) - (sin_rot * event.relative.y), (sin_rot * event.relative.x) + (cos_rot * event.relative.y))
 		camera.position -= rot_mult * camera.zoom * drag_speed
 		camera.position = lerp(camera.position, camera.position - (rot_mult * camera.zoom * drag_speed), drag_step)
