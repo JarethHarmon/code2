@@ -14,6 +14,9 @@ enum selection { THUMBNAIL, IMPORT }
 var select:int = selection.IMPORT
 var use_recursion:bool = true
 
+func _ready() -> void:
+	var _err:int = Signals.connect("load_image", self, "_on_FileDialog_file_selected") # should just work
+
 func _on_FileDialog_dir_selected(dir:String) -> void: 
 	match select:
 		selection.IMPORT: 
@@ -25,7 +28,16 @@ func _on_FileDialog_dir_selected(dir:String) -> void:
 #			thumb_path_label.text = dir
 #			var _err:int = Directory.new().make_dir_recursive(dir)
 
+onready var image_mutex:Mutex = Mutex.new()
+onready var image_thread:Thread = Thread.new()
 func _on_FileDialog_file_selected(path:String) -> void:
+	fd.hide()
+	if (image_mutex.try_lock() != OK): return
+	if (image_thread.is_alive()): return
+	image_mutex.lock()
+	var _err:int = image_thread.start(self, "_thread", path)
+
+func _thread(path:String) -> void:
 	var i:Image = Image.new()
 	var e:int = i.load(path)
 	if e != OK: return
@@ -34,7 +46,12 @@ func _on_FileDialog_file_selected(path:String) -> void:
 	it.create_from_image(i, 0)
 	it.set_size_override(calc_size(it))
 	$hbox_0/image_0.texture = it
-	fd.hide()
+	call_deferred("_done")
+
+func _done() -> void:
+	if image_thread.is_alive() or image_thread.is_active(): image_thread.wait_to_finish()
+	image_mutex.unlock()
+	#print("DONE\n")
 
 func calc_size(it:ImageTexture) -> Vector2:
 	var size_1:Vector2 = viewport_display.rect_size

@@ -1,5 +1,7 @@
 extends Control
 
+export (NodePath) var Images ; onready var images:ItemList = get_node(Images)
+
 #onready var default_metadata_path:String = OS.get_data_dir()
 onready var default_metadata_path:String = ProjectSettings.globalize_path("user://metadata/")
 onready var default_thumbnail_path:String = ProjectSettings.globalize_path("user://metadata/thumbnails/")
@@ -12,6 +14,7 @@ func _notification(what) -> void:
 		Database.CheckpointKomiHash()
 		Database.Destroy() 
 		#print_stray_nodes()
+		images.stop_threads()
 		get_tree().quit()
 
 func _ready() -> void:

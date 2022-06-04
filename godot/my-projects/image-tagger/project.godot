@@ -31,6 +31,11 @@ Database="*res://global/Database.cs"
 ImageOp="*res://global/ImageOp.cs"
 ImageScanner="*res://global/ImageScanner.cs"
 Import="*res://global/import.gd"
+Signals="*res://global/signals.gd"
+
+[debug]
+
+gdscript/warnings/unused_signal=false
 
 [display]
 

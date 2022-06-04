@@ -1,13 +1,14 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://scenes/preview_container.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scripts/viewport_display.gd" type="Script" id=2]
 [ext_resource path="res://themes/theme_4 (arial font).tres" type="Theme" id=3]
 [ext_resource path="res://scripts/main.gd" type="Script" id=4]
+[ext_resource path="res://scenes/image_list.tscn" type="PackedScene" id=5]
 
 [sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.994872 )
-colors = PoolColorArray( 0, 0, 0, 1, 0.403922, 0.431373, 0.403922, 1 )
+colors = PoolColorArray( 0.121569, 0.054902, 0.211765, 1, 0.0235294, 0.0156863, 0.0784314, 1 )
 
 [sub_resource type="GradientTexture" id=3]
 gradient = SubResource( 2 )
@@ -21,13 +22,14 @@ anchor_bottom = 1.0
 mouse_filter = 2
 theme = ExtResource( 3 )
 script = ExtResource( 4 )
+Images = NodePath("margin/hsplit/left/image_list/margin/vbox/images")
 
 [node name="preview_container" parent="." instance=ExtResource( 1 )]
-margin_left = 1920.0
-margin_right = 1920.0
+margin_left = 3840.0
+margin_right = 3840.0
 
 [node name="vbox" parent="preview_container/ViewportContainer/Viewport/preview_view" index="0"]
-ViewportDisplay = NodePath("../../../../../viewport_display")
+ViewportDisplay = NodePath("../../../../../margin/hsplit/right/preview/viewport_display")
 FileD = NodePath("../../../../../FileDialog")
 
 [node name="background_color" type="TextureRect" parent="."]
@@ -47,17 +49,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 expand = true
 
-[node name="viewport_display" type="TextureRect" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
-texture = SubResource( 1 )
-expand = true
-stretch_mode = 7
-script = ExtResource( 2 )
-Cam = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/Camera2D")
-ColorGrade = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/ColorGrade")
-EdgeDefaultMotionMix = NodePath("../preview_container/ViewportContainer/Viewport/preview_view/EdgeCustomDefaultMix")
-
 [node name="margin" type="MarginContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -69,93 +60,188 @@ custom_constants/margin_top = 5
 custom_constants/margin_left = 5
 custom_constants/margin_bottom = 5
 
-[node name="vb" type="VBoxContainer" parent="margin"]
+[node name="hsplit" type="HSplitContainer" parent="margin"]
 margin_left = 5.0
 margin_top = 5.0
 margin_right = 1915.0
 margin_bottom = 1075.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+split_offset = -300
+
+[node name="left" type="HSplitContainer" parent="margin/hsplit"]
+margin_right = 651.0
+margin_bottom = 1070.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="image_list" parent="margin/hsplit/left" instance=ExtResource( 5 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 651.0
+margin_bottom = 1070.0
+size_flags_horizontal = 3
+
+[node name="vbox" parent="margin/hsplit/left/image_list/margin" index="0"]
+margin_right = 649.0
+margin_bottom = 1068.0
+
+[node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="0"]
+margin_right = 647.0
+margin_bottom = 1066.0
+
+[node name="right" type="HSplitContainer" parent="margin/hsplit"]
+margin_left = 659.0
+margin_right = 1910.0
+margin_bottom = 1070.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="preview" type="Control" parent="margin/hsplit/right"]
+margin_right = 1251.0
+margin_bottom = 1070.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SPACE" type="Control" parent="margin/vb"]
-margin_right = 1910.0
+[node name="background_color" type="TextureRect" parent="margin/hsplit/right/preview"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+texture = SubResource( 3 )
+expand = true
+
+[node name="background_image" type="TextureRect" parent="margin/hsplit/right/preview"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand = true
+
+[node name="timer" type="Timer" parent="margin/hsplit/right/preview"]
+
+[node name="viewport_display" type="TextureRect" parent="margin/hsplit/right/preview"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+texture = SubResource( 1 )
+expand = true
+stretch_mode = 7
+script = ExtResource( 2 )
+Cam = NodePath("../../../../../preview_container/ViewportContainer/Viewport/preview_view/Camera2D")
+ColorGrade = NodePath("../../../../../preview_container/ViewportContainer/Viewport/preview_view/ColorGrade")
+EdgeDefaultMotionMix = NodePath("../../../../../preview_container/ViewportContainer/Viewport/preview_view/EdgeCustomDefaultMix")
+
+[node name="vb" type="VBoxContainer" parent="margin/hsplit/right/preview"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SPACE" type="Control" parent="margin/hsplit/right/preview/vb"]
+margin_right = 1251.0
 margin_bottom = 1004.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="hb2" type="HBoxContainer" parent="margin/vb"]
+[node name="hb2" type="HBoxContainer" parent="margin/hsplit/right/preview/vb"]
 margin_top = 1008.0
-margin_right = 1910.0
+margin_right = 1251.0
 margin_bottom = 1037.0
 
-[node name="use_recursion" type="CheckBox" parent="margin/vb/hb2"]
-margin_right = 146.0
+[node name="SPACE5" type="Control" parent="margin/hsplit/right/preview/vb/hb2"]
+margin_right = 1093.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="use_recursion" type="CheckBox" parent="margin/hsplit/right/preview/vb/hb2"]
+margin_left = 1097.0
+margin_right = 1243.0
 margin_bottom = 29.0
 pressed = true
 text = "Use Recursion"
 
-[node name="hb" type="HBoxContainer" parent="margin/vb"]
+[node name="SPACE6" type="Control" parent="margin/hsplit/right/preview/vb/hb2"]
+margin_left = 1247.0
+margin_right = 1251.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 4, 0 )
+mouse_filter = 2
+
+[node name="hb" type="HBoxContainer" parent="margin/hsplit/right/preview/vb"]
 margin_top = 1041.0
-margin_right = 1910.0
+margin_right = 1251.0
 margin_bottom = 1070.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="import_images" type="Button" parent="margin/vb/hb"]
-margin_right = 124.0
-margin_bottom = 29.0
-text = "Import Images"
-
-[node name="SPACE1" type="Control" parent="margin/vb/hb"]
-margin_left = 128.0
-margin_right = 144.0
-margin_bottom = 29.0
-rect_min_size = Vector2( 16, 0 )
-mouse_filter = 2
-
-[node name="choose_image" type="Button" parent="margin/vb/hb"]
-margin_left = 148.0
-margin_right = 275.0
-margin_bottom = 29.0
-text = "Choose Image"
-
-[node name="SPACE2" type="Control" parent="margin/vb/hb"]
-margin_left = 279.0
-margin_right = 295.0
-margin_bottom = 29.0
-rect_min_size = Vector2( 16, 0 )
-mouse_filter = 2
-
-[node name="color_grade" type="CheckButton" parent="margin/vb/hb"]
-margin_left = 299.0
-margin_right = 465.0
-margin_bottom = 29.0
-pressed = true
-text = "Color Grading"
-
-[node name="SPACE3" type="Control" parent="margin/vb/hb"]
-margin_left = 469.0
-margin_right = 485.0
-margin_bottom = 29.0
-rect_min_size = Vector2( 16, 0 )
-mouse_filter = 2
-
-[node name="edge_mix" type="CheckButton" parent="margin/vb/hb"]
-margin_left = 489.0
-margin_right = 617.0
-margin_bottom = 29.0
-pressed = true
-text = "Edge Mix"
-
-[node name="SPACE4" type="Control" parent="margin/vb/hb"]
-margin_left = 621.0
-margin_right = 1910.0
+[node name="SPACE4" type="Control" parent="margin/hsplit/right/preview/vb/hb"]
+margin_right = 622.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
+
+[node name="edge_mix" type="CheckButton" parent="margin/hsplit/right/preview/vb/hb"]
+margin_left = 626.0
+margin_right = 754.0
+margin_bottom = 29.0
+pressed = true
+text = "Edge Mix"
+
+[node name="SPACE3" type="Control" parent="margin/hsplit/right/preview/vb/hb"]
+margin_left = 758.0
+margin_right = 774.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+
+[node name="color_grade" type="CheckButton" parent="margin/hsplit/right/preview/vb/hb"]
+margin_left = 778.0
+margin_right = 944.0
+margin_bottom = 29.0
+pressed = true
+text = "Color Grading"
+
+[node name="SPACE2" type="Control" parent="margin/hsplit/right/preview/vb/hb"]
+margin_left = 948.0
+margin_right = 964.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+
+[node name="choose_image" type="Button" parent="margin/hsplit/right/preview/vb/hb"]
+margin_left = 968.0
+margin_right = 1095.0
+margin_bottom = 29.0
+text = "Choose Image"
+
+[node name="SPACE1" type="Control" parent="margin/hsplit/right/preview/vb/hb"]
+margin_left = 1099.0
+margin_right = 1115.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+
+[node name="import_images" type="Button" parent="margin/hsplit/right/preview/vb/hb"]
+margin_left = 1119.0
+margin_right = 1243.0
+margin_bottom = 29.0
+text = "Import Images"
+
+[node name="SPACE5" type="Control" parent="margin/hsplit/right/preview/vb/hb"]
+margin_left = 1247.0
+margin_right = 1251.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 4, 0 )
+mouse_filter = 2
 
 [node name="Label" type="Label" parent="."]
 anchor_left = 0.5
@@ -178,14 +264,15 @@ access = 2
 current_dir = "/git/code2/godot/my-projects/image-tagger"
 current_path = "/git/code2/godot/my-projects/image-tagger/"
 
-[connection signal="gui_input" from="viewport_display" to="viewport_display" method="_on_viewport_display_gui_input"]
-[connection signal="toggled" from="margin/vb/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
-[connection signal="pressed" from="margin/vb/hb/import_images" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_import_images_pressed"]
-[connection signal="pressed" from="margin/vb/hb/choose_image" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_choose_image_pressed"]
-[connection signal="toggled" from="margin/vb/hb/color_grade" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_color_grade_toggled"]
-[connection signal="toggled" from="margin/vb/hb/edge_mix" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_edge_mix_toggled"]
+[connection signal="gui_input" from="margin/hsplit/right/preview/viewport_display" to="margin/hsplit/right/preview/viewport_display" method="_on_viewport_display_gui_input"]
+[connection signal="toggled" from="margin/hsplit/right/preview/vb/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
+[connection signal="toggled" from="margin/hsplit/right/preview/vb/hb/edge_mix" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_edge_mix_toggled"]
+[connection signal="toggled" from="margin/hsplit/right/preview/vb/hb/color_grade" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_color_grade_toggled"]
+[connection signal="pressed" from="margin/hsplit/right/preview/vb/hb/choose_image" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_choose_image_pressed"]
+[connection signal="pressed" from="margin/hsplit/right/preview/vb/hb/import_images" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_import_images_pressed"]
 [connection signal="dir_selected" from="FileDialog" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_FileDialog_dir_selected"]
 [connection signal="file_selected" from="FileDialog" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_FileDialog_file_selected"]
 
 [editable path="preview_container"]
 [editable path="preview_container/ViewportContainer/Viewport/preview_view"]
+[editable path="margin/hsplit/left/image_list"]
