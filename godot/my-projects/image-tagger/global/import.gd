@@ -1,7 +1,15 @@
 extends Node
 
-func get_signed_komi_hash(path:String) -> int: return Gob.new().get_signed_komi_hash(path)
-func get_unsigned_komi_hash(path:String) -> String: return Gob.new().get_unsigned_komi_hash(path)
+func get_signed_komi_hash(path:String) -> int: 
+	var gob:Gob = Gob.new()
+	var komi = gob.get_signed_komi_hash(path)
+	gob.queue_free()
+	return komi
+func get_unsigned_komi_hash(path:String) -> String: 
+	var gob:Gob = Gob.new()
+	var komi = gob.get_unsigned_komi_hash(path)
+	gob.queue_free()
+	return komi
 
 # var import_thread:Thread = null
 onready var import_thread:Thread = Thread.new()
