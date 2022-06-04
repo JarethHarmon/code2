@@ -1,21 +1,26 @@
 extends ItemList
 
+# TODO:
+	# only remove from loaded_thumbnails when its page is removed from pages_queue
+	# ensure that the C# Dictionary also clears its old pages
+	# 
+
 const icon_broken:StreamTexture = preload("res://assets/icon-broken.png")
 const icon_loading:StreamTexture = preload("res://assets/buffer-01.png")
 
 export (NodePath) var PrevPage ; onready var prev_page:Button = get_node(PrevPage)
 export (NodePath) var NextPage ; onready var next_page:Button = get_node(NextPage)
 
-onready var sc:Mutex = Mutex.new() # scene
-onready var fi:Mutex = Mutex.new() # file index
-onready var pf:Mutex = Mutex.new() # page_files
-onready var lt:Mutex = Mutex.new() # loaded_thumbnails
+onready var sc:Mutex = Mutex.new() 		# scene
+onready var fi:Mutex = Mutex.new() 		# file index
+onready var pf:Mutex = Mutex.new() 		# page_files
+onready var lt:Mutex = Mutex.new() 		# loaded_thumbnails
 
 var pages_queue:Array = [] 				# fifo queue, stores page_numbers (current_page)
 var pages:Dictionary = {} 				# page_number : [komihash]
 var page_files:Array = []				# an array of komi64s representing the thumbnails on the current page (used as a queue)
 var loaded_thumbnails:Dictionary = {}	# a dictionary storing the thumbnails themselves as a komi64:ImageTexture key:value pair
-var file_index:int = 0					# an integer storing the index of the current thumbnail
+var item_index:int = 0					# an integer storing the index of the current item
 		
 var load_threads:Array = []				# an array of threads used for loading thumbnails
 var offset:int = 0						# the index in the database (offset=200 means that 201-1200 are in filtered_files)
@@ -24,13 +29,13 @@ var page_image_count:int = 0			# the number of images that are supposed to be lo
 var total_pages:int = 0					# total number of pages for the current query (total_image_count/images_per_page)
 var current_page:int = 1				# the current page of images
 
-var timer_delay:float = 0.3
+var timer_delay:float = 0.3				# delay for allowed presses of prev/next buttons
 
-var loading:bool = false
-var prepping:bool = false
-var stop_all:bool = false
+var loading:bool = false				# 
+var prepping:bool = false				# 
+var stop_all:bool = false				# indicates to the threads that they should stop running
 
-var lss:Dictionary = {
+var lss:Dictionary = {					# stores user-defined settings for this script
 	"images_per_page" : 100,
 	"load_threads" : 5,
 	"pages_to_store" : 5,
@@ -73,9 +78,9 @@ func initial_load() -> void:
 	else: page_image_count = pages[current_page].size()
 	
   # call next function
-	self.call_deferred("test")
+	self.call_deferred("_threadsafe_clear")
 
-func test() -> void:
+func _threadsafe_clear() -> void:
 	sc.lock()
 	if self.get_item_count() > 0:
 		for i in page_image_count: self.set_item_icon(i, null)
@@ -84,8 +89,7 @@ func test() -> void:
 		yield(get_tree(), "idle_frame")
 		yield(get_tree(), "idle_frame")
 	for i in page_image_count:
-		self.add_item(pages[current_page][i])
-		#self.add_item(filtered_files[i]) #self.add_item("") #
+		self.add_item(pages[current_page][i]) #self.add_item("") #
 		self.set_item_icon(i, icon_loading)
 	get_parent().get_node("page_buttons/Label").text = String(current_page) + "/" + String(total_pages)
 	sc.unlock()
@@ -98,8 +102,9 @@ func prep_load_thumbnails() -> void:
 	load_threads.clear()
 	for i in lss.load_threads: load_threads.append(Thread.new())
 	
-	fi.lock() ; file_index = 0; fi.unlock()
+	fi.lock() ; item_index = 0; fi.unlock()
 	lt.lock() ; loaded_thumbnails.clear() ; lt.unlock()
+	
 	pf.lock()
 	page_files.clear()
 	page_files = pages[current_page]
@@ -119,8 +124,8 @@ func _thread(_thread_id:int) -> void:
 		else:
 			fi.lock()
 			var komi64:String = page_files.pop_front()
-			var index:int = file_index
-			file_index += 1
+			var index:int = item_index
+			item_index += 1
 			fi.unlock()
 			pf.unlock()
 			load_thumbnail(komi64, index)
@@ -131,7 +136,7 @@ func load_thumbnail(komi64:String, index:int) -> void:
 	if loaded_thumbnails.has(komi64):
 		lt.unlock()
 		if stop_all:return
-		threadsafe_set_icon(komi64, index)
+		_threadsafe_set_icon(komi64, index)
 	else:
 		lt.unlock()
 		var i:Image = Image.new()
@@ -148,9 +153,9 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		lt.unlock()
 		
 		if stop_all: return
-		threadsafe_set_icon(komi64, index)
+		_threadsafe_set_icon(komi64, index)
 		
-func threadsafe_set_icon(komi64:String, index:int) -> void:
+func _threadsafe_set_icon(komi64:String, index:int) -> void:
 	lt.lock()
 	var it:ImageTexture = loaded_thumbnails[komi64]
 	lt.unlock()
@@ -162,6 +167,7 @@ func threadsafe_set_icon(komi64:String, index:int) -> void:
 
 func _on_images_item_selected(index:int) -> void:
 	var it:Texture = get_item_icon(index)
+  # return if the user clicked a buffering image
 	if it is StreamTexture: return
 	var komi64:String = it.get_meta("komi64")
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
@@ -172,7 +178,6 @@ func _on_Timer_timeout() -> void:
 	next_page.disabled = false
 
 func _on_prev_page_button_up() -> void:	
-#func _on_prev_page_pressed() -> void:
 	if loading: return
 	if current_page == 1: return
 	
@@ -183,9 +188,7 @@ func _on_prev_page_button_up() -> void:
 	current_page -= 1
 	initial_load()
 
-
 func _on_next_page_button_up() -> void:
-#func _on_next_page_pressed() -> void:
 	if loading: return
 	if current_page == total_pages: return
 
