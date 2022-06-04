@@ -17,7 +17,7 @@ func _on_FileDialog_dir_selected(dir:String) -> void:
 	match select:
 		selection.IMPORT: 
 			if ImageOp.thumbnail_path == "": return
-			Import.start_importing(dir, true)
+			Import.queue_append(dir, true)
 			
 #		selection.THUMBNAIL: 
 #			ImageOp.thumbnail_path = dir + "/"
