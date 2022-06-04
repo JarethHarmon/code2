@@ -11,6 +11,7 @@ func _notification(what) -> void:
 	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
 		Database.CheckpointKomiHash()
 		Database.Destroy() 
+		#print_stray_nodes()
 		get_tree().quit()
 
 func _ready() -> void:

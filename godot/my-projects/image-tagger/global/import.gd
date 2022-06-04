@@ -1,7 +1,15 @@
 extends Node
 
-func get_signed_komi_hash(path:String) -> int: return Gob.new().get_signed_komi_hash(path)
-func get_unsigned_komi_hash(path:String) -> String: return Gob.new().get_unsigned_komi_hash(path)
+func get_signed_komi_hash(path:String) -> int: 
+	var gob:Gob = Gob.new()
+	var komi:int = gob.get_signed_komi_hash(path)
+	gob.queue_free()
+	return komi
+func get_unsigned_komi_hash(path:String) -> String: 
+	var gob:Gob = Gob.new()
+	var komi:String = gob.get_unsigned_komi_hash(path)
+	gob.queue_free()
+	return komi
 
 # var import_thread:Thread = null
 onready var import_thread:Thread = Thread.new()
@@ -18,7 +26,8 @@ func start_importer() -> void:
 	var _err:int = import_thread.start(self, "_thread")
 	importer_active = true
 
-func queue_append(import_folder:String, recursive:bool=true) -> void: 
+func queue_append(import_folder:String, recursive:bool=true) -> void:
+	print("added to queue (recursive = ", recursive, ") : \n\t", import_folder, "\n") 
 	queue.append([import_folder, recursive])
 	if (!importer_active): start_importer()
 
@@ -33,5 +42,5 @@ func _done() -> void:
 	if import_thread.is_alive() or import_thread.is_active(): import_thread.wait_to_finish()
 	importer_active = false
 	import_mutex.unlock()
-	print("DONE")
+	print("DONE\n")
 	
