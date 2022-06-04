@@ -7,16 +7,14 @@ using LiteDB;
 using ImageMagick;
 using Alphaleonis.Win32.Filesystem;
 
-public class SHA256Info {
-	//public int index { get; set; } 			// not needed if FindOne() is faster or the same
-	public string sha256 { get; set; }
-	public bool filter { get; set; }		// probably change into a Dictionary of settings (actually flags would be better)
+public class KomiHashInfo {
+	public ulong komihash { get; set; }
+	public bool filter { get; set; }
 	public HashSet<string> paths { get; set; }
 	public HashSet<string> tags { get; set; }
 }
 
-public class Database : Node
-{
+public class Database : Node {
 	// need to do a speed comparsion between
 	// 		col.FindById(sha256);
 	// and 
@@ -24,34 +22,37 @@ public class Database : Node
 	// if they are about the same or 2nd one is faster I will leave the Ids as numbers and add a sha256 variable
 	// if the first one is significantly faster then I will instead add an index variable to the class and use sha256 as the id
 	
-	public string metadata_path;
 	public bool use_journal = true;
 	
-	public LiteDatabase db_sha256;
-	
-	public ILiteCollection<SHA256Info> sha256s;
-	
-	public Dictionary<string, SHA256Info> sha256_info = new Dictionary<string, SHA256Info>();
-	
+	public string metadata_path;
 	public void SetMetadataPath(string path) { metadata_path = path; }
 	
-	public void Create() {
-		if (use_journal) {
-			db_sha256 = new LiteDatabase(metadata_path + "sha256_info.db");
-			BsonMapper.Global.Entity<SHA256Info>().Id(x => x.sha256);		// not needed if FindOne() is faster or the same
-			sha256s = db_sha256.GetCollection<SHA256Info>("sha256s");
-		}
-	}
 	
-	public void Destroy() {
-		db_sha256.Dispose();
-	}
+	public LiteDatabase db_komihash;
+	public ILiteCollection<KomiHashInfo> col_komihash;
+	public Dictionary<ulong, KomiHashInfo> komihash_info = new Dictionary<ulong, KomiHashInfo>();
 	
-	public void LoadAllSHA256() {
+	public int Create() {
 		try {
-			var shas = sha256s.FindAll();
-			if (shas != null) foreach (SHA256Info sha in shas) 
-				sha256_info[sha.sha256] = sha;
+			if (use_journal) {
+				db_komihash = new LiteDatabase(metadata_path + "komihash_info.db");
+				BsonMapper.Global.Entity<KomiHashInfo>().Id(x => x.komihash);		// not needed if FindOne() is faster or the same
+				col_komihash = db_komihash.GetCollection<KomiHashInfo>("komihashes");
+			}
+			return 0;
+		}
+		catch (Exception ex) { GD.Print("Database::Create(): ", ex); return 1; }
+	}
+	public void Destroy() {
+		db_komihash.Dispose();
+	}
+	
+	public void LoadAllKomiHash() {
+		try {
+			var komihashes = col_komihash.FindAll();
+			if (komihashes != null) 
+				foreach (KomiHashInfo khash in komihashes) 
+					komihash_info[khash.komihash] = khash;
 		} 
 		catch (Exception ex) { GD.Print("LoadAllSHA256() : ", ex); }
 	}
@@ -61,30 +62,31 @@ public class Database : Node
 	 * NOTE: assumes that I will use numeric IDs, just change _Id checks to index otherwise
 	 * TODO: add options related to filtering and sorting (needs to be done on the database if I am only retrieving a section of the shas)
 	*/
-	public void LoadRangeSHA256(int start, int number) {
+	public void LoadRangeKomiHash(int start, int number) {
 		try {
-			var shas = sha256s.Find(Query.Between("_Id", start, start+number));
-			if (shas != null) foreach (SHA256Info sha in shas)
-				sha256_info[sha.sha256] = sha;
+			var komihashes = col_komihash.Find(Query.Between("_Id", start, start+number));
+			if (komihashes != null) 
+				foreach (KomiHashInfo khash in komihashes)
+					komihash_info[khash.komihash] = khash;
 		}
 		catch (Exception ex) { GD.Print("LoadRangeSHA256() : ", ex); } 
 	}
 	
 	/* needs try/catch */
-	public void InsertSHAInfo(string sha2561, bool filter1, string[] paths1, string[] tags1) {
-		var sha_info = new SHA256Info {
-			sha256 = sha2561,
+	public void InsertKomiHashInfo(ulong komihash1, bool filter1, string[] paths1, string[] tags1) {
+		var komihash_info = new KomiHashInfo {
+			komihash = komihash1,
 			filter = filter1,
 			paths = new HashSet<string>(paths1),
 			tags = new HashSet<string>(tags1)
 		};
-		sha256s.Insert(sha_info);
+		col_komihash.Insert(komihash_info);
 	}
 	
 	
-	public bool GetFilterSHA(string sha256) { return (sha256_info.ContainsKey(sha256)) ? sha256_info[sha256].filter : false; }
-	public string[] GetPathsSHA(string sha256) { return (sha256_info.ContainsKey(sha256)) ? (sha256_info[sha256].paths != null) ? sha256_info[sha256].paths.ToArray() : new string[0] : new string[0]; } /* returns empty string array if paths is null or key is not found, otherwise returns the paths array */
-	public string[] GetTagsSHA(string sha256) { return (sha256_info.ContainsKey(sha256)) ? (sha256_info[sha256].tags != null) ? sha256_info[sha256].tags.ToArray() : new string[0] : new string[0]; }
+	public bool GetFilterSHA(ulong hash) { return (komihash_info.ContainsKey(hash)) ? komihash_info[hash].filter : false; }
+	public string[] GetPathsSHA(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].paths != null) ? komihash_info[hash].paths.ToArray() : new string[0] : new string[0]; } /* returns empty string array if paths is null or key is not found, otherwise returns the paths array */
+	public string[] GetTagsSHA(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].tags != null) ? komihash_info[hash].tags.ToArray() : new string[0] : new string[0]; }
 	/* not 100% sure the above 2 lines work yet, but it does not have any compile errors (never used encapsulated ternary operators before) */
 	
 }

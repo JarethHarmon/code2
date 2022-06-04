@@ -37,7 +37,7 @@ func _notification(what) -> void:
 	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST: 
 		stop_all = true
 		for t in load_threads: if t.is_alive() or t.is_active(): t.wait_to_finish()
-		# CLOSE DATABASE
+		Database.Destroy()
 		get_tree().quit()
 
 func _ready() -> void:

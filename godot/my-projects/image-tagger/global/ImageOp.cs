@@ -22,8 +22,6 @@ public class ImageOp : Node
 	public override void _Ready() { 
 		import = (Node) GetNode("/root/Import"); 
 		iscan = (ImageScanner) GetNode("/root/ImageScanner");
-		//iscan.ScanDirectories(@"W:/test");
-		//foreach (string path in iscan.GetImages()) ImportImage(path);
 	}
 	
 	public void ImportImages(string path) {

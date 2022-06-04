@@ -17,3 +17,6 @@ func _ready() -> void:
 		var err:int = dir.make_dir_recursive(default_thumbnail_path)
 		if err == OK: ImageOp.SetThumbnailPath(default_thumbnail_path)
 	
+	if (Database.Create() == OK): print(default_metadata_path)
+
+
