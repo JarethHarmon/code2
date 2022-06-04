@@ -66,6 +66,18 @@ public class ImageOp : Node
 		try { return new MagickImageInfo(image_path).Format.ToString().ToUpperInvariant().Replace("JPEG", "JPG"); }
 		catch (MagickCorruptImageErrorException) { return ""; }
 	}
+	static Godot.Image LoadUnknownFormat(string image_path) {
+		try {
+			var im = new MagickImage(image_path);
+			im.Format = MagickFormat.Jpg;
+			im.Quality = 95;
+			byte[] data = im.ToByteArray();
+			var i = new Godot.Image();
+			i.LoadJpgFromBuffer(data);
+			return i;
+		}
+		catch (MagickCorruptImageErrorException) { return null; }
+	}
 	
 	public void ImportImage(string image_path) {
 		try {
