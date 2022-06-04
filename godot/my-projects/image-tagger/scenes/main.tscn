@@ -80,10 +80,21 @@ size_flags_vertical = 3
 
 [node name="SPACE" type="Control" parent="margin/vb"]
 margin_right = 1910.0
-margin_bottom = 1037.0
+margin_bottom = 1004.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+
+[node name="hb2" type="HBoxContainer" parent="margin/vb"]
+margin_top = 1008.0
+margin_right = 1910.0
+margin_bottom = 1037.0
+
+[node name="use_recursion" type="CheckBox" parent="margin/vb/hb2"]
+margin_right = 146.0
+margin_bottom = 29.0
+pressed = true
+text = "Use Recursion"
 
 [node name="hb" type="HBoxContainer" parent="margin/vb"]
 margin_top = 1041.0
@@ -164,11 +175,11 @@ anchor_bottom = 0.9
 window_title = "Open a File"
 mode = 0
 access = 2
-show_hidden_files = true
 current_dir = "/git/code2/godot/my-projects/image-tagger"
 current_path = "/git/code2/godot/my-projects/image-tagger/"
 
 [connection signal="gui_input" from="viewport_display" to="viewport_display" method="_on_viewport_display_gui_input"]
+[connection signal="toggled" from="margin/vb/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
 [connection signal="pressed" from="margin/vb/hb/import_images" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_import_images_pressed"]
 [connection signal="pressed" from="margin/vb/hb/choose_image" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_choose_image_pressed"]
 [connection signal="toggled" from="margin/vb/hb/color_grade" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_color_grade_toggled"]

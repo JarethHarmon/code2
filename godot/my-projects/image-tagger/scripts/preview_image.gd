@@ -12,12 +12,13 @@ export (NodePath) var EdgeMix ; onready var edge_mix:Control = get_node(EdgeMix)
 
 enum selection { THUMBNAIL, IMPORT }
 var select:int = selection.IMPORT
+var use_recursion:bool = true
 
 func _on_FileDialog_dir_selected(dir:String) -> void: 
 	match select:
 		selection.IMPORT: 
 			if ImageOp.thumbnail_path == "": return
-			Import.queue_append(dir, true)
+			Import.queue_append(dir, use_recursion)
 			
 #		selection.THUMBNAIL: 
 #			ImageOp.thumbnail_path = dir + "/"
@@ -73,7 +74,6 @@ func _on_choose_image_pressed() -> void:
 	fd.window_title = "Choose an image"
 	fd.popup()
 	
-func _on_color_grade_toggled(button_pressed) -> void: color_grade.visible = button_pressed
-func _on_edge_mix_toggled(button_pressed): edge_mix.visible = button_pressed
-
-
+func _on_color_grade_toggled(button_pressed:bool) -> void: color_grade.visible = button_pressed
+func _on_edge_mix_toggled(button_pressed:bool): edge_mix.visible = button_pressed
+func _on_use_recursion_toggled(button_pressed:bool) -> void: use_recursion = button_pressed

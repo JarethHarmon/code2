@@ -18,7 +18,8 @@ func start_importer() -> void:
 	var _err:int = import_thread.start(self, "_thread")
 	importer_active = true
 
-func queue_append(import_folder:String, recursive:bool=true) -> void: 
+func queue_append(import_folder:String, recursive:bool=true) -> void:
+	print("added to queue (recursive = ", recursive, ") : \n\t", import_folder, "\n") 
 	queue.append([import_folder, recursive])
 	if (!importer_active): start_importer()
 
@@ -33,5 +34,5 @@ func _done() -> void:
 	if import_thread.is_alive() or import_thread.is_active(): import_thread.wait_to_finish()
 	importer_active = false
 	import_mutex.unlock()
-	print("DONE")
+	print("DONE\n")
 	
