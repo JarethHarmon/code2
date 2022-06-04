@@ -65,6 +65,7 @@ func initial_load() -> void:
   # determine which page the array will replace
 	if pages.size() >= lss.pages_to_store:
 		var page_to_remove:int = pages_queue.pop_front()
+		Database.RemoveKomi64sFromDict(pages[page_to_remove])
 		var _had:bool = pages.erase(page_to_remove)
 		
   # load the hashes from the database into a temp List
