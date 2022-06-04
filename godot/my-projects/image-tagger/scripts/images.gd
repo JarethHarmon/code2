@@ -24,7 +24,7 @@ var prepping:bool = false
 var stop_all:bool = false
 
 var lss:Dictionary = {
-	"images_per_page" : 100,
+	"images_per_page" : 200,
 	"load_threads" : 5,
 	"thumbail_folder" : "user://metadata/thumbnails"
 }
@@ -94,6 +94,8 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		
 		var it:ImageTexture = ImageTexture.new()
 		it.create_from_image(i, 4) # flags
+		it.set_meta("komi64", komi64)
+		
 		lt.lock()
 		loaded_thumbnails[komi64] = it
 		lt.unlock()
@@ -111,3 +113,11 @@ func threadsafe_set_icon(komi64:String, index:int) -> void:
 	set_item_icon(index, it)
 	# set text
 	sc.unlock()
+
+func _on_images_item_selected(index:int) -> void:
+	var it:ImageTexture = get_item_icon(index)
+	var komi64:String = it.get_meta("komi64")
+	var paths:Array = Database.GetPathsKomi(komi64)
+	#for p in paths: print(p)
+	Signals.emit_signal("load_image", paths[0])
+	

@@ -62,3 +62,5 @@ fixed_column_width = 150
 icon_mode = 0
 fixed_icon_size = Vector2( 150, 150 )
 script = ExtResource( 1 )
+
+[connection signal="item_selected" from="margin/vbox/images" to="margin/vbox/images" method="_on_images_item_selected"]

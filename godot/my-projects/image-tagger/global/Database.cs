@@ -118,9 +118,10 @@ public class Database : Node {
 			komi64s.Add(Convert.ToString(komi64));
 		return komi64s.ToArray();		 
 	}
-	public bool GetFilterKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? komihash_info[hash].filter : false; }
-	public string[] GetPathsKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].paths != null) ? komihash_info[hash].paths.ToArray() : new string[0] : new string[0]; } /* returns empty string array if paths is null or key is not found, otherwise returns the paths array */
-	public string[] GetTagsKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].tags != null) ? komihash_info[hash].tags.ToArray() : new string[0] : new string[0]; }
+	// yet more reasons to switch to a string representation
+	public bool GetFilterKomi(string hash) { return (komihash_info.ContainsKey(ulong.Parse(hash))) ? komihash_info[ulong.Parse(hash)].filter : false; }
+	public string[] GetPathsKomi(string hash) { return (komihash_info.ContainsKey(ulong.Parse(hash))) ? (komihash_info[ulong.Parse(hash)].paths != null) ? komihash_info[ulong.Parse(hash)].paths.ToArray() : new string[0] : new string[0]; } /* returns empty string array if paths is null or key is not found, otherwise returns the paths array */
+	public string[] GetTagsKomi(string hash) { return (komihash_info.ContainsKey(ulong.Parse(hash))) ? (komihash_info[ulong.Parse(hash)].tags != null) ? komihash_info[ulong.Parse(hash)].tags.ToArray() : new string[0] : new string[0]; }
 	/* not 100% sure the above 2 lines work yet, but it does not have any compile errors (never used encapsulated ternary operators before) */
 	
 }
