@@ -11,39 +11,27 @@ onready var fi:Mutex = Mutex.new() # file index
 onready var pf:Mutex = Mutex.new() # page_files
 onready var lt:Mutex = Mutex.new() # loaded_thumbnails
 
-# program freezes when spamming the next button
-# I think I am limited by how quickly you can start/wait_to_finish threads
-# Solution 1: start a timer after pressing the button, disable the button until it times out
-# Solution 2: rewrite the threads to run in a busy loop and wait for thumbnails to process
-
+var pages_queue:Array = [] 				# fifo queue, stores page_numbers (current_page)
+var pages:Dictionary = {} 				# page_number : [komihash]
 var page_files:Array = []				# an array of komi64s representing the thumbnails on the current page (used as a queue)
-#var filtered_files:Array = []			# a subset of the komi64s stored in the database (current 1000 at a time)
 var loaded_thumbnails:Dictionary = {}	# a dictionary storing the thumbnails themselves as a komi64:ImageTexture key:value pair
 var file_index:int = 0					# an integer storing the index of the current thumbnail
 		
 var load_threads:Array = []				# an array of threads used for loading thumbnails
-var ff_index:int = 0					# the index in filtered_files()
 var offset:int = 0						# the index in the database (offset=200 means that 201-1200 are in filtered_files)
-var total_image_count:int = 0
+var total_image_count:int = 0			# the total number of images from the current query (num rows in the database)
 var page_image_count:int = 0			# the number of images that are supposed to be loaded for the current page (cannot use page_files.size() because it is treated as a queue)
-# var page_count:int = 0				# the total number of pages, based on images_per_page
-var total_pages:int = 0
-var current_page:int = 1
-var last_page_image_count:int = 0 		# stores the number of images present on the last page of filtered_files (ie 200 if 200/page and 1000 images)
-								# important for situations where for example: 200/page and 467 loaded (last_page_image_count = 67)
+var total_pages:int = 0					# total number of pages for the current query (total_image_count/images_per_page)
+var current_page:int = 1				# the current page of images
 
-var pages_queue:Array = [] # fifo queue, stores page_number
-var pages:Dictionary = {} # page_number : [komihash]
-
-# need to get a count from the database
-# for now, just going to work with the already loaded komi64s and ignore the database
+var timer_delay:float = 0.3
 
 var loading:bool = false
 var prepping:bool = false
 var stop_all:bool = false
 
 var lss:Dictionary = {
-	"images_per_page" : 200,
+	"images_per_page" : 100,
 	"load_threads" : 5,
 	"pages_to_store" : 5,
 	"thumbail_folder" : "user://metadata/thumbnails" 
@@ -68,7 +56,7 @@ func initial_load() -> void:
   # determine which page the array will replace
 	if pages.size() >= lss.pages_to_store:
 		var page_to_remove:int = pages_queue.pop_front()
-		pages.erase(page_to_remove)
+		var _had:bool = pages.erase(page_to_remove)
 		
   # load the hashes from the database into a temp List
 	Database.LoadRangeKomi64(offset, lss.images_per_page)
@@ -114,7 +102,6 @@ func prep_load_thumbnails() -> void:
 	lt.lock() ; loaded_thumbnails.clear() ; lt.unlock()
 	pf.lock()
 	page_files.clear()
-	#page_files = filtered_files.slice(ff_index, int(min(ff_index+lss.images_per_page-1, filtered_files.size()-1))) 
 	page_files = pages[current_page]
 	pf.unlock()
 	
@@ -171,7 +158,6 @@ func threadsafe_set_icon(komi64:String, index:int) -> void:
 	
 	sc.lock()
 	set_item_icon(index, it)
-	# set text
 	sc.unlock()
 
 func _on_images_item_selected(index:int) -> void:
@@ -179,7 +165,6 @@ func _on_images_item_selected(index:int) -> void:
 	if it is StreamTexture: return
 	var komi64:String = it.get_meta("komi64")
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
-	#for p in paths: print(p)
 	Signals.emit_signal("load_image", paths[0])
 
 func _on_Timer_timeout() -> void:
@@ -193,7 +178,7 @@ func _on_prev_page_button_up() -> void:
 	
 	prev_page.disabled = true
 	next_page.disabled = true
-	$Timer.start(0.5)
+	$Timer.start(timer_delay)
 	
 	current_page -= 1
 	initial_load()
@@ -206,7 +191,7 @@ func _on_next_page_button_up() -> void:
 
 	prev_page.disabled = true
 	next_page.disabled = true
-	$Timer.start(0.5)
+	$Timer.start(timer_delay)
 	
 	current_page += 1
 	initial_load()
