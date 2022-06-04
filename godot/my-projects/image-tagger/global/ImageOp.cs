@@ -90,7 +90,7 @@ public class ImageOp : Node
 			string save_path = thumbnail_path + s_komihash + ".jpg"; 
 			ulong komihash = ulong.Parse(s_komihash);
 			
-			int err = db_komi.InsertKomiHashInfo(komihash, filter_by_default, new string[0], new string[0]);
+			int err = db_komi.InsertKomiHashInfo(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
 			if (err != 0) return;
 			SaveThumbnail(image_path, save_path);
 			// add hash to database (also need to add metadata like file_size/extension/creation_time_utc/etc)

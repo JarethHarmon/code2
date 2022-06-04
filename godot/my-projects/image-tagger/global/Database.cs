@@ -14,7 +14,14 @@ using Alphaleonis.Win32.Filesystem;
 			
 		2. convert with (long) before checking database and convert with (ulong) for internal comparisons
 			- requires far more conversions
-
+		
+		3. abandon long entirely and just leave everything as a string
+			+ ensures accuracy
+			- might use more space in memory/on disk
+		
+	Also I just realized that LiteDB does not actually use an index for _Id, and even if it did it would not be all that 
+	useful for selecting a range.So the question of whether to change the _Id is now moot and I should probably set it to komihash after all.
+	This means I still have to figure out a way to select a numbered range of rows from the database (with a given start point).
 */
 
 public class KomiHashInfo {
@@ -77,7 +84,7 @@ public class Database : Node {
 	 * DESC: loads a number of SHA256s from the Database into sha256_info starting at 'start'
 	 * NOTE: assumes that I will use numeric IDs, just change _Id checks to index otherwise
 	 * TODO: add options related to filtering and sorting (needs to be done on the database if I am only retrieving a section of the shas)
-	*/
+	*/ // now useless; the SQL-style Query api has support for Offset and Limit, so if both of those are exposed I should be able to figure something out
 	public void LoadRangeKomiHash(int start, int number) {
 		try {
 			var komihashes = col_komihash.Find(Query.Between("_Id", start, start+number));
@@ -98,7 +105,6 @@ public class Database : Node {
 				tags = new HashSet<string>(tags1)
 			};
 			col_komihash.Insert(komihash_info);
-			GD.Print(komihash1);
 			return 0;
 		}
 		//catch (SomeSpecificException sse) {}
