@@ -22,11 +22,6 @@ func _on_FileDialog_dir_selected(dir:String) -> void:
 		selection.IMPORT: 
 			if ImageOp.thumbnail_path == "": return
 			Import.queue_append(dir, use_recursion)
-			
-#		selection.THUMBNAIL: 
-#			ImageOp.thumbnail_path = dir + "/"
-#			thumb_path_label.text = dir
-#			var _err:int = Directory.new().make_dir_recursive(dir)
 
 onready var image_mutex:Mutex = Mutex.new()
 onready var image_thread:Thread = Thread.new()
@@ -58,7 +53,6 @@ func _thread(path:String) -> void:
 func _done() -> void:
 	if image_thread.is_alive() or image_thread.is_active(): image_thread.wait_to_finish()
 	image_mutex.unlock()
-	#print("DONE\n")
 
 func calc_size(it:ImageTexture) -> Vector2:
 	var size_1:Vector2 = viewport_display.rect_size

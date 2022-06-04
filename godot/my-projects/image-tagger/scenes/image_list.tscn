@@ -36,23 +36,23 @@ anchor_bottom = 1.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_constants/margin_right = 2
-custom_constants/margin_top = 2
-custom_constants/margin_left = 2
-custom_constants/margin_bottom = 2
+custom_constants/margin_right = 5
+custom_constants/margin_top = 5
+custom_constants/margin_left = 5
+custom_constants/margin_bottom = 5
 
 [node name="vbox" type="VBoxContainer" parent="margin"]
-margin_left = 2.0
-margin_top = 2.0
-margin_right = 1918.0
-margin_bottom = 1078.0
+margin_left = 5.0
+margin_top = 5.0
+margin_right = 1915.0
+margin_bottom = 1075.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="images" type="ItemList" parent="margin/vbox"]
-margin_right = 1916.0
-margin_bottom = 1076.0
+margin_right = 1910.0
+margin_bottom = 1046.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 allow_rmb_select = true
@@ -62,5 +62,53 @@ fixed_column_width = 150
 icon_mode = 0
 fixed_icon_size = Vector2( 150, 150 )
 script = ExtResource( 1 )
+PrevPage = NodePath("../page_buttons/prev_page")
+NextPage = NodePath("../page_buttons/next_page")
+
+[node name="Timer" type="Timer" parent="margin/vbox/images"]
+wait_time = 0.5
+
+[node name="page_buttons" type="HBoxContainer" parent="margin/vbox"]
+margin_top = 1050.0
+margin_right = 1910.0
+margin_bottom = 1070.0
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="prev_page" type="Button" parent="margin/vbox/page_buttons"]
+margin_right = 43.0
+margin_bottom = 20.0
+text = "PREV"
+
+[node name="SPACE_1" type="Control" parent="margin/vbox/page_buttons"]
+margin_left = 47.0
+margin_right = 950.0
+margin_bottom = 20.0
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="margin/vbox/page_buttons"]
+margin_left = 954.0
+margin_top = 3.0
+margin_right = 954.0
+margin_bottom = 17.0
+grow_horizontal = 2
+align = 1
+
+[node name="SPACE_2" type="Control" parent="margin/vbox/page_buttons"]
+margin_left = 958.0
+margin_right = 1862.0
+margin_bottom = 20.0
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="next_page" type="Button" parent="margin/vbox/page_buttons"]
+margin_left = 1866.0
+margin_right = 1910.0
+margin_bottom = 20.0
+text = "NEXT"
 
 [connection signal="item_selected" from="margin/vbox/images" to="margin/vbox/images" method="_on_images_item_selected"]
+[connection signal="timeout" from="margin/vbox/images/Timer" to="margin/vbox/images" method="_on_Timer_timeout"]
+[connection signal="button_up" from="margin/vbox/page_buttons/prev_page" to="margin/vbox/images" method="_on_prev_page_button_up"]
+[connection signal="button_up" from="margin/vbox/page_buttons/next_page" to="margin/vbox/images" method="_on_next_page_button_up"]

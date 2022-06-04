@@ -83,12 +83,44 @@ margin_bottom = 1070.0
 size_flags_horizontal = 3
 
 [node name="vbox" parent="margin/hsplit/left/image_list/margin" index="0"]
-margin_right = 649.0
-margin_bottom = 1068.0
+margin_right = 646.0
+margin_bottom = 1065.0
 
 [node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="0"]
-margin_right = 647.0
-margin_bottom = 1066.0
+margin_right = 641.0
+margin_bottom = 1027.0
+PrevPage = NodePath("../page_buttons/prev_page")
+NextPage = NodePath("../page_buttons/next_page")
+
+[node name="page_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="1"]
+margin_top = 1031.0
+margin_right = 641.0
+margin_bottom = 1060.0
+
+[node name="prev_page" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="0"]
+margin_right = 60.0
+margin_bottom = 29.0
+
+[node name="SPACE_1" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="1"]
+margin_left = 64.0
+margin_right = 313.0
+margin_bottom = 29.0
+
+[node name="Label" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="2"]
+margin_left = 317.0
+margin_top = 0.0
+margin_right = 325.0
+margin_bottom = 29.0
+
+[node name="SPACE_2" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="3"]
+margin_left = 329.0
+margin_right = 578.0
+margin_bottom = 29.0
+
+[node name="next_page" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="4"]
+margin_left = 582.0
+margin_right = 641.0
+margin_bottom = 29.0
 
 [node name="right" type="HSplitContainer" parent="margin/hsplit"]
 margin_left = 659.0
@@ -264,6 +296,8 @@ access = 2
 current_dir = "/git/code2/godot/my-projects/image-tagger"
 current_path = "/git/code2/godot/my-projects/image-tagger/"
 
+[connection signal="button_up" from="margin/hsplit/left/image_list/margin/vbox/page_buttons/prev_page" to="margin/hsplit/left/image_list/margin/vbox/images" method="_on_prev_page_button_up"]
+[connection signal="button_up" from="margin/hsplit/left/image_list/margin/vbox/page_buttons/next_page" to="margin/hsplit/left/image_list/margin/vbox/images" method="_on_next_page_button_up"]
 [connection signal="gui_input" from="margin/hsplit/right/preview/viewport_display" to="margin/hsplit/right/preview/viewport_display" method="_on_viewport_display_gui_input"]
 [connection signal="toggled" from="margin/hsplit/right/preview/vb/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/vb/hb/edge_mix" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_edge_mix_toggled"]
