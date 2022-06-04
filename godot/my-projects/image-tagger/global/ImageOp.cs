@@ -12,23 +12,28 @@ using CoenM.ImageHash.HashAlgorithms;
 public class ImageOp : Node
 {
 	public const int MAX_PATH_LENGTH = 256;
+	
 	public Label label;
 	public Node import;
-	public ImageScanner iscan;
 	
-	public string thumbnail_path = "";
+	public ImageScanner iscan;
+	public Database db_komi;
+	
+	public bool filter_by_default = true;
+	public string thumbnail_path;
+	public void SetThumbnailPath(string path) { thumbnail_path = path; }
 	
 	public override void _Ready() { 
 		import = (Node) GetNode("/root/Import"); 
 		iscan = (ImageScanner) GetNode("/root/ImageScanner");
-		//iscan.ScanDirectories(@"W:/test");
-		//foreach (string path in iscan.GetImages()) ImportImage(path);
+		db_komi = (Database) GetNode("/root/Database");
 	}
 	
 	public void ImportImages(string path) {
 		iscan.ScanDirectories(@path);
 		foreach (string image_path in iscan.GetImages()) ImportImage(image_path);
 		iscan.Clear();
+		db_komi.CheckpointKomiHash();
 	}
 	
 	public void CalcDifferenceHash(string path) {
@@ -84,8 +89,12 @@ public class ImageOp : Node
 			string s_komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
 			string save_path = thumbnail_path + s_komihash + ".jpg"; 
 			ulong komihash = ulong.Parse(s_komihash);
+			
+			int err = db_komi.InsertKomiHashInfo(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
+			if (err != 0) return;
 			SaveThumbnail(image_path, save_path);
 			// add hash to database (also need to add metadata like file_size/extension/creation_time_utc/etc)
+				// maybe to a different database file though
 			// need to decide when/how this should interact with ImageScanner to be most efficient
 		}
 		catch (Exception ex) { GD.Print("ImportImage(): ", ex); return; }

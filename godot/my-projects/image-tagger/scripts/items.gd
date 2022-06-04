@@ -29,7 +29,7 @@ var stop_all:bool = false
 var lss:Dictionary = {
 	"images_per_page" : 100,
 	"load_threads" : 5,
-	"thumbail_folder" : "user://thumbnails"
+	"thumbail_folder" : "user://metadata/thumbnails"
 }
 
 func _notification(what) -> void:
@@ -37,12 +37,11 @@ func _notification(what) -> void:
 	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST: 
 		stop_all = true
 		for t in load_threads: if t.is_alive() or t.is_active(): t.wait_to_finish()
-		# CLOSE DATABASE
+		Database.Destroy()
 		get_tree().quit()
 
 func _ready() -> void:
-	get_tree().set_auto_accept_quit(false)
-	var e:int = Directory.new().make_dir_recursive(lss.thumbail_folder)
+	# var e:int = Directory.new().make_dir_recursive(lss.thumbail_folder)
 	call_deferred("initial_load")
 
 # retrieves thumbnails from Database, splits a section off into page_files, calls prep_load_thumbnails() to start the load threads
