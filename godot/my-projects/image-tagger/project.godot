@@ -33,6 +33,10 @@ ImageScanner="*res://global/ImageScanner.cs"
 Import="*res://global/import.gd"
 Signals="*res://global/signals.gd"
 
+[debug]
+
+gdscript/warnings/unused_signal=false
+
 [display]
 
 window/size/width=1920

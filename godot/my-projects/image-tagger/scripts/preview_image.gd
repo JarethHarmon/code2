@@ -35,7 +35,7 @@ func _on_FileDialog_file_selected(path:String) -> void:
 	if (image_mutex.try_lock() != OK): return
 	if (image_thread.is_alive()): return
 	image_mutex.lock()
-	image_thread.start(self, "_thread", path)
+	var _err:int = image_thread.start(self, "_thread", path)
 
 func _thread(path:String) -> void:
 	var i:Image = Image.new()
