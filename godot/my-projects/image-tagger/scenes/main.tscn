@@ -89,8 +89,6 @@ margin_bottom = 1065.0
 [node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="0"]
 margin_right = 641.0
 margin_bottom = 1027.0
-PrevPage = NodePath("../page_buttons/prev_page")
-NextPage = NodePath("../page_buttons/next_page")
 
 [node name="page_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="1"]
 margin_top = 1031.0
@@ -296,8 +294,6 @@ access = 2
 current_dir = "/git/code2/godot/my-projects/image-tagger"
 current_path = "/git/code2/godot/my-projects/image-tagger/"
 
-[connection signal="button_up" from="margin/hsplit/left/image_list/margin/vbox/page_buttons/prev_page" to="margin/hsplit/left/image_list/margin/vbox/images" method="_on_prev_page_button_up"]
-[connection signal="button_up" from="margin/hsplit/left/image_list/margin/vbox/page_buttons/next_page" to="margin/hsplit/left/image_list/margin/vbox/images" method="_on_next_page_button_up"]
 [connection signal="gui_input" from="margin/hsplit/right/preview/viewport_display" to="margin/hsplit/right/preview/viewport_display" method="_on_viewport_display_gui_input"]
 [connection signal="toggled" from="margin/hsplit/right/preview/vb/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/vb/hb/edge_mix" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_edge_mix_toggled"]

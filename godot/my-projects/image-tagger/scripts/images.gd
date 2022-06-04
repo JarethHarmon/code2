@@ -17,7 +17,7 @@ onready var lt:Mutex = Mutex.new() # loaded_thumbnails
 # Solution 2: rewrite the threads to run in a busy loop and wait for thumbnails to process
 
 var page_files:Array = []				# an array of komi64s representing the thumbnails on the current page (used as a queue)
-var filtered_files:Array = []			# a subset of the komi64s stored in the database (current 1000 at a time)
+#var filtered_files:Array = []			# a subset of the komi64s stored in the database (current 1000 at a time)
 var loaded_thumbnails:Dictionary = {}	# a dictionary storing the thumbnails themselves as a komi64:ImageTexture key:value pair
 var file_index:int = 0					# an integer storing the index of the current thumbnail
 		
@@ -30,7 +30,10 @@ var page_image_count:int = 0			# the number of images that are supposed to be lo
 var total_pages:int = 0
 var current_page:int = 1
 var last_page_image_count:int = 0 		# stores the number of images present on the last page of filtered_files (ie 200 if 200/page and 1000 images)
-										# important for situations where for example: 200/page and 467 loaded (last_page_image_count = 67)
+								# important for situations where for example: 200/page and 467 loaded (last_page_image_count = 67)
+
+var pages_queue:Array = [] # fifo queue, stores page_number
+var pages:Dictionary = {} # page_number : [komihash]
 
 # need to get a count from the database
 # for now, just going to work with the already loaded komi64s and ignore the database
@@ -42,6 +45,7 @@ var stop_all:bool = false
 var lss:Dictionary = {
 	"images_per_page" : 200,
 	"load_threads" : 5,
+	"pages_to_store" : 5,
 	"thumbail_folder" : "user://metadata/thumbnails" 
 }
 
@@ -49,30 +53,38 @@ func stop_threads() -> void:
 	stop_all = true
 	for t in load_threads: if t.is_alive() or t.is_active(): t.wait_to_finish()
 
-func _ready() -> void: call_deferred("initial_load", 1000, true)
-func initial_load(num_hashes:int, forward:bool) -> void:
+func _ready() -> void: call_deferred("initial_load")
+func initial_load() -> void:
 	if loading: return
 	loading = true
 	
+  # calculate total_pages and total_image_count
 	total_image_count = Database.GetTotalRowCountKomi()
 	total_pages = ceil(total_image_count as float / lss.images_per_page as float) as int
-	Database.LoadRangeKomi64(offset, num_hashes) 
 	
-	if forward: offset += num_hashes
-	else: offset -= num_hashes
-
-	if forward and current_page < total_pages:
-		if (filtered_files.size() > 0): 
-			filtered_files = filtered_files.slice(lss.images_per_page, filtered_files.size()-1)
-		filtered_files.append_array(Database.GetTempKomi64List()) 
+  # calculate offset (used for LoadRangeKomi64())
+	offset = (current_page-1) * lss.images_per_page
+	
+  # determine which page the array will replace
+	if pages.size() >= lss.pages_to_store:
+		var page_to_remove:int = pages_queue.pop_front()
+		pages.erase(page_to_remove)
 		
-	elif !forward and current_page > 1:
-		if (filtered_files.size() > 0): filtered_files = filtered_files.slice(0, filtered_files.size()-last_page_image_count-1);
-		var tmp:Array = Database.GetTempKomi64List()
-		tmp.append_array(filtered_files)
-		filtered_files = tmp
+  # load the hashes from the database into a temp List
+	Database.LoadRangeKomi64(offset, lss.images_per_page)
 	
-	page_image_count = int(min(lss.images_per_page, filtered_files.size()))
+  # retrieve the hashes from the temp list and clear the list
+	var arr:Array = Database.GetTempKomi64List()
+	
+  # store the array in pages
+	pages_queue.append(current_page)
+	pages[current_page] = arr
+		
+  #	calculate page_image_count (used for item generation)
+	if (pages.empty()): page_image_count = lss.images_per_page 
+	else: page_image_count = pages[current_page].size()
+	
+  # call next function
 	self.call_deferred("test")
 
 func test() -> void:
@@ -84,7 +96,8 @@ func test() -> void:
 		yield(get_tree(), "idle_frame")
 		yield(get_tree(), "idle_frame")
 	for i in page_image_count:
-		self.add_item(filtered_files[i]) #self.add_item("") #
+		self.add_item(pages[current_page][i])
+		#self.add_item(filtered_files[i]) #self.add_item("") #
 		self.set_item_icon(i, icon_loading)
 	get_parent().get_node("page_buttons/Label").text = String(current_page) + "/" + String(total_pages)
 	sc.unlock()
@@ -101,7 +114,8 @@ func prep_load_thumbnails() -> void:
 	lt.lock() ; loaded_thumbnails.clear() ; lt.unlock()
 	pf.lock()
 	page_files.clear()
-	page_files = filtered_files.slice(ff_index, int(min(ff_index+lss.images_per_page-1, filtered_files.size()-1))) 
+	#page_files = filtered_files.slice(ff_index, int(min(ff_index+lss.images_per_page-1, filtered_files.size()-1))) 
+	page_files = pages[current_page]
 	pf.unlock()
 	
 	stop_all = false
@@ -174,11 +188,15 @@ func _on_Timer_timeout() -> void:
 
 func _on_prev_page_button_up() -> void:	
 #func _on_prev_page_pressed() -> void:
-	# if page == 1: return
-	# stop the thumbnail loading thread(s)
+	if loading: return
+	if current_page == 1: return
+	
 	prev_page.disabled = true
 	next_page.disabled = true
 	$Timer.start(0.5)
+	
+	current_page -= 1
+	initial_load()
 
 
 func _on_next_page_button_up() -> void:
@@ -191,5 +209,5 @@ func _on_next_page_button_up() -> void:
 	$Timer.start(0.5)
 	
 	current_page += 1
-	initial_load(lss.images_per_page, true)
+	initial_load()
 
