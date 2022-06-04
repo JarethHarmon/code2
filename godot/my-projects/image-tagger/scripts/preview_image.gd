@@ -38,14 +38,17 @@ func _on_FileDialog_file_selected(path:String) -> void:
 	var _err:int = image_thread.start(self, "_thread", path)
 
 func _thread(path:String) -> void:
-	var i:Image = Image.new()
-	var e:int = i.load(path)
-	if e != OK: return
-	
-	var it:ImageTexture = ImageTexture.new()
-	it.create_from_image(i, 0)
-	it.set_size_override(calc_size(it))
-	$hbox_0/image_0.texture = it
+	var actual_format:String = ImageOp.GetActualFormat(path)
+	var saved_format:String = path.get_extension().to_upper().replace("JPEG", "JPG")
+	if (actual_format == saved_format): 
+		var i:Image = Image.new()
+		var e:int = i.load(path)
+		if e == OK:
+			var it:ImageTexture = ImageTexture.new()
+			it.create_from_image(i, 0)
+			it.set_size_override(calc_size(it))
+			$hbox_0/image_0.texture = it
+	else: print("\n", path, "\n\tactual format: ", actual_format, "\n\tsaved format: ", saved_format)
 	call_deferred("_done")
 
 func _done() -> void:

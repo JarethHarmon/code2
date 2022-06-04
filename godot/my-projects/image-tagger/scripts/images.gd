@@ -1,16 +1,5 @@
 extends ItemList
 
-# TODO : rename komihash, komihashes to komi64
-# TODO : create a buffer for the last X full images to be loaded
-# TODO : add use_filter button, remove choose image button
-# TODO : add the hq pixel filter shader
-# TODO : replace all instances of komi64 with strings
-# TODO : add page buttons and logic to this list (load next/previous/page# lss.images_per_page)
-# TODO : remove komi64s from filtered_files and query new ones when changing pages;
-	# ie if go to page 2, remove the first 200 and load 200 more into the program
-	# need to keep careful track of the index during this
-	# need to ensure threads completely stop and any relevant variables are reset before changing page
-
 const icon_broken:StreamTexture = preload("res://assets/icon-broken.png")
 const icon_loading:StreamTexture = preload("res://assets/buffer-01.png")
 
