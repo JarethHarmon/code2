@@ -42,11 +42,12 @@ func _thread(path:String) -> void:
 	else:
 		i = Image.new() 
 		e = i.load(path)
-	if e == OK:
-		var it:ImageTexture = ImageTexture.new()
-		it.create_from_image(i, 0)
-		it.set_size_override(calc_size(it))
-		$hbox_0/image_0.texture = it
+		if e != OK: i = ImageOp.LoadUnknownFormatAlt(path)
+	#if e == OK:
+	var it:ImageTexture = ImageTexture.new()
+	it.create_from_image(i, 0)
+	it.set_size_override(calc_size(it))
+	$hbox_0/image_0.texture = it
 		
 	call_deferred("_done")
 

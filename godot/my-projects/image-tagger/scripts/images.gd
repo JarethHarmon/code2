@@ -141,7 +141,10 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		lt.unlock()
 		var i:Image = Image.new()
 		var e:int = i.load(lss.thumbail_folder.plus_file(komi64) + ".jpg")
-		if e != OK: return
+		if e != OK: 
+			var p:String = ProjectSettings.globalize_path(lss.thumbail_folder).plus_file(komi64) + ".jpg"
+			if ImageOp.IsImageCorrupt(p): return
+			else: i = ImageOp.LoadUnknownFormatAlt(p)
 		if stop_all: return
 		
 		var it:ImageTexture = ImageTexture.new()
