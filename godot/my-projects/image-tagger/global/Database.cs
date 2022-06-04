@@ -71,18 +71,31 @@ public class Database : Node {
 		}
 		catch (Exception ex) { GD.Print("Database::LoadRangeKomi64() : ", ex); } 
 	}	
-	
+		
 	public int InsertKomi64Info(string komi64_n, bool filter_n, string[] paths_n, string[] tags_n) {
 		try {
-			if (col_komi64.FindOne(Query.EQ("_Id", komi64_n)) != null) return 1; // duplicate
-			var komi64_info = new Komi64Info {
-				komi64 = komi64_n,
-				filter = filter_n,
-				paths = new HashSet<string>(paths_n),
-				tags = new HashSet<string>(tags_n)
-			};
-			col_komi64.Insert(komi64_info);
-			return 0;
+			var temp = col_komi64.FindOne(Query.EQ("_Id", komi64_n));
+			if (temp != null) {
+				bool changed = false;
+				foreach (string path in paths_n) {
+					if (!temp.paths.Contains(path)) { 
+						temp.paths.Add(path);
+						changed = true;
+					}
+				}
+				if (changed) col_komi64.Update(temp);
+				return 1; // duplicate
+			}
+			else {
+				var komi64_info = new Komi64Info {
+					komi64 = komi64_n,
+					filter = filter_n,
+					paths = new HashSet<string>(paths_n),
+					tags = new HashSet<string>(tags_n)
+				};
+				col_komi64.Insert(komi64_info);
+				return 0;
+			}
 		}
 		//catch (SomeSpecificException sse) {}
 		catch (Exception ex) { GD.Print("Database::InsertKomi64Info() : ", ex); return -1; }
