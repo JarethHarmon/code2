@@ -111,7 +111,13 @@ public class Database : Node {
 		catch (Exception ex) { GD.Print("Database::InsertKomiHashInfo() : ", ex); return -1; }
 	}
 	
-	
+	// having to do this is a strong reason to just switch everything to string
+	public string[] GetKomi64s() { 
+		var komi64s = new List<string>();
+		foreach (ulong komi64 in komihash_info.Keys.ToArray())
+			komi64s.Add(Convert.ToString(komi64));
+		return komi64s.ToArray();		 
+	}
 	public bool GetFilterKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? komihash_info[hash].filter : false; }
 	public string[] GetPathsKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].paths != null) ? komihash_info[hash].paths.ToArray() : new string[0] : new string[0]; } /* returns empty string array if paths is null or key is not found, otherwise returns the paths array */
 	public string[] GetTagsKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].tags != null) ? komihash_info[hash].tags.ToArray() : new string[0] : new string[0]; }
