@@ -7,7 +7,15 @@ onready var default_thumbnail_path:String = ProjectSettings.globalize_path("user
 var use_default_thumbnail_path:bool = true
 var use_default_metadata_path:bool = true
 
+func _notification(what) -> void:
+	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+		Database.CheckpointKomiHash()
+		Database.Destroy() 
+		get_tree().quit()
+
 func _ready() -> void:
+	get_tree().set_auto_accept_quit(false)
+	
 	var dir:Directory = Directory.new()
 	if use_default_metadata_path:
 		var err:int = dir.make_dir_recursive(default_metadata_path)

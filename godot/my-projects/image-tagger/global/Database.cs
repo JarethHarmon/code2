@@ -7,7 +7,18 @@ using LiteDB;
 using ImageMagick;
 using Alphaleonis.Win32.Filesystem;
 
+/*
+	Apparently LiteDB does not support ulong, only long
+		1. convert all ulong to long 
+			- still not entirely sure if this is always safe/accurate
+			
+		2. convert with (long) before checking database and convert with (ulong) for internal comparisons
+			- requires far more conversions
+
+*/
+
 public class KomiHashInfo {
+	//public int id { get; set; }
 	public ulong komihash { get; set; }
 	public bool filter { get; set; }
 	public HashSet<string> paths { get; set; }
@@ -23,6 +34,7 @@ public class Database : Node {
 	// if the first one is significantly faster then I will instead add an index variable to the class and use sha256 as the id
 	
 	public bool use_journal = true;
+	//private int index = 0; // If I have to use this for Query.Between() then I need to store it in a database
 	
 	public string metadata_path;
 	public void SetMetadataPath(string path) { metadata_path = path; }
@@ -36,7 +48,9 @@ public class Database : Node {
 		try {
 			if (use_journal) {
 				db_komihash = new LiteDatabase(metadata_path + "komihash_info.db");
-				BsonMapper.Global.Entity<KomiHashInfo>().Id(x => x.komihash);		// not needed if FindOne() is faster or the same
+				// not needed if FindOne() is faster or the same (actually the main reason I did this was to prevent duplicates)
+				// it should be possible to just check if anything in the database has a matching hash, but that will likely be considerably slower
+				//BsonMapper.Global.Entity<KomiHashInfo>().Id(x => x.komihash);		
 				col_komihash = db_komihash.GetCollection<KomiHashInfo>("komihashes");
 			}
 			return 0;
@@ -46,6 +60,8 @@ public class Database : Node {
 	public void Destroy() {
 		db_komihash.Dispose();
 	}
+	
+	public void CheckpointKomiHash() { db_komihash.Checkpoint(); }
 	
 	public void LoadAllKomiHash() {
 		try {
@@ -72,21 +88,27 @@ public class Database : Node {
 		catch (Exception ex) { GD.Print("LoadRangeSHA256() : ", ex); } 
 	}
 	
-	/* needs try/catch */
-	public void InsertKomiHashInfo(ulong komihash1, bool filter1, string[] paths1, string[] tags1) {
-		var komihash_info = new KomiHashInfo {
-			komihash = komihash1,
-			filter = filter1,
-			paths = new HashSet<string>(paths1),
-			tags = new HashSet<string>(tags1)
-		};
-		col_komihash.Insert(komihash_info);
+	public int InsertKomiHashInfo(ulong komihash1, bool filter1, string[] paths1, string[] tags1) {
+		try {
+			if (col_komihash.FindOne(Query.EQ("komihash", (long)komihash1)) != null) return 1; // duplicate
+			var komihash_info = new KomiHashInfo {
+				komihash = komihash1,
+				filter = filter1,
+				paths = new HashSet<string>(paths1),
+				tags = new HashSet<string>(tags1)
+			};
+			col_komihash.Insert(komihash_info);
+			GD.Print(komihash1);
+			return 0;
+		}
+		//catch (SomeSpecificException sse) {}
+		catch (Exception ex) { GD.Print("Database::InsertKomiHashInfo() ", ex); return -1; }
 	}
 	
 	
-	public bool GetFilterSHA(ulong hash) { return (komihash_info.ContainsKey(hash)) ? komihash_info[hash].filter : false; }
-	public string[] GetPathsSHA(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].paths != null) ? komihash_info[hash].paths.ToArray() : new string[0] : new string[0]; } /* returns empty string array if paths is null or key is not found, otherwise returns the paths array */
-	public string[] GetTagsSHA(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].tags != null) ? komihash_info[hash].tags.ToArray() : new string[0] : new string[0]; }
+	public bool GetFilterKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? komihash_info[hash].filter : false; }
+	public string[] GetPathsKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].paths != null) ? komihash_info[hash].paths.ToArray() : new string[0] : new string[0]; } /* returns empty string array if paths is null or key is not found, otherwise returns the paths array */
+	public string[] GetTagsKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? (komihash_info[hash].tags != null) ? komihash_info[hash].tags.ToArray() : new string[0] : new string[0]; }
 	/* not 100% sure the above 2 lines work yet, but it does not have any compile errors (never used encapsulated ternary operators before) */
 	
 }
