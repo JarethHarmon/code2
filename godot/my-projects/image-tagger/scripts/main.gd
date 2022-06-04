@@ -15,6 +15,7 @@ func _notification(what) -> void:
 		Database.Destroy() 
 		#print_stray_nodes()
 		images.stop_threads()
+		Settings.save_settings()
 		get_tree().quit()
 
 func _ready() -> void:
@@ -34,6 +35,11 @@ func _ready() -> void:
 	
 	# create database and print its folder
 	if (Database.Create() == OK): print(default_metadata_path)
-
+	
+	Settings.load_settings()
+	
+	if Settings.settings.thumbnail_path == "": Settings.settings.thumbnail_path = default_thumbnail_path
+	if Settings.settings.metadata_path == "": Settings.settings.metadata_path = default_metadata_path
+	
 
 

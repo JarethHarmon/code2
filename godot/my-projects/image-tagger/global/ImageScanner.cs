@@ -17,7 +17,7 @@ public class ImageScanner : Node
 		var now = DateTime.Now;
 		var di = new System.IO.DirectoryInfo(@path);
 		int image_count = ScanDirectories(di, recursive);
-		GD.Print(path, "\n\tfound ", image_count, " images in ", (DateTime.Now-now).Milliseconds, " milliseconds\n");
+		GD.Print("SCAN  (R=", (recursive)?"t":"f" + "):   ", path, "\t; found ", image_count, " images in ", (DateTime.Now-now).Milliseconds, " ms");
 	}
 	
 	private int ScanDirectories(System.IO.DirectoryInfo dir, bool recursive) {

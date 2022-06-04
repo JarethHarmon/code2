@@ -66,6 +66,7 @@ public class ImageOp : Node
 	static bool IsImageCorrupt(string image_path) {
 		try { var im = new MagickImage(image_path); }
 		catch (MagickCorruptImageErrorException) { return true; }
+		catch (MagickBlobErrorException) { return true; } // could have been caused by refreshing while loading; either way should probably try again since this is failed to find file
 		return false;
 	}
 	static string GetActualFormat(string image_path) {

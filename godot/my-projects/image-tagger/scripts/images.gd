@@ -10,6 +10,7 @@ const icon_loading:StreamTexture = preload("res://assets/buffer-01.png")
 
 export (NodePath) var PrevPage ; onready var prev_page:Button = get_node(PrevPage)
 export (NodePath) var NextPage ; onready var next_page:Button = get_node(NextPage)
+export (NodePath) var Refresh ; onready var refresh:Button = get_node(Refresh)
 
 onready var sc:Mutex = Mutex.new() 		# scene
 onready var fi:Mutex = Mutex.new() 		# file index
@@ -26,7 +27,7 @@ var load_threads:Array = []				# an array of threads used for loading thumbnails
 var offset:int = 0						# the index in the database (offset=200 means that 201-1200 are in filtered_files)
 var total_image_count:int = 0			# the total number of images from the current query (num rows in the database)
 var page_image_count:int = 0			# the number of images that are supposed to be loaded for the current page (cannot use page_files.size() because it is treated as a queue)
-var total_pages:int = 0					# total number of pages for the current query (total_image_count/images_per_page)
+var total_pages:int = 1					# total number of pages for the current query (total_image_count/images_per_page)
 var current_page:int = 1				# the current page of images
 
 var timer_delay:float = 0.3				# delay for allowed presses of prev/next buttons
@@ -46,7 +47,10 @@ func stop_threads() -> void:
 	stop_all = true
 	for t in load_threads: if t.is_alive() or t.is_active(): t.wait_to_finish()
 
-func _ready() -> void: call_deferred("initial_load")
+func _ready() -> void: 
+	var _err:int = Signals.connect("image_scan_finished", self, "_on_refresh_button_up")
+	call_deferred("initial_load")
+
 func initial_load() -> void:
 	if loading: return
 	loading = true
@@ -177,6 +181,7 @@ func _on_images_item_selected(index:int) -> void:
 	Signals.emit_signal("load_image", paths[0])
 
 func _on_Timer_timeout() -> void:
+	refresh.disabled = false
 	prev_page.disabled = false
 	next_page.disabled = false
 
@@ -184,6 +189,7 @@ func _on_prev_page_button_up() -> void:
 	if loading: return
 	if current_page == 1: return
 	
+	refresh.disabled = true
 	prev_page.disabled = true
 	next_page.disabled = true
 	$Timer.start(timer_delay)
@@ -194,7 +200,8 @@ func _on_prev_page_button_up() -> void:
 func _on_next_page_button_up() -> void:
 	if loading: return
 	if current_page == total_pages: return
-
+	
+	refresh.disabled = true
 	prev_page.disabled = true
 	next_page.disabled = true
 	$Timer.start(timer_delay)
@@ -202,3 +209,13 @@ func _on_next_page_button_up() -> void:
 	current_page += 1
 	initial_load()
 
+# move refresh button to image_list.tscn
+func _on_refresh_button_up() -> void:
+	if loading: return
+	
+	refresh.disabled = true
+	prev_page.disabled = true
+	next_page.disabled = true
+	$Timer.start(timer_delay)
+	
+	initial_load()

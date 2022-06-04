@@ -82,6 +82,7 @@ margin_right = 651.0
 [node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="0"]
 margin_right = 646.0
 margin_bottom = 1037.0
+Refresh = NodePath("../../../../../right/preview/margin/vb/bg_panel/hb/refresh")
 
 [node name="page_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="1"]
 margin_top = 1041.0
@@ -198,7 +199,6 @@ size_flags_horizontal = 3
 margin_left = 1092.0
 margin_right = 1238.0
 margin_bottom = 29.0
-pressed = true
 text = "Use Recursion"
 
 [node name="SPACE6" type="Control" parent="margin/hsplit/right/preview/margin/vb/hb2"]
@@ -222,60 +222,68 @@ margin_bottom = 32.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
+[node name="refresh" type="Button" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
+margin_right = 74.0
+margin_bottom = 32.0
+text = "Refresh"
+
 [node name="SPACE4" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_right = 498.0
+margin_left = 78.0
+margin_right = 649.0
 margin_bottom = 32.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="filter" type="CheckButton" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 502.0
-margin_right = 597.0
+margin_left = 653.0
+margin_right = 748.0
 margin_bottom = 32.0
 pressed = true
 text = "Filter"
 
 [node name="SPACE6" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 601.0
-margin_right = 617.0
+margin_left = 752.0
+margin_right = 768.0
 margin_bottom = 32.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
 [node name="edge_mix" type="CheckButton" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 621.0
-margin_right = 749.0
+margin_left = 772.0
+margin_right = 900.0
 margin_bottom = 32.0
 text = "Edge Mix"
 
 [node name="SPACE3" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 753.0
-margin_right = 769.0
+margin_left = 904.0
+margin_right = 920.0
 margin_bottom = 32.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
 [node name="color_grade" type="CheckButton" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 773.0
-margin_right = 939.0
+margin_left = 924.0
+margin_right = 1090.0
 margin_bottom = 32.0
 text = "Color Grading"
 
 [node name="SPACE2" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 943.0
-margin_right = 959.0
+margin_left = 1094.0
+margin_right = 1110.0
 margin_bottom = 32.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
 [node name="choose_image" type="Button" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
+visible = false
 margin_left = 963.0
 margin_right = 1090.0
 margin_bottom = 32.0
 text = "Choose Image"
 
 [node name="SPACE1" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
+visible = false
 margin_left = 1094.0
 margin_right = 1110.0
 margin_bottom = 32.0
@@ -318,6 +326,7 @@ current_path = "/git/code2/godot/my-projects/image-tagger/"
 
 [connection signal="gui_input" from="margin/hsplit/right/preview/viewport_display" to="margin/hsplit/right/preview/viewport_display" method="_on_viewport_display_gui_input"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
+[connection signal="button_up" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/refresh" to="margin/hsplit/left/image_list/margin/vbox/images" method="_on_refresh_button_up"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/filter" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_filter_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/edge_mix" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_edge_mix_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/color_grade" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_color_grade_toggled"]
