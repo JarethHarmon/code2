@@ -53,7 +53,7 @@ public class ImageOp : Node
 			sha256.Dispose();
 			return build.ToString();
 		}
-		catch (Exception ex) { GD.Print("CalcSHA256(): ", ex); return ""; }
+		catch (Exception ex) { GD.Print("ImageOp::CalcSHA256() : ", ex); return ""; }
 	}
 	
 	static string CalcSHA256Checksum(string path) {
@@ -65,7 +65,7 @@ public class ImageOp : Node
 			sha.Dispose();
 			return sha256;
 		}
-		catch (Exception ex) { GD.Print("CalcSHA256(): ", ex); return ""; }
+		catch (Exception ex) { GD.Print("ImageOp::CalcSHA256() : ", ex); return ""; }
 	}
 	
 	/* uses ImageMagick so this method will be compatible with most formats I will likely create a less compatible 
@@ -79,9 +79,10 @@ public class ImageOp : Node
 			im.Resize(256, 256);
 			im.Strip();
 			// temporary code to check if hashes collide too often; so far >4500 hashed with 0 collisions
-			if (System.IO.File.Exists(thumbnail_path)) thumbnail_path += ".jpg";
+			// currently checked by Database::InsertKomiHashInfo() instead, will need to do more testing to confirm the lack of collisions though
+			//if (System.IO.File.Exists(thumbnail_path)) thumbnail_path += ".jpg";
 			im.Write(thumbnail_path);
-		} catch (Exception ex) { GD.Print("SaveThumbnail(): ", ex); return; }
+		} catch (Exception ex) { GD.Print("ImageOp::SaveThumbnail() : ", ex); return; }
 	}
 		
 	public void ImportImage(string image_path) {
@@ -97,7 +98,7 @@ public class ImageOp : Node
 				// maybe to a different database file though
 			// need to decide when/how this should interact with ImageScanner to be most efficient
 		}
-		catch (Exception ex) { GD.Print("ImportImage(): ", ex); return; }
+		catch (Exception ex) { GD.Print("ImageOp::ImportImage() : ", ex); return; }
 	}
 	
 }

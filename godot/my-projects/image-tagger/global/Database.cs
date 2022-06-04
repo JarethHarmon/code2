@@ -63,7 +63,7 @@ public class Database : Node {
 			}
 			return 0;
 		}
-		catch (Exception ex) { GD.Print("Database::Create(): ", ex); return 1; }
+		catch (Exception ex) { GD.Print("Database::Create() : ", ex); return 1; }
 	}
 	public void Destroy() {
 		db_komihash.Dispose();
@@ -78,23 +78,22 @@ public class Database : Node {
 				foreach (KomiHashInfo khash in komihashes) 
 					komihash_info[khash.komihash] = khash;
 		} 
-		catch (Exception ex) { GD.Print("LoadAllSHA256() : ", ex); }
+		catch (Exception ex) { GD.Print("Database::LoadAllKomiHash() : ", ex); }
 	}
 	
 	/* LoadRangeSHA256()
-	 * DESC: loads a number of SHA256s from the Database into sha256_info starting at 'start'
-	 * NOTE: assumes that I will use numeric IDs, just change _Id checks to index otherwise
+	 * DESC: loads a number of Komihashes from the Database into komihash_info starting at 'start'+1
 	 * TODO: add options related to filtering and sorting (needs to be done on the database if I am only retrieving a section of the shas)
-	*/ // now useless; the SQL-style Query api has support for Offset and Limit, so if both of those are exposed I should be able to figure something out
+	*/
 	public void LoadRangeKomiHash(int start, int number) {
 		try {
-			var komihashes = col_komihash.Find(Query.Between("_Id", start, start+number));
+			var komihashes = col_komihash.Find(Query.All(), start, limit:number);
 			if (komihashes != null) 
 				foreach (KomiHashInfo khash in komihashes)
 					komihash_info[khash.komihash] = khash;
 		}
-		catch (Exception ex) { GD.Print("LoadRangeSHA256() : ", ex); } 
-	}
+		catch (Exception ex) { GD.Print("Database::LoadRangeKomiHash() : ", ex); } 
+	}	
 	
 	public int InsertKomiHashInfo(ulong komihash1, bool filter1, string[] paths1, string[] tags1) {
 		try {
@@ -109,19 +108,8 @@ public class Database : Node {
 			return 0;
 		}
 		//catch (SomeSpecificException sse) {}
-		catch (Exception ex) { GD.Print("Database::InsertKomiHashInfo() ", ex); return -1; }
+		catch (Exception ex) { GD.Print("Database::InsertKomiHashInfo() : ", ex); return -1; }
 	}
-	
-	// demonstrates selecting a specified range of rows (31 - 80 in this case)
-	public void QueryTest() { 
-		try {
-			var hash_infos = col_komihash.Find(Query.All(), 30, limit:50); // 30 is offset / Skip()  SKIPS the first 30, meaning it starts at 31 and goes until 80 in this case
-			foreach (KomiHashInfo hash in hash_infos) GD.Print(hash.komihash);
-		}
-		//catch (SomeSpecificException sse) {}
-		catch (Exception ex) { GD.Print("Database::QueryTest() ", ex); return; }
-	} 
-	
 	
 	
 	public bool GetFilterKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? komihash_info[hash].filter : false; }
