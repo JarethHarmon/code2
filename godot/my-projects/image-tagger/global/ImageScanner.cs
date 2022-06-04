@@ -37,7 +37,7 @@ public class ImageScanner : Node
 				}
 			}
 			
-			files[dir.FullName] = fs;
+			files[dir.FullName.Replace("\\", "/")] = fs;
 			
 			var enumerated_directory = dir.EnumerateDirectories();
 			folders.Add(enumerated_directory);
