@@ -35,7 +35,7 @@ var stop_all:bool = false
 var lss:Dictionary = {
 	"images_per_page" : 200,
 	"load_threads" : 5,
-	"thumbail_folder" : "user://metadata/thumbnails"
+	"thumbail_folder" : "user://metadata/thumbnails" 
 }
 
 func stop_threads() -> void: 
@@ -44,8 +44,8 @@ func stop_threads() -> void:
 
 func _ready() -> void: call_deferred("initial_load")
 func initial_load() -> void:
-	Database.LoadRangeKomiHash(0, 1000) # load first 1000 hashes into Dictionary (entirely unsorted/unfiltered for now)
-	filtered_files = Database.GetKomi64s()
+	Database.LoadRangeKomi64(0, 1000) # load first 1000 hashes into Dictionary (entirely unsorted/unfiltered for now)
+	filtered_files = Database.GetAllKomi64FromDict()
 	page_count = ceil(filtered_files.size() as float / lss.images_per_page as float) as int
 	page_image_count = int(min(lss.images_per_page, filtered_files.size()))
 	for i in page_image_count: self.add_item("") #self.add_item(filtered_files[i])
@@ -126,7 +126,7 @@ func threadsafe_set_icon(komi64:String, index:int) -> void:
 func _on_images_item_selected(index:int) -> void:
 	var it:ImageTexture = get_item_icon(index)
 	var komi64:String = it.get_meta("komi64")
-	var paths:Array = Database.GetPathsKomi(komi64)
+	var paths:Array = Database.GetKomiPathsFromDict(komi64)
 	#for p in paths: print(p)
 	Signals.emit_signal("load_image", paths[0])
 	

@@ -33,7 +33,7 @@ public class ImageOp : Node
 		iscan.ScanDirectories(@path, recursive);
 		foreach (string image_path in iscan.GetImages()) ImportImage(image_path);
 		iscan.Clear();
-		db_komi.CheckpointKomiHash();
+		db_komi.CheckpointKomi64();
 	}
 	
 	public void CalcDifferenceHash(string path) {
@@ -94,11 +94,10 @@ public class ImageOp : Node
 	public void ImportImage(string image_path) {
 		try {
 			if (IsImageCorrupt(image_path)) return;
-			string s_komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
-			string save_path = thumbnail_path + s_komihash + ".jpg"; 
-			ulong komihash = ulong.Parse(s_komihash);
-			
-			int err = db_komi.InsertKomiHashInfo(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
+			string komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
+			string save_path = thumbnail_path + komihash + ".jpg"; 
+
+			int err = db_komi.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
 			if (err != 0) return;
 			SaveThumbnail(image_path, save_path);
 			// add hash to database (also need to add metadata like file_size/extension/creation_time_utc/etc)
