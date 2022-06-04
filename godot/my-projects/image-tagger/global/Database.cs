@@ -25,7 +25,6 @@ public class Database : Node
 	// if the first one is significantly faster then I will instead add an index variable to the class and use sha256 as the id
 	
 	public string metadata_path;
-	public string thumbnail_path;
 	public bool use_journal = true;
 	
 	public LiteDatabase db_sha256;
@@ -33,6 +32,8 @@ public class Database : Node
 	public ILiteCollection<SHA256Info> sha256s;
 	
 	public Dictionary<string, SHA256Info> sha256_info = new Dictionary<string, SHA256Info>();
+	
+	public void SetMetadataPath(string path) { metadata_path = path; }
 	
 	public void Create() {
 		if (use_journal) {

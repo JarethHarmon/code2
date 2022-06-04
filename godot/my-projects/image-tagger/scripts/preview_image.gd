@@ -7,7 +7,6 @@ export (NodePath) var ViewportDisplay ; onready var viewport_display = get_node(
 export (NodePath) var FileD ; onready var fd:FileDialog = get_node(FileD)
 export (NodePath) var ColorGrade ; onready var color_grade:Control = get_node(ColorGrade)
 export (NodePath) var EdgeMix ; onready var edge_mix:Control = get_node(EdgeMix)
-export (NodePath) var ThumbPathLabel ; onready var thumb_path_label:Label = get_node(ThumbPathLabel)
 
 enum selection { THUMBNAIL, IMPORT }
 var select:int = selection.IMPORT
@@ -17,10 +16,10 @@ func _on_FileDialog_dir_selected(dir:String) -> void:
 		selection.IMPORT: 
 			if ImageOp.thumbnail_path == "": return
 			ImageOp.ImportImages(dir)
-		selection.THUMBNAIL: 
-			ImageOp.thumbnail_path = dir + "/"
-			thumb_path_label.text = dir
-			var _err:int = Directory.new().make_dir_recursive(dir)
+#		selection.THUMBNAIL: 
+#			ImageOp.thumbnail_path = dir + "/"
+#			thumb_path_label.text = dir
+#			var _err:int = Directory.new().make_dir_recursive(dir)
 
 func _on_FileDialog_file_selected(path:String) -> void:
 	var i:Image = Image.new()
@@ -69,14 +68,6 @@ func _on_choose_image_pressed() -> void:
 	fd.mode = 0		# choose file
 	fd.access = 2	# file system
 	fd.window_title = "Choose an image"
-	fd.popup()
-
-func _on_choose_thumbnail_path_pressed() -> void:
-	if fd.visible: return
-	select = selection.THUMBNAIL
-	fd.mode = 2 	# choose folder
-	fd.access = 2	# file system
-	fd.window_title = "Choose a folder to store thumbnails in"
 	fd.popup()
 	
 func _on_color_grade_toggled(button_pressed) -> void: color_grade.visible = button_pressed

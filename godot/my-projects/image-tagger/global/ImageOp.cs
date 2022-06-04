@@ -16,7 +16,8 @@ public class ImageOp : Node
 	public Node import;
 	public ImageScanner iscan;
 	
-	public string thumbnail_path = "";
+	public string thumbnail_path;
+	public void SetThumbnailPath(string path) { thumbnail_path = path; }
 	
 	public override void _Ready() { 
 		import = (Node) GetNode("/root/Import"); 
