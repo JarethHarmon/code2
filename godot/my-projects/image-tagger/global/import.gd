@@ -27,7 +27,7 @@ func start_importer() -> void:
 	importer_active = true
 
 func queue_append(import_folder:String, recursive:bool=true) -> void:
-	print("added to queue (recursive = ", recursive, ") : \n\t", import_folder, "\n") 
+	print("QUEUE (R=" + ("t" if recursive else "f") + "):   ", import_folder) 
 	queue.append([import_folder, recursive])
 	if (!importer_active): start_importer()
 
@@ -43,4 +43,5 @@ func _done() -> void:
 	importer_active = false
 	import_mutex.unlock()
 	print("DONE\n")
+	Signals.emit_signal("image_scan_finished")
 	

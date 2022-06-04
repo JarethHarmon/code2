@@ -12,7 +12,8 @@ export (NodePath) var EdgeMix ; onready var edge_mix:Control = get_node(EdgeMix)
 
 enum selection { THUMBNAIL, IMPORT }
 var select:int = selection.IMPORT
-var use_recursion:bool = true
+var use_recursion:bool = false
+var use_filter:bool = true
 
 func _ready() -> void:
 	var _err:int = Signals.connect("load_image", self, "_on_FileDialog_file_selected") # should just work
@@ -22,11 +23,7 @@ func _on_FileDialog_dir_selected(dir:String) -> void:
 		selection.IMPORT: 
 			if ImageOp.thumbnail_path == "": return
 			Import.queue_append(dir, use_recursion)
-			
-#		selection.THUMBNAIL: 
-#			ImageOp.thumbnail_path = dir + "/"
-#			thumb_path_label.text = dir
-#			var _err:int = Directory.new().make_dir_recursive(dir)
+			Settings.settings.last_used_directory = dir.get_base_dir()
 
 onready var image_mutex:Mutex = Mutex.new()
 onready var image_thread:Thread = Thread.new()
@@ -38,20 +35,28 @@ func _on_FileDialog_file_selected(path:String) -> void:
 	var _err:int = image_thread.start(self, "_thread", path)
 
 func _thread(path:String) -> void:
-	var i:Image = Image.new()
-	var e:int = i.load(path)
-	if e != OK: return
-	
+	var actual_format:String = ImageOp.GetActualFormat(path)
+	var saved_format:String = path.get_extension().to_upper().replace("JPEG", "JPG")
+	var i:Image ; var e:int = 0
+	if (actual_format != saved_format): 
+		print("\n", path, "\n\tactual format: ", actual_format, "\n\tsaved format: ", saved_format)
+		i = ImageOp.LoadUnknownFormat(path)
+	else:
+		i = Image.new() 
+		e = i.load(path)
+		if e != OK: i = ImageOp.LoadUnknownFormatAlt(path)
+	#if e == OK:
 	var it:ImageTexture = ImageTexture.new()
-	it.create_from_image(i, 0)
+	#it.create_from_image(i, 0)
+	it.create_from_image(i, 4 if use_filter else 0)
 	it.set_size_override(calc_size(it))
 	$hbox_0/image_0.texture = it
+		
 	call_deferred("_done")
 
 func _done() -> void:
 	if image_thread.is_alive() or image_thread.is_active(): image_thread.wait_to_finish()
 	image_mutex.unlock()
-	#print("DONE\n")
 
 func calc_size(it:ImageTexture) -> Vector2:
 	var size_1:Vector2 = viewport_display.rect_size
@@ -82,8 +87,9 @@ func _on_import_images_pressed() -> void:
 	fd.mode = 2 	# choose folder
 	fd.access = 2	# file system
 	fd.window_title = "Choose a folder to import from"
+	if Settings.settings.last_used_directory != "": fd.current_dir = Settings.settings.last_used_directory
 	fd.popup()
-
+	
 func _on_choose_image_pressed() -> void:
 	if fd.visible: return
 	fd.mode = 0		# choose file
@@ -94,3 +100,11 @@ func _on_choose_image_pressed() -> void:
 func _on_color_grade_toggled(button_pressed:bool) -> void: color_grade.visible = button_pressed
 func _on_edge_mix_toggled(button_pressed:bool): edge_mix.visible = button_pressed
 func _on_use_recursion_toggled(button_pressed:bool) -> void: use_recursion = button_pressed
+func _on_filter_toggled(button_pressed:bool) -> void:
+	use_filter = button_pressed
+	var preview:TextureRect = $hbox_0/image_0
+	var i:Image = preview.get_texture().get_data()
+	var it:ImageTexture = ImageTexture.new()
+	it.create_from_image(i, 4 if button_pressed else 0)
+	it.set_size_override(calc_size(it))
+	preview.set_texture(it)

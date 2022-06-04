@@ -5,9 +5,6 @@ using System.Linq;
 using System.Collections.Generic;
 using Alphaleonis.Win32.Filesystem;
 
-// need to add support for long file paths with alphaleonis
-// need to consider using namespaces (instead of?) global autoload singletons
-
 public class ImageScanner : Node
 {
 	public HashSet<string> supported_extensions = new HashSet<string>{".PNG", ".JPG", ".JPEG"};
@@ -20,7 +17,7 @@ public class ImageScanner : Node
 		var now = DateTime.Now;
 		var di = new System.IO.DirectoryInfo(@path);
 		int image_count = ScanDirectories(di, recursive);
-		GD.Print(path, "\n\tfound ", image_count, " images in ", (DateTime.Now-now).Milliseconds, " milliseconds\n");
+		GD.Print("SCAN  (R=", (recursive)?"t":"f" + "):   ", path, "\t; found ", image_count, " images in ", (DateTime.Now-now).Milliseconds, " ms");
 	}
 	
 	private int ScanDirectories(System.IO.DirectoryInfo dir, bool recursive) {
@@ -31,9 +28,6 @@ public class ImageScanner : Node
 				if (supported_extensions.Contains(f.Extension.ToUpperInvariant())) {
 					fs.Add((f.Name, f.Extension, f.CreationTimeUtc, f.Length)); 
 					image_count++;
-					// need to either remove the files Dictionary and add metadata/calc komihash/thumbnail here
-					// or iterate through all the files after this finishes (probably in this class for access to files)
-					// either way it needs to be threaded, so whatever it is will be called by GDScript
 				}
 			}
 			
@@ -60,7 +54,6 @@ public class ImageScanner : Node
 		return images.ToArray();
 	}
 	
-	// consider EnsureCapacity()
 	public void Clear() {
 		folders.Clear();
 		files.Clear();
