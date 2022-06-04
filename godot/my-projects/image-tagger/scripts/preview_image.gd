@@ -13,6 +13,7 @@ export (NodePath) var EdgeMix ; onready var edge_mix:Control = get_node(EdgeMix)
 enum selection { THUMBNAIL, IMPORT }
 var select:int = selection.IMPORT
 var use_recursion:bool = true
+var use_filter:bool = true
 
 func _ready() -> void:
 	var _err:int = Signals.connect("load_image", self, "_on_FileDialog_file_selected") # should just work
@@ -45,7 +46,8 @@ func _thread(path:String) -> void:
 		if e != OK: i = ImageOp.LoadUnknownFormatAlt(path)
 	#if e == OK:
 	var it:ImageTexture = ImageTexture.new()
-	it.create_from_image(i, 0)
+	#it.create_from_image(i, 0)
+	it.create_from_image(i, 4 if use_filter else 0)
 	it.set_size_override(calc_size(it))
 	$hbox_0/image_0.texture = it
 		
@@ -96,3 +98,11 @@ func _on_choose_image_pressed() -> void:
 func _on_color_grade_toggled(button_pressed:bool) -> void: color_grade.visible = button_pressed
 func _on_edge_mix_toggled(button_pressed:bool): edge_mix.visible = button_pressed
 func _on_use_recursion_toggled(button_pressed:bool) -> void: use_recursion = button_pressed
+func _on_filter_toggled(button_pressed:bool) -> void:
+	use_filter = button_pressed
+	var preview:TextureRect = $hbox_0/image_0
+	var i:Image = preview.get_texture().get_data()
+	var it:ImageTexture = ImageTexture.new()
+	it.create_from_image(i, 4 if button_pressed else 0)
+	it.set_size_override(calc_size(it))
+	preview.set_texture(it)

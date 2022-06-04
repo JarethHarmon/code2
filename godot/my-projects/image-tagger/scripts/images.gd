@@ -89,7 +89,7 @@ func _threadsafe_clear() -> void:
 		yield(get_tree(), "idle_frame")
 		yield(get_tree(), "idle_frame")
 	for i in page_image_count:
-		self.add_item(pages[current_page][i]) #self.add_item("") #
+		self.add_item("") #self.add_item(pages[current_page][i]) #self.add_item("") #
 		self.set_item_icon(i, icon_loading)
 	get_parent().get_node("page_buttons/Label").text = String(current_page) + "/" + String(total_pages)
 	sc.unlock()
