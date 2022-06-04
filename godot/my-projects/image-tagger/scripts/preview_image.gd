@@ -2,6 +2,8 @@ extends VBoxContainer
 
 const BASE_MAX_DIMENSIONS=16384
 
+# button logic needs to be moved out of this script (especially image importing)
+
 # export (NodePath) var ListItems ; onready var item_list:ItemList = get_node(ListItems)
 export (NodePath) var ViewportDisplay ; onready var viewport_display = get_node(ViewportDisplay)
 export (NodePath) var FileD ; onready var fd:FileDialog = get_node(FileD)
@@ -15,7 +17,8 @@ func _on_FileDialog_dir_selected(dir:String) -> void:
 	match select:
 		selection.IMPORT: 
 			if ImageOp.thumbnail_path == "": return
-			ImageOp.ImportImages(dir)
+			Import.start_importing(dir, true)
+			
 #		selection.THUMBNAIL: 
 #			ImageOp.thumbnail_path = dir + "/"
 #			thumb_path_label.text = dir

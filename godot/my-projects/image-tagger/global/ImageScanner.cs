@@ -10,20 +10,20 @@ using Alphaleonis.Win32.Filesystem;
 
 public class ImageScanner : Node
 {
-	public HashSet<string> supported_extensions = new HashSet<string>{".PNG", ".JPG"};
+	public HashSet<string> supported_extensions = new HashSet<string>{".PNG", ".JPG", ".JPEG"};
 	
 	public List<string> blacklisted_folders = new List<string>{"System Volume Information", "$RECYCLE.BIN"};
 	private List<IEnumerable<System.IO.DirectoryInfo>> folders = new List<IEnumerable<System.IO.DirectoryInfo>>();
 	private Dictionary<string, List<(string, string, DateTime, long)>> files = new Dictionary<string, List<(string, string, DateTime, long)>>();
 	
-	public void ScanDirectories(string path) {
+	public void ScanDirectories(string path, bool recursive) {
 		var now = DateTime.Now;
 		var di = new System.IO.DirectoryInfo(@path);
-		int image_count = ScanDirectories(di);
+		int image_count = ScanDirectories(di, recursive);
 		GD.Print("found ", image_count, " images in ", DateTime.Now-now);
 	}
 	
-	private int ScanDirectories(System.IO.DirectoryInfo dir) {
+	private int ScanDirectories(System.IO.DirectoryInfo dir, bool recursive) {
 		int image_count = 0;
 		try {
 			var fs = new List<(string, string, DateTime, long)>();
@@ -38,13 +38,14 @@ public class ImageScanner : Node
 			}
 			
 			files[dir.FullName.Replace("\\", "/")] = fs;
+			if (!recursive) return image_count;
 			
 			var enumerated_directory = dir.EnumerateDirectories();
 			folders.Add(enumerated_directory);
 			foreach (System.IO.DirectoryInfo d in enumerated_directory) {
 				if (!d.FullName.Contains(" ")) { // U+00A0
 					foreach (string bl in blacklisted_folders) if (d.FullName.Contains(bl)) continue;
-					image_count += ScanDirectories(d);
+					image_count += ScanDirectories(d, recursive);
 				}
 			}
 		} catch (Exception ex) { GD.Print(dir.FullName, "\n", ex); return image_count; }

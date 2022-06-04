@@ -29,8 +29,8 @@ public class ImageOp : Node
 		db_komi = (Database) GetNode("/root/Database");
 	}
 	
-	public void ImportImages(string path) {
-		iscan.ScanDirectories(@path);
+	public void ImportImages(string path, bool recursive) {
+		iscan.ScanDirectories(@path, recursive);
 		foreach (string image_path in iscan.GetImages()) ImportImage(image_path);
 		iscan.Clear();
 		db_komi.CheckpointKomiHash();
@@ -82,11 +82,18 @@ public class ImageOp : Node
 			// currently checked by Database::InsertKomiHashInfo() instead, will need to do more testing to confirm the lack of collisions though
 			//if (System.IO.File.Exists(thumbnail_path)) thumbnail_path += ".jpg";
 			im.Write(thumbnail_path);
-		} catch (Exception ex) { GD.Print("ImageOp::SaveThumbnail() : ", ex); return; }
+		} 
+		catch (Exception ex) { GD.Print("ImageOp::SaveThumbnail() : ", ex); return; }
 	}
-		
+	static bool IsImageCorrupt(string image_path) {
+		try { var im = new MagickImage(image_path); }
+		catch (MagickCorruptImageErrorException) { return true; }
+		return false;
+	}
+	
 	public void ImportImage(string image_path) {
 		try {
+			if (IsImageCorrupt(image_path)) return;
 			string s_komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
 			string save_path = thumbnail_path + s_komihash + ".jpg"; 
 			ulong komihash = ulong.Parse(s_komihash);
