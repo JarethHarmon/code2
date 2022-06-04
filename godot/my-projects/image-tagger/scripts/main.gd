@@ -27,4 +27,5 @@ func _ready() -> void:
 	
 	if (Database.Create() == OK): print(default_metadata_path)
 
+	# Database.QueryTest()
 

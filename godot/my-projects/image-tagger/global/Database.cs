@@ -22,6 +22,7 @@ using Alphaleonis.Win32.Filesystem;
 	Also I just realized that LiteDB does not actually use an index for _Id, and even if it did it would not be all that 
 	useful for selecting a range.So the question of whether to change the _Id is now moot and I should probably set it to komihash after all.
 	This means I still have to figure out a way to select a numbered range of rows from the database (with a given start point).
+	It does automatically convert them back to ulong when retrieving them from the database so I should only need to convert them for comparison (may not even need to, needs testing)
 */
 
 public class KomiHashInfo {
@@ -110,6 +111,17 @@ public class Database : Node {
 		//catch (SomeSpecificException sse) {}
 		catch (Exception ex) { GD.Print("Database::InsertKomiHashInfo() ", ex); return -1; }
 	}
+	
+	// demonstrates selecting a specified range of rows (31 - 80 in this case)
+	public void QueryTest() { 
+		try {
+			var hash_infos = col_komihash.Find(Query.All(), 30, limit:50); // 30 is offset / Skip()  SKIPS the first 30, meaning it starts at 31 and goes until 80 in this case
+			foreach (KomiHashInfo hash in hash_infos) GD.Print(hash.komihash);
+		}
+		//catch (SomeSpecificException sse) {}
+		catch (Exception ex) { GD.Print("Database::QueryTest() ", ex); return; }
+	} 
+	
 	
 	
 	public bool GetFilterKomi(ulong hash) { return (komihash_info.ContainsKey(hash)) ? komihash_info[hash].filter : false; }
