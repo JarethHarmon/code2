@@ -63,6 +63,8 @@ func initial_load() -> void:
 	offset = (current_page-1) * lss.images_per_page
 	
   # determine which page the array will replace
+	#print(pages.keys())
+	#print(pages_queue)
 	if pages.size() >= lss.pages_to_store:
 		var page_to_remove:int = pages_queue.pop_front()
 		Database.RemoveKomi64sFromDict(pages[page_to_remove])
@@ -75,7 +77,7 @@ func initial_load() -> void:
 	var arr:Array = Database.GetTempKomi64List()
 	
   # store the array in pages
-	pages_queue.append(current_page)
+	if not pages_queue.has(current_page): pages_queue.append(current_page)
 	pages[current_page] = arr
 		
   #	calculate page_image_count (used for item generation)
