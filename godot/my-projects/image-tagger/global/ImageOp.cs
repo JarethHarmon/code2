@@ -14,8 +14,9 @@ public class ImageOp : Node
 	public const int MAX_PATH_LENGTH = 256;
 	
 	public Node import;
+	public Node signals;
 	public ImageScanner iscan;
-	public Database db_komi;
+	public Database db;
 	
 	public bool filter_by_default = true;
 	public string thumbnail_path;
@@ -23,15 +24,24 @@ public class ImageOp : Node
 	
 	public override void _Ready() { 
 		import = (Node) GetNode("/root/Import"); 
+		signals = (Node) GetNode("/root/Signals");
 		iscan = (ImageScanner) GetNode("/root/ImageScanner");
-		db_komi = (Database) GetNode("/root/Database");
+		db = (Database) GetNode("/root/Database");
 	}
 	
 	public void ImportImages(string path, bool recursive) {
-		iscan.ScanDirectories(@path, recursive);
-		foreach (string image_path in iscan.GetImages()) ImportImage(image_path);
-		iscan.Clear();
-		db_komi.CheckpointKomi64();
+		int image_count = iscan.ScanDirectories(@path, recursive);
+		if (image_count <= 0) return; 								// no images to import
+		
+		string iid = db.GetRandomID(16); 							// gets a random 128 bit ID	
+		db.AddImportInfoToDatabase(iid, "", path, image_count);		// 				
+		db.CreateImportListInDatabase(iid, new string[0]);			// create the import list
+		signals.Call("create_import_button", iid);					//
+		
+		foreach (string image_path in iscan.GetImages()) ImportImage(image_path, iid);
+
+		db.CheckpointImport();
+		db.CheckpointKomi64();
 	}
 	
 	public void CalcDifferenceHash(string path) {
@@ -47,7 +57,7 @@ public class ImageOp : Node
 	 * function for common image types that tries to be faster than ImageMagick */
 	public void SaveThumbnail(string komi64) {
 		string save_path = thumbnail_path + komi64 + ".jpg";
-		string image_path = db_komi.GetKomiPathsFromDict(komi64)[0];
+		string image_path = db.GetKomiPathsFromDict(komi64)[0];
 		SaveThumbnail(image_path, save_path);
 	}
 	static void SaveThumbnail(string image_path, string thumbnail_path) {
@@ -101,13 +111,15 @@ public class ImageOp : Node
 		catch (Exception) { return null; }
 	}
 	
-	public void ImportImage(string image_path) {
+	public void ImportImage(string image_path, string import_id) {
 		try {
 			if (IsImageCorrupt(image_path)) return;
 			string komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
 			string save_path = thumbnail_path + komihash + ".jpg"; 
-
-			int err = db_komi.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
+			
+			db.AddKomi64ToImportListInDatabase(import_id, komihash);
+			
+			int err = db.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
 			if (err != 0) return;
 			SaveThumbnail(image_path, save_path);
 		}

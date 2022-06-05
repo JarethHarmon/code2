@@ -108,10 +108,14 @@ func _on_filter_toggled(button_pressed:bool) -> void:
 	use_filter = button_pressed
 	if button_pressed:
 		smooth_pixel_button.disabled = false
-		if use_smooth_pixel: _on_use_smooth_pixel_toggled(true)
+		if use_smooth_pixel: 
+			_on_use_smooth_pixel_toggled(true)
 	else:
 		smooth_pixel_button.disabled = true
-		_on_use_smooth_pixel_toggled(false)
+		if use_smooth_pixel:
+			_on_use_smooth_pixel_toggled(false)
+			use_smooth_pixel = true
+		else: _on_use_smooth_pixel_toggled(false)
 	
 	var preview:TextureRect = $hbox_0/image_0
 	var i:Image = preview.get_texture().get_data()
@@ -121,5 +125,6 @@ func _on_filter_toggled(button_pressed:bool) -> void:
 	preview.set_texture(it)
 func _on_use_smooth_pixel_toggled(button_pressed:bool) -> void:
 	use_smooth_pixel = button_pressed
-	if button_pressed: $hbox_0/image_0.set_material(pixel_smooth)
+	if button_pressed: 
+		$hbox_0/image_0.set_material(pixel_smooth)
 	else: $hbox_0/image_0.set_material(null)

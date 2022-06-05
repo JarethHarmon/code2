@@ -23,7 +23,7 @@ public class ImportInfo {
 }
 public class ImportList {
 	public string import_id { get; set; }
-	public HashSet<string> import_list { get; set; }
+	public List<string> import_list { get; set; }
 }
 
 public class Database : Node {
@@ -40,9 +40,9 @@ public class Database : Node {
 	
 	public Dictionary<string, Komi64Info> dict_komi64 = new Dictionary<string, Komi64Info>();
 	public List<string> komi_hashes = new List<string>();
-	
-	public Dictionary<string, ImportInfo> dict_import_info = new Dictionary<string, ImportInfo>();
 
+	public Dictionary<string, ImportInfo> dict_import_info = new Dictionary<string, ImportInfo>();
+	
 	public int Create() {
 		try {
 			if (use_journal) {
@@ -93,6 +93,14 @@ public class Database : Node {
 		}
 		catch (Exception ex) { GD.Print("Database::LoadRangeKomi64() : ", ex); } 
 	}	
+	
+	public void LoadOneKomi64(string komi64) {
+		try {
+			var khinfo = col_komi64.FindOne(Query.EQ("_Id", komi64));
+			if (khinfo != null) dict_komi64[komi64] = khinfo;
+		}
+		catch (Exception ex) { GD.Print("Database::LoadOneKomi64() : ", ex); } 
+	}
 		
 	public int InsertKomi64Info(string komi64_n, bool filter_n, string[] paths_n, string[] tags_n) {
 		try {
@@ -140,8 +148,10 @@ public class Database : Node {
 	public int LoadAllImportInfoFromDatabase() {
 		try {
 			var imports = col_import_info.FindAll();
-			foreach (ImportInfo import in imports)
+			foreach (ImportInfo import in imports) {
+				if (import.import_name == null) import.import_name = ""; // prevents a crash caused by the database storing "" as null
 				dict_import_info[import.import_id] = import;
+			}
 			return 0;
 		}
 		catch (Exception ex) { GD.Print("Database::LoadAllImportInfoFromDatabase() : ", ex); return 1; }
@@ -155,6 +165,13 @@ public class Database : Node {
 	public string GetImportBaseFolder(string import_id) { return dict_import_info[import_id].import_base_folder; }
 	public DateTime GetImportTime(string import_id) { return dict_import_info[import_id].import_time; }
 	public int GetImportCount(string import_id) { return dict_import_info[import_id].import_count; } 
+	public int GetCurrentImportListCount(string import_id) { 
+		try {
+			var import = col_import_list.FindOne(Query.EQ("_Id", import_id));
+			return import.import_list.Count;
+		}
+		catch (Exception ex) { GD.Print("Database::GetCurrentImportListCount() : ", ex); return -1; }
+	}
 	public string[] GetImportListFromDatabase(string import_id) {
 		// logical issue with this, basically I have to decide between the following:
 		//		1. store like it is currently import_id:List(komi64) 
@@ -162,32 +179,53 @@ public class Database : Node {
 		// 1. has the problem of using a lot of memory if someone just picks a top-level directory and imports 10's of millions of images at once
 		// 2. has the problem of being slower and using more storage space, though I do not know how much slower/more space
 		try {
-			var imports = col_import_list.FindOne(Query.EQ("_Id", import_id));
-			return imports.import_list.ToArray();
+			var import = col_import_list.FindOne(Query.EQ("_Id", import_id));
+			return import.import_list.ToArray();
 		}
 		catch (Exception ex) { GD.Print("Database::GetImportListFromDatabase() : ", ex); return new string[0]; }
 	}
-	// see comments in GetImportListFromDatabase(), not possible to do this with the current implementation (unless I load them all into memory first anyways)
-	//public string[] GetSubsetOfImportListFromDatabase(string import_id) {}
-	
-	public void AddImportToDatabase(string name_n, string base_folder, string[] list) {
+	// see comments in GetImportListFromDatabase(), not possible to do this without loading them all into memory first
+	// I will leave this function in in case I find a better way, and because it uses the memory for less time
+	// I could be wrong though, it is possible that 'import' does not actually store the entire query in memory, but instead loads it from the database once it is needed
+	public string[] GetImportListSubsetFromDatabase(string import_id, int start_index, int count) {
 		try {
-			string iid = GetRandomID(16); // gets a random 128 bit ID
+			var import = col_import_list.FindOne(Query.EQ("_Id", import_id));
+			return import.import_list.GetRange(start_index, Math.Min(count, import.import_list.Count-start_index)).ToArray();
+		}
+		catch (Exception ex) { GD.Print("Database::GetImportListSubsetFromDatabase() : ", ex); return new string[0]; }
+	}
+	
+	public void AddImportInfoToDatabase(string iid, string name_n, string base_folder, int count) {
+		try {
 			var iinfo = new ImportInfo {
 				import_id = iid, 
 				import_name = name_n,
 				import_base_folder = base_folder,
 				import_time = DateTime.Now,
-				import_count = list.Length
+				import_count = count
 			};
+			dict_import_info[iid] = iinfo; // add to dictionary as well
 			col_import_info.Insert(iinfo);
+		}
+		catch (Exception ex) { GD.Print("Database::AddImportInfoToDatabase() : ", ex); return; } 
+	}
+	public void CreateImportListInDatabase(string iid, string[] list) {
+		try {
 			var ilist = new ImportList {
 				import_id = iid,
-				import_list = new HashSet<string>(list)
+				import_list = new List<string>(list)
 			};
 			col_import_list.Insert(ilist);
 		}
-		catch (Exception ex) { GD.Print("Database::AddImportToDatabase() : ", ex); return; } 
+		catch (Exception ex) { GD.Print("Database::CreateImportListInDatabase() : ", ex); return; } 
+	}
+	public void AddKomi64ToImportListInDatabase(string iid, string komi64) {
+		try {
+			var ilist = col_import_list.FindOne(Query.EQ("_Id", iid));
+			ilist.import_list.Add(komi64);
+			col_import_list.Update(ilist);
+		}
+		catch (Exception ex) { GD.Print("Database::AddImportToListInDatabase() : ", ex); return; } 
 	}
 	
 	public string GetRandomID(int num_bytes) {
@@ -196,7 +234,7 @@ public class Database : Node {
 			var rng = new RNGCryptoServiceProvider();
 			rng.GetBytes(bytes);
 			rng.Dispose();
-			return BitConverter.ToString(bytes);
+			return BitConverter.ToString(bytes).Replace("-", "");
 		}
 		catch (Exception ex) { GD.Print("Database::GetRandomID() : ", ex); return ""; } 
 	}

@@ -29,6 +29,7 @@ var total_image_count:int = 0			# the total number of images from the current qu
 var page_image_count:int = 0			# the number of images that are supposed to be loaded for the current page (cannot use page_files.size() because it is treated as a queue)
 var total_pages:int = 1					# total number of pages for the current query (total_image_count/images_per_page)
 var current_page:int = 1				# the current page of images
+var current_import_id:String = ""		# 
 
 var timer_delay:float = 0.3				# delay for allowed presses of prev/next buttons
 
@@ -48,33 +49,50 @@ func stop_threads() -> void:
 	for t in load_threads: if t.is_alive() or t.is_active(): t.wait_to_finish()
 
 func _ready() -> void: 
-	var _err:int = Signals.connect("image_scan_finished", self, "_on_refresh_button_up")
-	call_deferred("initial_load")
+	var _err:int = Signals.connect("image_import_finished", self, "_on_refresh_button_up")
+	_err = Signals.connect("import_button_pressed", self, "button_import_clicked")
+	#call_deferred("initial_load")
 
-func initial_load() -> void:
+func button_import_clicked(import_id:String):
+	current_page = 1
+	total_pages = 1
+	# need to call threadsafe clear of pages_queue, etc
+	# need to replace with queue of images from any import / page
+	total_image_count = 0
+	current_import_id = import_id
+	load_import(import_id)
+
+#func initial_load() -> void:
+func load_import(import_id:String) -> void:
 	if loading: return
-	loading = true
+	if import_id == "": return
+	loading = true	
 	
   # calculate total_pages and total_image_count
-	total_image_count = Database.GetTotalRowCountKomi()
+	#total_image_count = Database.GetTotalRowCountKomi()
+	total_image_count = Database.GetImportCount(import_id)
 	total_pages = ceil(total_image_count as float / lss.images_per_page as float) as int
 	
   # calculate offset (used for LoadRangeKomi64())
 	offset = (current_page-1) * lss.images_per_page
 	
   # determine which page the array will replace
-	#print(pages.keys())
-	#print(pages_queue)
 	if pages.size() >= lss.pages_to_store:
 		var page_to_remove:int = pages_queue.pop_front()
-		Database.RemoveKomi64sFromDict(pages[page_to_remove])
+		# should be entirely unnecessary with current implementation
+		#Database.RemoveKomi64sFromDict(pages[page_to_remove])
 		var _had:bool = pages.erase(page_to_remove)
 		
   # load the hashes from the database into a temp List
-	Database.LoadRangeKomi64(offset, lss.images_per_page)
+	var count:int
+	var tmp:int = Database.GetCurrentImportListCount(import_id)
+	if tmp < 0: count = lss.images_per_page # this is probably not a good thing to do, not sure how to error out of this function right now though
+	else: count = int(min(tmp, lss.images_per_page))
+	var arr:Array = Database.GetImportListSubsetFromDatabase(import_id, offset, count)
+	#Database.LoadRangeKomi64(offset, lss.images_per_page)
 	
   # retrieve the hashes from the temp list and clear the list
-	var arr:Array = Database.GetTempKomi64List()
+	#var arr:Array = Database.GetTempKomi64List()
 	
   # store the array in pages
 	if not pages_queue.has(current_page): pages_queue.append(current_page)
@@ -90,7 +108,7 @@ func initial_load() -> void:
 func _threadsafe_clear() -> void:
 	sc.lock()
 	if self.get_item_count() > 0:
-		for i in page_image_count: self.set_item_icon(i, null)
+		#for i in page_image_count: self.set_item_icon(i, null)
 		yield(get_tree(), "idle_frame")
 		self.clear()
 		yield(get_tree(), "idle_frame")
@@ -131,6 +149,7 @@ func _thread(_thread_id:int) -> void:
 		else:
 			fi.lock()
 			var komi64:String = page_files.pop_front()
+			Database.LoadOneKomi64(komi64) # probably a better place to put this ; need to unload it as well
 			var index:int = item_index
 			item_index += 1
 			fi.unlock()
@@ -198,7 +217,8 @@ func _on_prev_page_button_up() -> void:
 	$Timer.start(timer_delay)
 	
 	current_page -= 1
-	initial_load()
+	#initial_load()
+	load_import(current_import_id)
 
 func _on_next_page_button_up() -> void:
 	if loading: return
@@ -210,7 +230,8 @@ func _on_next_page_button_up() -> void:
 	$Timer.start(timer_delay)
 	
 	current_page += 1
-	initial_load()
+	#initial_load()
+	load_import(current_import_id)
 
 # move refresh button to image_list.tscn
 func _on_refresh_button_up() -> void:
@@ -221,4 +242,5 @@ func _on_refresh_button_up() -> void:
 	next_page.disabled = true
 	$Timer.start(timer_delay)
 	
-	initial_load()
+	#initial_load()
+	load_import(current_import_id)

@@ -43,5 +43,5 @@ func _done() -> void:
 	importer_active = false
 	import_mutex.unlock()
 	print("DONE\n")
-	Signals.emit_signal("image_scan_finished")
+	Signals.emit_signal("image_import_finished")
 	
