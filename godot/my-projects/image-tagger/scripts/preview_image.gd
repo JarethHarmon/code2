@@ -1,19 +1,25 @@
 extends VBoxContainer
 
-const BASE_MAX_DIMENSIONS=16384
-
 # button logic needs to be moved out of this script (especially image importing)
+
+const pixel_smooth = preload("res://shaders/SmoothPixel.tres")
+const BASE_MAX_DIMENSIONS=16384
 
 # export (NodePath) var ListItems ; onready var item_list:ItemList = get_node(ListItems)
 export (NodePath) var ViewportDisplay ; onready var viewport_display = get_node(ViewportDisplay)
 export (NodePath) var FileD ; onready var fd:FileDialog = get_node(FileD)
 export (NodePath) var ColorGrade ; onready var color_grade:Control = get_node(ColorGrade)
 export (NodePath) var EdgeMix ; onready var edge_mix:Control = get_node(EdgeMix)
+export (NodePath) var SmoothPixelButton ; onready var smooth_pixel_button:CheckBox = get_node(SmoothPixelButton)
+
+onready var image_mutex:Mutex = Mutex.new()
+onready var image_thread:Thread = Thread.new()
 
 enum selection { THUMBNAIL, IMPORT }
 var select:int = selection.IMPORT
 var use_recursion:bool = false
 var use_filter:bool = true
+var use_smooth_pixel:bool = false
 
 func _ready() -> void:
 	var _err:int = Signals.connect("load_image", self, "_on_FileDialog_file_selected") # should just work
@@ -25,8 +31,6 @@ func _on_FileDialog_dir_selected(dir:String) -> void:
 			Import.queue_append(dir, use_recursion)
 			Settings.settings.last_used_directory = dir.get_base_dir()
 
-onready var image_mutex:Mutex = Mutex.new()
-onready var image_thread:Thread = Thread.new()
 func _on_FileDialog_file_selected(path:String) -> void:
 	fd.hide()
 	if (image_mutex.try_lock() != OK): return
@@ -102,9 +106,20 @@ func _on_edge_mix_toggled(button_pressed:bool): edge_mix.visible = button_presse
 func _on_use_recursion_toggled(button_pressed:bool) -> void: use_recursion = button_pressed
 func _on_filter_toggled(button_pressed:bool) -> void:
 	use_filter = button_pressed
+	if button_pressed:
+		smooth_pixel_button.disabled = false
+		if use_smooth_pixel: _on_use_smooth_pixel_toggled(true)
+	else:
+		smooth_pixel_button.disabled = true
+		_on_use_smooth_pixel_toggled(false)
+	
 	var preview:TextureRect = $hbox_0/image_0
 	var i:Image = preview.get_texture().get_data()
 	var it:ImageTexture = ImageTexture.new()
 	it.create_from_image(i, 4 if button_pressed else 0)
 	it.set_size_override(calc_size(it))
 	preview.set_texture(it)
+func _on_use_smooth_pixel_toggled(button_pressed:bool) -> void:
+	use_smooth_pixel = button_pressed
+	if button_pressed: $hbox_0/image_0.set_material(pixel_smooth)
+	else: $hbox_0/image_0.set_material(null)

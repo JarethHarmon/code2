@@ -1,0 +1,37 @@
+[gd_scene format=2]
+
+[node name="import" type="PanelContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="hbox" type="HBoxContainer" parent="."]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 1913.0
+margin_bottom = 1073.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="import_name_count" type="Button" parent="hbox"]
+margin_right = 122.0
+margin_bottom = 1066.0
+text = "(COUNT): \\tNAME"
+
+[node name="SPACE2" type="Control" parent="hbox"]
+margin_left = 126.0
+margin_right = 1855.0
+margin_bottom = 1066.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="import_status" type="Label" parent="hbox"]
+margin_left = 1859.0
+margin_top = 526.0
+margin_right = 1906.0
+margin_bottom = 540.0
+grow_horizontal = 0
+text = "STATUS"

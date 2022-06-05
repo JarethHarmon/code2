@@ -34,7 +34,8 @@ func _ready() -> void:
 		if err == OK: ImageOp.SetThumbnailPath(default_thumbnail_path)
 	
 	# create database and print its folder
-	if (Database.Create() == OK): print(default_metadata_path)
+	if (Database.Create() == OK): print("successfully opened databases")
+	if (Database.LoadAllImportInfoFromDatabase() == OK): print("successfully loaded imports")
 	
 	Settings.load_settings()
 	
