@@ -39,8 +39,6 @@ public class Database : Node {
 	public ILiteCollection<ImportList> col_import_list;
 	
 	public Dictionary<string, Komi64Info> dict_komi64 = new Dictionary<string, Komi64Info>();
-	public List<string> komi_hashes = new List<string>();
-
 	public Dictionary<string, ImportInfo> dict_import_info = new Dictionary<string, ImportInfo>();
 	
 	public int Create() {
@@ -70,26 +68,14 @@ public class Database : Node {
 	// var count = collection.Count(Query.EQ("Name", "John Doe"));
 	public int GetTotalRowCountKomi() { return col_komi64.Count(Query.All()); }
 	
-	public void LoadAllKomi64() {
-		try {
-			var komihashes = col_komi64.FindAll();
-			if (komihashes != null) 
-				foreach (Komi64Info khinfo in komihashes)
-					dict_komi64[khinfo.komi64] = khinfo;
-		} 
-		catch (Exception ex) { GD.Print("Database::LoadAllKomi64() : ", ex); }
-	}
-	
 	/* DESC: loads a number of Komihashes from the Database into komihash_info starting at 'start'+1
 	 * TODO: add options related to filtering and sorting (needs to be done on the database if I am only retrieving a section of the shas)*/
 	public void LoadRangeKomi64(int start, int number) {
 		try {
 			var komihashes = col_komi64.Find(Query.All(), start, limit:number);
 			if (komihashes != null) 
-				foreach (Komi64Info khinfo in komihashes) {
+				foreach (Komi64Info khinfo in komihashes)
 					dict_komi64[khinfo.komi64] = khinfo;
-					komi_hashes.Add(khinfo.komi64);
-				}
 		}
 		catch (Exception ex) { GD.Print("Database::LoadRangeKomi64() : ", ex); } 
 	}	
@@ -131,12 +117,6 @@ public class Database : Node {
 		catch (Exception ex) { GD.Print("Database::InsertKomi64Info() : ", ex); return -1; }
 	}
 	
-	public string[] GetTempKomi64List() {
-		string[] komi64s = komi_hashes.ToArray();
-		komi_hashes.Clear();
-		return komi64s;
-	}
-	public string[] GetAllKomi64FromDict() { return dict_komi64.Keys.ToArray(); }
 	public bool GetKomiFilterFromDict(string komi64) { return (dict_komi64.ContainsKey(komi64)) ? dict_komi64[komi64].filter : false; }
 	public string[] GetKomiPathsFromDict(string komi64) { return (dict_komi64.ContainsKey(komi64)) ? (dict_komi64[komi64].paths != null) ? dict_komi64[komi64].paths.ToArray() : new string[0] : new string[0]; }
 	public string[] GetKomiTagsFromDict(string komi64) { return (dict_komi64.ContainsKey(komi64)) ? (dict_komi64[komi64].tags != null) ? dict_komi64[komi64].tags.ToArray() : new string[0] : new string[0]; }

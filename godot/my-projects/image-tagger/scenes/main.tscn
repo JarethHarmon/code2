@@ -63,40 +63,40 @@ margin_right = 1920.0
 margin_bottom = 1080.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-split_offset = -200
+split_offset = -80
 
 [node name="left" type="HSplitContainer" parent="margin/hsplit"]
-margin_right = 756.0
+margin_right = 876.0
 margin_bottom = 1080.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-split_offset = -100
+split_offset = -50
 
 [node name="import_list" parent="margin/hsplit/left" instance=ExtResource( 6 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 274.0
+margin_right = 384.0
 margin_bottom = 1080.0
 
 [node name="image_list" parent="margin/hsplit/left" instance=ExtResource( 5 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_left = 282.0
-margin_right = 756.0
+margin_left = 392.0
+margin_right = 876.0
 margin_bottom = 1080.0
 size_flags_horizontal = 3
 
 [node name="vbox" parent="margin/hsplit/left/image_list/margin" index="0"]
-margin_right = 469.0
+margin_right = 479.0
 
 [node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="0"]
-margin_right = 464.0
+margin_right = 474.0
 margin_bottom = 1037.0
 Refresh = NodePath("../../../../../right/preview/margin/vb/bg_panel/hb/refresh")
 
 [node name="page_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="1"]
 margin_top = 1041.0
-margin_right = 464.0
+margin_right = 474.0
 
 [node name="prev_page" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="0"]
 margin_right = 60.0
@@ -104,34 +104,34 @@ margin_bottom = 29.0
 
 [node name="SPACE_1" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="1"]
 margin_left = 64.0
-margin_right = 224.0
+margin_right = 229.0
 margin_bottom = 29.0
 
 [node name="Label" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="2"]
-margin_left = 228.0
+margin_left = 233.0
 margin_top = 0.0
-margin_right = 236.0
+margin_right = 241.0
 margin_bottom = 29.0
 
 [node name="SPACE_2" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="3"]
-margin_left = 240.0
-margin_right = 401.0
+margin_left = 245.0
+margin_right = 411.0
 margin_bottom = 29.0
 
 [node name="next_page" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="4"]
-margin_left = 405.0
-margin_right = 464.0
+margin_left = 415.0
+margin_right = 474.0
 margin_bottom = 29.0
 
 [node name="right" type="HSplitContainer" parent="margin/hsplit"]
-margin_left = 764.0
+margin_left = 884.0
 margin_right = 1920.0
 margin_bottom = 1080.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="preview" type="Control" parent="margin/hsplit/right"]
-margin_right = 1156.0
+margin_right = 1036.0
 margin_bottom = 1080.0
 mouse_filter = 2
 size_flags_horizontal = 3
@@ -180,14 +180,14 @@ custom_constants/margin_bottom = 5
 [node name="vb" type="VBoxContainer" parent="margin/hsplit/right/preview/margin"]
 margin_left = 5.0
 margin_top = 5.0
-margin_right = 1151.0
+margin_right = 1031.0
 margin_bottom = 1075.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="SPACE" type="Control" parent="margin/hsplit/right/preview/margin/vb"]
-margin_right = 1146.0
+margin_right = 1026.0
 margin_bottom = 996.0
 mouse_filter = 2
 size_flags_horizontal = 3
@@ -195,7 +195,7 @@ size_flags_vertical = 3
 
 [node name="bg_panel2" type="PanelContainer" parent="margin/hsplit/right/preview/margin/vb"]
 margin_top = 1000.0
-margin_right = 1146.0
+margin_right = 1026.0
 margin_bottom = 1033.0
 rect_min_size = Vector2( 0, 32 )
 mouse_filter = 2
@@ -204,54 +204,54 @@ size_flags_horizontal = 3
 [node name="hb2" type="HBoxContainer" parent="margin/hsplit/right/preview/margin/vb/bg_panel2"]
 margin_left = 2.0
 margin_top = 2.0
-margin_right = 1144.0
+margin_right = 1024.0
 margin_bottom = 31.0
 
 [node name="SPACE5" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_right = 279.0
+margin_right = 239.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="SPACE8" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_left = 283.0
-margin_right = 562.0
+margin_left = 243.0
+margin_right = 482.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="use_smooth_pixel" type="CheckBox" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_left = 566.0
-margin_right = 700.0
+margin_left = 486.0
+margin_right = 620.0
 margin_bottom = 29.0
 text = "Smooth Pixel"
 
 [node name="SPACE9" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_left = 704.0
-margin_right = 984.0
+margin_left = 624.0
+margin_right = 863.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="use_recursion" type="CheckBox" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_left = 988.0
-margin_right = 1134.0
+margin_left = 867.0
+margin_right = 1013.0
 margin_bottom = 29.0
 text = "Use Recursion"
 
 [node name="SPACE6" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_left = 1138.0
-margin_right = 1142.0
+margin_left = 1017.0
+margin_right = 1021.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 4, 0 )
 mouse_filter = 2
 
 [node name="bg_panel" type="PanelContainer" parent="margin/hsplit/right/preview/margin/vb"]
 margin_top = 1037.0
-margin_right = 1146.0
+margin_right = 1026.0
 margin_bottom = 1070.0
 rect_min_size = Vector2( 0, 32 )
 mouse_filter = 2
@@ -260,7 +260,7 @@ size_flags_horizontal = 3
 [node name="hb" type="HBoxContainer" parent="margin/hsplit/right/preview/margin/vb/bg_panel"]
 margin_left = 2.0
 margin_top = 2.0
-margin_right = 1144.0
+margin_right = 1024.0
 margin_bottom = 31.0
 mouse_filter = 2
 size_flags_horizontal = 3
@@ -272,48 +272,48 @@ text = "Refresh"
 
 [node name="SPACE4" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
 margin_left = 78.0
-margin_right = 545.0
+margin_right = 425.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="filter" type="CheckButton" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 549.0
-margin_right = 644.0
+margin_left = 429.0
+margin_right = 524.0
 margin_bottom = 29.0
 pressed = true
 text = "Filter"
 
 [node name="SPACE6" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 648.0
-margin_right = 664.0
+margin_left = 528.0
+margin_right = 544.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
 [node name="edge_mix" type="CheckButton" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 668.0
-margin_right = 796.0
+margin_left = 548.0
+margin_right = 676.0
 margin_bottom = 29.0
 text = "Edge Mix"
 
 [node name="SPACE3" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 800.0
-margin_right = 816.0
+margin_left = 680.0
+margin_right = 696.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
 [node name="color_grade" type="CheckButton" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 820.0
-margin_right = 986.0
+margin_left = 700.0
+margin_right = 866.0
 margin_bottom = 29.0
 text = "Color Grading"
 
 [node name="SPACE2" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 990.0
-margin_right = 1006.0
+margin_left = 870.0
+margin_right = 886.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
@@ -334,14 +334,14 @@ rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
 [node name="import_images" type="Button" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 1010.0
-margin_right = 1134.0
+margin_left = 890.0
+margin_right = 1014.0
 margin_bottom = 29.0
 text = "Import Images"
 
 [node name="SPACE5" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 1138.0
-margin_right = 1142.0
+margin_left = 1018.0
+margin_right = 1022.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 4, 0 )
 mouse_filter = 2
