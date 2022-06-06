@@ -117,11 +117,17 @@ public class ImageOp : Node
 			string komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
 			string save_path = thumbnail_path + komihash + ".jpg"; 
 			
+			//var now = DateTime.Now;
 			db.AddKomi64ToImportListInDatabase(import_id, komihash);
+			//GD.Print("add komi64 to import database: ", (DateTime.Now-now).Milliseconds);
 			
+			//now = DateTime.Now;
 			int err = db.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
+			//GD.Print("add komi64 to komi64 database: ", (DateTime.Now-now).Milliseconds);
 			if (err != 0) return;
+			//now = DateTime.Now;
 			SaveThumbnail(image_path, save_path);
+			//GD.Print("save thumbnail: ", (DateTime.Now-now).Milliseconds);
 		}
 		catch (Exception ex) { GD.Print("ImageOp::ImportImage() : ", ex); return; }
 	}

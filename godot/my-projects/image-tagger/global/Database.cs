@@ -82,7 +82,8 @@ public class Database : Node {
 	
 	public void LoadOneKomi64(string komi64) {
 		try {
-			var khinfo = col_komi64.FindOne(Query.EQ("_Id", komi64));
+			//var khinfo = col_komi64.FindOne(Query.EQ("_Id", komi64));
+			var khinfo = col_komi64.FindById(komi64);
 			if (khinfo != null) dict_komi64[komi64] = khinfo;
 		}
 		catch (Exception ex) { GD.Print("Database::LoadOneKomi64() : ", ex); } 
@@ -90,7 +91,8 @@ public class Database : Node {
 		
 	public int InsertKomi64Info(string komi64_n, bool filter_n, string[] paths_n, string[] tags_n) {
 		try {
-			var temp = col_komi64.FindOne(Query.EQ("_Id", komi64_n));
+			//var temp = col_komi64.FindOne(Query.EQ("_Id", komi64_n));
+			var temp = col_komi64.FindById(komi64_n);
 			if (temp != null) {
 				bool changed = false;
 				foreach (string path in paths_n) {

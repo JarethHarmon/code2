@@ -149,12 +149,16 @@ func _thread(_thread_id:int) -> void:
 		else:
 			fi.lock()
 			var komi64:String = page_files.pop_front()
+			#var now = OS.get_ticks_msec()
 			Database.LoadOneKomi64(komi64) # probably a better place to put this ; need to unload it as well
+			#print(String(_thread_id), " :: get komi64 from komi64 database: ", OS.get_ticks_msec()-now)
 			var index:int = item_index
 			item_index += 1
 			fi.unlock()
 			pf.unlock()
+			#now = OS.get_ticks_msec()
 			load_thumbnail(komi64, index)
+			#print(String(_thread_id), " :: load thumbnail: ", OS.get_ticks_msec()-now)
 		OS.delay_msec(50)
 
 func load_thumbnail(komi64:String, index:int) -> void: 
