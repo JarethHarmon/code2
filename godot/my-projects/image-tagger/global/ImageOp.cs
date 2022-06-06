@@ -76,7 +76,10 @@ public class ImageOp : Node
 	static bool IsImageCorrupt(string image_path) {
 		try { var im = new MagickImage(image_path); }
 		catch (MagickCorruptImageErrorException) { return true; }
-		catch (MagickBlobErrorException) { return true; } // could have been caused by refreshing while loading; either way should probably try again since this is failed to find file
+		catch (MagickBlobErrorException) { 
+			GD.Print("fail :: ", image_path); 
+			return true; 
+		} // could have been caused by refreshing while loading; either way should probably try again since this is failed to find file
 		return false;
 	}
 	static string GetActualFormat(string image_path) {
@@ -114,6 +117,9 @@ public class ImageOp : Node
 	public void ImportImage(string image_path, string import_id) {
 		try {
 			if (IsImageCorrupt(image_path)) return;
+			
+			// currently thinking that the c++ code returns the image_path if it encounters certain unicode characters
+			
 			string komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
 			string save_path = thumbnail_path + komihash + ".jpg"; 
 			

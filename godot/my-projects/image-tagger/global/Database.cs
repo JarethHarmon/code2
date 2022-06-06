@@ -171,7 +171,8 @@ public class Database : Node {
 	// I could be wrong though, it is possible that 'import' does not actually store the entire query in memory, but instead loads it from the database once it is needed
 	public string[] GetImportListSubsetFromDatabase(string import_id, int start_index, int count) {
 		try {
-			var import = col_import_list.FindOne(Query.EQ("_Id", import_id));
+			//var import = col_import_list.FindOne(Query.EQ("_Id", import_id));
+			var import = col_import_list.FindById(import_id);
 			return import.import_list.GetRange(start_index, Math.Min(count, import.import_list.Count-start_index)).ToArray();
 		}
 		catch (Exception ex) { GD.Print("Database::GetImportListSubsetFromDatabase() : ", ex); return new string[0]; }
