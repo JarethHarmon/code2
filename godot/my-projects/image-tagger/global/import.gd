@@ -8,6 +8,7 @@ func get_signed_komi_hash(path:String) -> int:
 func get_unsigned_komi_hash(path:String) -> String: 
 	var gob:Gob = Gob.new()
 	var komi:String = gob.get_unsigned_komi_hash(path)
+	print(komi)
 	gob.queue_free()
 	return komi
 
@@ -43,5 +44,5 @@ func _done() -> void:
 	importer_active = false
 	import_mutex.unlock()
 	print("DONE\n")
-	Signals.emit_signal("image_scan_finished")
+	Signals.emit_signal("image_import_finished")
 	

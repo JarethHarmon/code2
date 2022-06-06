@@ -13,11 +13,12 @@ public class ImageScanner : Node
 	private List<IEnumerable<System.IO.DirectoryInfo>> folders = new List<IEnumerable<System.IO.DirectoryInfo>>();
 	private Dictionary<string, List<(string, string, DateTime, long)>> files = new Dictionary<string, List<(string, string, DateTime, long)>>();
 	
-	public void ScanDirectories(string path, bool recursive) {
+	public int ScanDirectories(string path, bool recursive) {
 		var now = DateTime.Now;
 		var di = new System.IO.DirectoryInfo(@path);
 		int image_count = ScanDirectories(di, recursive);
 		GD.Print("SCAN  (R=", (recursive)?"t":"f" + "):   ", path, "\t; found ", image_count, " images in ", (DateTime.Now-now).Milliseconds, " ms");
+		return image_count;
 	}
 	
 	private int ScanDirectories(System.IO.DirectoryInfo dir, bool recursive) {
@@ -51,6 +52,7 @@ public class ImageScanner : Node
 		foreach (string folder in files.Keys.ToArray())
 			foreach ((string, string, DateTime, long) image in files[folder])
 				images.Add(folder + "/" + image.Item1);
+		Clear();
 		return images.ToArray();
 	}
 	

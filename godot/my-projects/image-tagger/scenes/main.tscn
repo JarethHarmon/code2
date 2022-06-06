@@ -1,10 +1,11 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://scenes/preview_container.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scripts/viewport_display.gd" type="Script" id=2]
 [ext_resource path="res://themes/theme_4 (arial font).tres" type="Theme" id=3]
 [ext_resource path="res://scripts/main.gd" type="Script" id=4]
 [ext_resource path="res://scenes/image_list.tscn" type="PackedScene" id=5]
+[ext_resource path="res://scenes/import_list.tscn" type="PackedScene" id=6]
 
 [sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.994872 )
@@ -31,6 +32,7 @@ margin_right = 3840.0
 [node name="vbox" parent="preview_container/ViewportContainer/Viewport/preview_view" index="0"]
 ViewportDisplay = NodePath("../../../../../margin/hsplit/right/preview/viewport_display")
 FileD = NodePath("../../../../../FileDialog")
+SmoothPixelButton = NodePath("../../../../../margin/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_smooth_pixel")
 
 [node name="background_color" type="TextureRect" parent="."]
 anchor_right = 1.0
@@ -61,32 +63,40 @@ margin_right = 1920.0
 margin_bottom = 1080.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-split_offset = -300
+split_offset = -80
 
 [node name="left" type="HSplitContainer" parent="margin/hsplit"]
-margin_right = 656.0
+margin_right = 876.0
 margin_bottom = 1080.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+split_offset = -50
+
+[node name="import_list" parent="margin/hsplit/left" instance=ExtResource( 6 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 384.0
+margin_bottom = 1080.0
 
 [node name="image_list" parent="margin/hsplit/left" instance=ExtResource( 5 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 656.0
+margin_left = 392.0
+margin_right = 876.0
 margin_bottom = 1080.0
 size_flags_horizontal = 3
 
 [node name="vbox" parent="margin/hsplit/left/image_list/margin" index="0"]
-margin_right = 651.0
+margin_right = 479.0
 
 [node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="0"]
-margin_right = 646.0
+margin_right = 474.0
 margin_bottom = 1037.0
 Refresh = NodePath("../../../../../right/preview/margin/vb/bg_panel/hb/refresh")
 
 [node name="page_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="1"]
 margin_top = 1041.0
-margin_right = 646.0
+margin_right = 474.0
 
 [node name="prev_page" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="0"]
 margin_right = 60.0
@@ -94,34 +104,34 @@ margin_bottom = 29.0
 
 [node name="SPACE_1" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="1"]
 margin_left = 64.0
-margin_right = 315.0
+margin_right = 229.0
 margin_bottom = 29.0
 
 [node name="Label" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="2"]
-margin_left = 319.0
+margin_left = 233.0
 margin_top = 0.0
-margin_right = 327.0
+margin_right = 241.0
 margin_bottom = 29.0
 
 [node name="SPACE_2" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="3"]
-margin_left = 331.0
-margin_right = 583.0
+margin_left = 245.0
+margin_right = 411.0
 margin_bottom = 29.0
 
 [node name="next_page" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="4"]
-margin_left = 587.0
-margin_right = 646.0
+margin_left = 415.0
+margin_right = 474.0
 margin_bottom = 29.0
 
 [node name="right" type="HSplitContainer" parent="margin/hsplit"]
-margin_left = 664.0
+margin_left = 884.0
 margin_right = 1920.0
 margin_bottom = 1080.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="preview" type="Control" parent="margin/hsplit/right"]
-margin_right = 1256.0
+margin_right = 1036.0
 margin_bottom = 1080.0
 mouse_filter = 2
 size_flags_horizontal = 3
@@ -170,108 +180,141 @@ custom_constants/margin_bottom = 5
 [node name="vb" type="VBoxContainer" parent="margin/hsplit/right/preview/margin"]
 margin_left = 5.0
 margin_top = 5.0
-margin_right = 1251.0
+margin_right = 1031.0
 margin_bottom = 1075.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="SPACE" type="Control" parent="margin/hsplit/right/preview/margin/vb"]
-margin_right = 1246.0
-margin_bottom = 1001.0
+margin_right = 1026.0
+margin_bottom = 996.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="hb2" type="HBoxContainer" parent="margin/hsplit/right/preview/margin/vb"]
-margin_top = 1005.0
-margin_right = 1246.0
-margin_bottom = 1034.0
+[node name="bg_panel2" type="PanelContainer" parent="margin/hsplit/right/preview/margin/vb"]
+margin_top = 1000.0
+margin_right = 1026.0
+margin_bottom = 1033.0
+rect_min_size = Vector2( 0, 32 )
+mouse_filter = 2
+size_flags_horizontal = 3
 
-[node name="SPACE5" type="Control" parent="margin/hsplit/right/preview/margin/vb/hb2"]
-margin_right = 1088.0
+[node name="hb2" type="HBoxContainer" parent="margin/hsplit/right/preview/margin/vb/bg_panel2"]
+margin_left = 2.0
+margin_top = 2.0
+margin_right = 1024.0
+margin_bottom = 31.0
+
+[node name="SPACE5" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_right = 239.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="use_recursion" type="CheckBox" parent="margin/hsplit/right/preview/margin/vb/hb2"]
-margin_left = 1092.0
-margin_right = 1238.0
+[node name="SPACE8" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_left = 243.0
+margin_right = 482.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="use_smooth_pixel" type="CheckBox" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_left = 486.0
+margin_right = 620.0
+margin_bottom = 29.0
+text = "Smooth Pixel"
+
+[node name="SPACE9" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_left = 624.0
+margin_right = 863.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="use_recursion" type="CheckBox" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_left = 867.0
+margin_right = 1013.0
 margin_bottom = 29.0
 text = "Use Recursion"
 
-[node name="SPACE6" type="Control" parent="margin/hsplit/right/preview/margin/vb/hb2"]
-margin_left = 1242.0
-margin_right = 1246.0
+[node name="SPACE6" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_left = 1017.0
+margin_right = 1021.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 4, 0 )
 mouse_filter = 2
 
 [node name="bg_panel" type="PanelContainer" parent="margin/hsplit/right/preview/margin/vb"]
-margin_top = 1038.0
-margin_right = 1246.0
+margin_top = 1037.0
+margin_right = 1026.0
 margin_bottom = 1070.0
 rect_min_size = Vector2( 0, 32 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="hb" type="HBoxContainer" parent="margin/hsplit/right/preview/margin/vb/bg_panel"]
-margin_right = 1246.0
-margin_bottom = 32.0
+margin_left = 2.0
+margin_top = 2.0
+margin_right = 1024.0
+margin_bottom = 31.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="refresh" type="Button" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
 margin_right = 74.0
-margin_bottom = 32.0
+margin_bottom = 29.0
 text = "Refresh"
 
 [node name="SPACE4" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
 margin_left = 78.0
-margin_right = 649.0
-margin_bottom = 32.0
+margin_right = 425.0
+margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="filter" type="CheckButton" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 653.0
-margin_right = 748.0
-margin_bottom = 32.0
+margin_left = 429.0
+margin_right = 524.0
+margin_bottom = 29.0
 pressed = true
 text = "Filter"
 
 [node name="SPACE6" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 752.0
-margin_right = 768.0
-margin_bottom = 32.0
+margin_left = 528.0
+margin_right = 544.0
+margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
 [node name="edge_mix" type="CheckButton" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 772.0
-margin_right = 900.0
-margin_bottom = 32.0
+margin_left = 548.0
+margin_right = 676.0
+margin_bottom = 29.0
 text = "Edge Mix"
 
 [node name="SPACE3" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 904.0
-margin_right = 920.0
-margin_bottom = 32.0
+margin_left = 680.0
+margin_right = 696.0
+margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
 [node name="color_grade" type="CheckButton" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 924.0
-margin_right = 1090.0
-margin_bottom = 32.0
+margin_left = 700.0
+margin_right = 866.0
+margin_bottom = 29.0
 text = "Color Grading"
 
 [node name="SPACE2" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 1094.0
-margin_right = 1110.0
-margin_bottom = 32.0
+margin_left = 870.0
+margin_right = 886.0
+margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
@@ -291,15 +334,15 @@ rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
 [node name="import_images" type="Button" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 1114.0
-margin_right = 1238.0
-margin_bottom = 32.0
+margin_left = 890.0
+margin_right = 1014.0
+margin_bottom = 29.0
 text = "Import Images"
 
 [node name="SPACE5" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 1242.0
-margin_right = 1246.0
-margin_bottom = 32.0
+margin_left = 1018.0
+margin_right = 1022.0
+margin_bottom = 29.0
 rect_min_size = Vector2( 4, 0 )
 mouse_filter = 2
 
@@ -325,7 +368,8 @@ current_dir = "/git/code2/godot/my-projects/image-tagger"
 current_path = "/git/code2/godot/my-projects/image-tagger/"
 
 [connection signal="gui_input" from="margin/hsplit/right/preview/viewport_display" to="margin/hsplit/right/preview/viewport_display" method="_on_viewport_display_gui_input"]
-[connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
+[connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_smooth_pixel" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_smooth_pixel_toggled"]
+[connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
 [connection signal="button_up" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/refresh" to="margin/hsplit/left/image_list/margin/vbox/images" method="_on_refresh_button_up"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/filter" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_filter_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/edge_mix" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_edge_mix_toggled"]

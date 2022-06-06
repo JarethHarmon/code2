@@ -10,7 +10,7 @@ var use_default_thumbnail_path:bool = true
 var use_default_metadata_path:bool = true
 
 func _notification(what) -> void:
-	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST or what == MainLoop.NOTIFICATION_CRASH:
 		Database.CheckpointKomi64()
 		Database.Destroy() 
 		#print_stray_nodes()
@@ -19,9 +19,13 @@ func _notification(what) -> void:
 		get_tree().quit()
 
 func _ready() -> void:
-	# closing the program instead calls _notification(MainLoop.NOTIFICATION_WM_QUIT_REQUEST)
+  # closing the program instead calls _notification(MainLoop.NOTIFICATION_WM_QUIT_REQUEST)
 	get_tree().set_auto_accept_quit(false)
 	
+  # ensure other scripts have time to connect to any signals (they should even without this)
+	call_deferred("_begin")
+
+func _begin() -> void:
 	# make and set default metadata folder
 	var dir:Directory = Directory.new()
 	if use_default_metadata_path:
@@ -34,7 +38,9 @@ func _ready() -> void:
 		if err == OK: ImageOp.SetThumbnailPath(default_thumbnail_path)
 	
 	# create database and print its folder
-	if (Database.Create() == OK): print(default_metadata_path)
+	if (Database.Create() == OK): print("successfully opened databases")
+	if (Database.LoadAllImportInfoFromDatabase() == OK): print("successfully loaded imports")
+	Signals.emit_signal("import_info_load_finished")
 	
 	Settings.load_settings()
 	
