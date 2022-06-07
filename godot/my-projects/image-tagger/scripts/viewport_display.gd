@@ -1,10 +1,11 @@
 extends TextureRect
 
+const MAX_BYTES_TO_CHECK_APNG = 256
+
 export (NodePath) var Cam ; onready var camera:Camera2D = get_node(Cam)
 export (NodePath) var ColorGrade ; onready var color_grade:Control = get_node(ColorGrade)
 export (NodePath) var EdgeDefaultMotionMix ; onready var edge_default_motion_mix:Control = get_node(EdgeDefaultMotionMix)
 
-const MAX_BYTES_TO_CHECK_APNG = 256
 onready var default_camera_position:Vector2 = camera.position 
 onready var default_camera_zoom:Vector2 = camera.zoom
 onready var default_camera_offset:Vector2 = camera.offset
@@ -47,31 +48,31 @@ func zoom_point(amount:float, position:Vector2) -> void:
 func _on_viewport_display_gui_input(event) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_WHEEL_UP:
-			if Input.is_action_pressed("ctrl"):
+			if Input.is_action_pressed("ctrl"): # scroll up
 				camera.offset.y = lerp(camera.offset.y, camera.offset.y - scroll_step * scroll_speed * camera.zoom.y, scroll_weight)
 				#camera.offset.y -= 15
-			else:
+			else: # zoom in
 				if camera.zoom > Vector2(zoom_in_max, zoom_in_max):
 					if zoom_to_point: zoom_point(-zoom_step, event.position)
 					else: camera.zoom -= Vector2(zoom_step, zoom_step)
 		elif event.button_index == BUTTON_WHEEL_DOWN:
-			if Input.is_action_pressed("ctrl"):
+			if Input.is_action_pressed("ctrl"): # scroll down
 				camera.offset.y = lerp(camera.offset.y, camera.offset.y + scroll_step * scroll_speed * camera.zoom.y, scroll_weight)
 				#camera.offset.y += 15
-			else:
+			else: # zoom out
 				if camera.zoom < Vector2(zoom_out_max, zoom_out_max):
 					if zoom_to_point: zoom_point(zoom_step, event.position)
 					else: camera.zoom += Vector2(zoom_step, zoom_step) # make lerp ?
-		elif event.button_index == BUTTON_RIGHT:
+		elif event.button_index == BUTTON_RIGHT: # reset
 			camera.position = default_camera_position
 			camera.zoom = default_camera_zoom
 			camera.offset = default_camera_offset
 			camera.rotation_degrees = 0 
-		else:
+		else: # dragging
 			if event.is_pressed(): dragging = true
 			else: dragging = false
 			
-	elif event is InputEventMouseMotion and dragging:
+	elif event is InputEventMouseMotion and dragging: # dragging
 		var rot = deg2rad(camera.rotation_degrees)
 		var sin_rot = sin(rot) ; var cos_rot = cos(rot)
 		# ensures that dragging works correctly when the camera is rotated

@@ -1,5 +1,8 @@
 extends Node
 
+# calls function that starts scanning for images, calculating hash, creating thumbnail, storing metadata in database
+# currently does this all on a single additional thread (still fairly fast)
+
 func get_signed_komi_hash(path:String) -> int: 
 	var gob:Gob = Gob.new()
 	var komi:int = gob.get_signed_komi_hash(path)
@@ -18,6 +21,8 @@ onready var import_mutex:Mutex = Mutex.new()
 var queue:Array = []
 var importer_active:bool = false
 
+var time:int
+
 func start_importer() -> void:
 	if (importer_active): return
 	if (import_mutex.try_lock() != OK): return
@@ -33,6 +38,7 @@ func queue_append(import_folder:String, recursive:bool=true) -> void:
 
 func _thread() -> void:
 	while not queue.empty():
+		time = OS.get_ticks_msec()
 		var import:Array = queue.pop_front()
 		ImageOp.ImportImages(import[0], import[1])
 		OS.delay_msec(50)
@@ -42,6 +48,6 @@ func _done() -> void:
 	if import_thread.is_alive() or import_thread.is_active(): import_thread.wait_to_finish()
 	importer_active = false
 	import_mutex.unlock()
-	print("DONE\n")
+	print("DONE, took %d ms \n" % [OS.get_ticks_msec() - time - 50])
 	Signals.emit_signal("image_import_finished")
 	

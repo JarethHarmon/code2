@@ -1,10 +1,5 @@
 extends ItemList
 
-# TODO:
-	# only remove from loaded_thumbnails when its page is removed from pages_queue
-	# ensure that the C# Dictionary also clears its old pages
-	# 
-
 const icon_broken:StreamTexture = preload("res://assets/icon-broken.png")
 const icon_loading:StreamTexture = preload("res://assets/buffer-01.png")
 
@@ -62,11 +57,14 @@ func button_import_clicked(import_id:String):
 	current_import_id = import_id
 	load_import(import_id)
 
+# probably needs to be split into several functions; currently hardcoded to only use imports (eventually needs to be able to also check all images (with appropriate filters, etc))
 #func initial_load() -> void:
 func load_import(import_id:String) -> void:
 	if loading: return
 	if import_id == "": return
 	loading = true	
+	
+	stop_threads() # I realized why there was occasional thread-related errors
 	
   # calculate total_pages and total_image_count
 	#total_image_count = Database.GetTotalRowCountKomi()
@@ -174,7 +172,8 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		if e != OK: 
 			var p:String = ProjectSettings.globalize_path(lss.thumbail_folder).plus_file(komi64) + ".jpg"
 			if ImageOp.IsImageCorrupt(p):
-				print(komi64, " ::: ", p) 
+				print("corrupt ::: ", p) 
+				_threadsafe_set_icon(komi64, 0, true)
 				return
 			else: i = ImageOp.LoadUnknownFormatAlt(p)
 		if stop_all: return
@@ -190,37 +189,42 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		if stop_all: return
 		_threadsafe_set_icon(komi64, index)
 		
-func _threadsafe_set_icon(komi64:String, index:int) -> void:
-	lt.lock()
-	var it:ImageTexture = loaded_thumbnails[komi64]
-	lt.unlock()
+func _threadsafe_set_icon(komi64:String, index:int, failed:bool=false) -> void:
+	var im_tex:Texture
+	if failed: im_tex = icon_broken
+	else:
+		lt.lock()
+		im_tex = loaded_thumbnails[komi64]
+		lt.unlock()
+		
 	if stop_all: return
-	
 	sc.lock()
-	set_item_icon(index, it)
+	set_item_icon(index, im_tex)
 	sc.unlock()
 
 func _on_images_item_selected(index:int) -> void:
-	var it:Texture = get_item_icon(index)
-  # return if the user clicked a buffering image
-	if it is StreamTexture: return
-	var komi64:String = it.get_meta("komi64")
+	if index < 0: return
+	var im_tex:Texture = get_item_icon(index)
+	if im_tex == null: return
+	if im_tex is StreamTexture: return
+	
+	var komi64:String = im_tex.get_meta("komi64")
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
 	Signals.emit_signal("load_image", paths[0])
 
-func _on_Timer_timeout() -> void:
-	refresh.disabled = false
-	prev_page.disabled = false
-	next_page.disabled = false
+func _on_Timer_timeout() -> void: pass
+#	refresh.disabled = false
+#	prev_page.disabled = false
+#	next_page.disabled = false
 
 func _on_prev_page_button_up() -> void:	
 	if loading: return
 	if current_page == 1: return
 	
-	refresh.disabled = true
-	prev_page.disabled = true
-	next_page.disabled = true
-	$Timer.start(timer_delay)
+#	refresh.disabled = true
+#	prev_page.disabled = true
+#	next_page.disabled = true
+#	$Timer.start(timer_delay)
 	
 	current_page -= 1
 	#initial_load()
@@ -230,10 +234,10 @@ func _on_next_page_button_up() -> void:
 	if loading: return
 	if current_page == total_pages: return
 	
-	refresh.disabled = true
-	prev_page.disabled = true
-	next_page.disabled = true
-	$Timer.start(timer_delay)
+#	refresh.disabled = true
+#	prev_page.disabled = true
+#	next_page.disabled = true
+#	$Timer.start(timer_delay)
 	
 	current_page += 1
 	#initial_load()
@@ -243,10 +247,10 @@ func _on_next_page_button_up() -> void:
 func _on_refresh_button_up() -> void:
 	if loading: return
 	
-	refresh.disabled = true
-	prev_page.disabled = true
-	next_page.disabled = true
-	$Timer.start(timer_delay)
+#	refresh.disabled = true
+#	prev_page.disabled = true
+#	next_page.disabled = true
+#	$Timer.start(timer_delay)
 	
 	#initial_load()
 	load_import(current_import_id)

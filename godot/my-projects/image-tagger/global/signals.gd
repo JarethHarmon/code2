@@ -15,6 +15,7 @@ func _ready() -> void: var _err:int = self.connect("import_list_location", self,
 func set_import_list_location(path:NodePath) -> void: import_list = path
 
 # temporary location so it has global access
+# needs global access to be easier to call from C# (when initially creating the buttons) (probably should find a better way)
 func create_import_button(id:String) -> void: 
 	var ibutton = import_button.instance()
 	if Database.ImportDictHasID(id):

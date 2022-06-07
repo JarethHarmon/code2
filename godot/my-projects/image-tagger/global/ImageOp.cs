@@ -38,6 +38,7 @@ public class ImageOp : Node
 		db.CreateImportListInDatabase(iid, new string[0]);			// create the import list
 		signals.Call("create_import_button", iid);					//
 		
+		// change ImportImage to return an int and count the number of corrupt and duplicate images
 		foreach (string image_path in iscan.GetImages()) ImportImage(image_path, iid);
 
 		db.CheckpointImport();
