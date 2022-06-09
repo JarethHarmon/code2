@@ -14,17 +14,33 @@ public class Komi64Info {
 	public HashSet<string> paths { get; set; }
 	public HashSet<string> tags { get; set; }
 }
+/* stores the metadata of an import */
 public class ImportInfo {
-	public string import_id { get; set; }
-	public string import_name { get; set; }
-	public string import_base_folder { get; set; }
-	public DateTime import_time { get; set; } // could have it be import_time_utc with DateTime.UtcNow but I don't think this is needed for imports
-	public int import_count { get; set; }
+	public string import_id { get; set; }				// the 32 bit ID of the import group
+	public string import_name { get; set; }				// the user-defined name of the import group
+	public string import_base_folder { get; set; }		// the folder that the import started at
+	public long import_time { get; set; }				// the time that the import was started (completed?) (in ticks)
+	public int import_count { get; set; }				// the total number of images imported for this group
+	public int import_fail_count { get; set; }			// the total number of images that failed to import for this group
+	public int import_duplicate_count { get; set; }		// the total number of duplicate images for this group		[A,A,V,F,C,F,A,B,H] = 3 (A,A,F)
 }
-public class ImportList {
-	public string import_id { get; set; }
-	public List<string> import_list { get; set; }
+/* these will be members of a collection, with collection_name == import_id */
+public class ImportGroup {
+	public string komi64 { get; set; }					// the komi64 hash of the image
+	public string file_path { get; set; }				// the first found file path of the image in this import
+	public long file_size { get; set; }					// the file size of the image
+	public long file_creation_utc { get; set; }			// the time (UTC) that the file was created (in ticks)
 }
+
+public class SortBy {
+	public const int FileHash = 0;			
+	public const int FilePath = 1;			
+	public const int FileSize = 2;			
+	public const int FileCreationUtc = 3;
+}
+
+// there are ~4000 bytes total of space for collection names in a database, with each import_id taking 8 bytes; I will set the limit of the number of import_groups to ~400
+// I think EnsureIndex() might be a way around checking if class fields are null
 
 public class Database : Node {
 	public bool use_journal = true;	
@@ -36,10 +52,10 @@ public class Database : Node {
 	
 	public ILiteCollection<Komi64Info> col_komi64;
 	public ILiteCollection<ImportInfo> col_import_info;
-	public ILiteCollection<ImportList> col_import_list;
 	
 	public Dictionary<string, Komi64Info> dict_komi64 = new Dictionary<string, Komi64Info>();
 	public Dictionary<string, ImportInfo> dict_import_info = new Dictionary<string, ImportInfo>();
+	public Dictionary<string, ImportGroup> dict_import_group = new Dictionary<string, ImportGroup>();
 	
 	public int Create() {
 		try {
@@ -50,9 +66,9 @@ public class Database : Node {
 				
 				db_import = new LiteDatabase(metadata_path + "import_info.db");
 				BsonMapper.Global.Entity<ImportInfo>().Id(x => x.import_id);
-				BsonMapper.Global.Entity<ImportList>().Id(x => x.import_id);
+				BsonMapper.Global.Entity<ImportGroup>().Id(x => x.komi64);
 				col_import_info = db_import.GetCollection<ImportInfo>("import_info");
-				col_import_list = db_import.GetCollection<ImportList>("import_list");
+				//col_import_list = db_import.GetCollection<ImportList>("import_list");
 			}
 			return 0;
 		}
@@ -65,6 +81,127 @@ public class Database : Node {
 	public void CheckpointKomi64() { db_komi64.Checkpoint(); }
 	public void CheckpointImport() { db_import.Checkpoint(); }
 	
+/*=========================================================================================
+									   IMPORT INFO
+=========================================================================================*/	
+	// loads everything from the "import_info" collection into dict_import_info
+	public int LoadImportInfoFromDatabase() {
+		try {
+			var imports = col_import_info.FindAll();
+			foreach (ImportInfo import in imports) {
+				if (import.import_name == null) import.import_name = ""; // prevents a crash caused by the database storing "" as null
+				dict_import_info[import.import_id] = import;
+			} return 0;
+		} catch (Exception ex) { GD.Print("Database::LoadImportInfoFromDatabase() : ", ex); return 1; }
+	}
+	// returns the keys in dict_import_info
+	public string[] GetImportIDsFromDict() { return dict_import_info.Keys.ToArray(); }
+	// checks if dict_import contains the key import_id
+	public bool ImportDictHasID(string import_id) { return dict_import_info.ContainsKey(import_id); } 
+	
+	public string GetImportNameFromID(string import_id) { return dict_import_info[import_id].import_name; }
+	public string GetImportFolderFromID(string import_id) { return dict_import_info[import_id].import_base_folder; }
+	// what exactly I might want to get from Date/Time is a bit more complex
+	public int GetImportSuccessCountFromID(string import_id) { return dict_import_info[import_id].import_count; }
+	public int GetImportFailCountFromID(string import_id) { return dict_import_info[import_id].import_fail_count; }
+	public int GetImportDuplicateCountFromID(string import_id) { return dict_import_info[import_id].import_duplicate_count; }
+	
+	public void IncrementImportSuccessCount(string import_id) { dict_import_info[import_id].import_count++; }
+	public void IncrementImportFailCount(string import_id) { dict_import_info[import_id].import_fail_count++; }
+	public void IncrementImportDuplicateCount(string import_id) { dict_import_info[import_id].import_duplicate_count++; }
+	
+	public void AddImportInfoToDatabase(string iid, string iname, string ifolder) {
+		try {
+			var iinfo = new ImportInfo {
+				import_id = iid,
+				import_name = iname,
+				import_base_folder = ifolder,
+				import_time = DateTime.Now.Ticks,
+				import_count = 0,
+				import_fail_count = 0,
+				import_duplicate_count = 0				
+			};
+			dict_import_info[iid] = iinfo;
+			col_import_info.Insert(iinfo); // need to update when program closes or import finishes
+		}
+		catch (Exception ex) { GD.Print("Database::AddImportInfoToDatabase() : ", ex); return; }
+	}
+	public void UpdateImportInfo(string import_id) {
+		try { col_import_info.Update(dict_import_info[import_id]); }
+		catch (Exception ex) { GD.Print("Database::UpdateImportInfo() : ", ex); return; }	
+	}
+	
+/*=========================================================================================
+									  IMPORT GROUP
+=========================================================================================*/	
+	public string[] GetImportGroupRange(string import_id, int start, int count, int sort_by=SortBy.FileHash, bool ascend=false) {
+		// clears dict_import_group, loads the specifed range of ImportGroups into dict_import_group, then returns the komi64 keys
+		try {
+			var col = db_import.GetCollection<ImportGroup>(import_id);
+			var list_komi64 = new List<string>();
+			dict_import_group.Clear();
+			IEnumerable<ImportGroup> imports;
+			
+			if (sort_by == SortBy.FilePath) {
+				if (ascend) imports = col.Find(Query.All(Query.Ascending), start, limit:count).OrderBy(x => x.file_path);
+				else imports = col.Find(Query.All(), start, limit:count).OrderBy(x => x.file_path);
+			}
+			else if (sort_by == SortBy.FileSize) {
+				if (ascend) imports = col.Find(Query.All(Query.Ascending), start, limit:count).OrderBy(x => x.file_size);
+				else imports = col.Find(Query.All(), start, limit:count).OrderBy(x => x.file_size);
+			}
+			else if (sort_by == SortBy.FileCreationUtc) {
+				if (ascend) imports = col.Find(Query.All(Query.Ascending), start, limit:count).OrderBy(x => x.file_creation_utc);
+				else imports = col.Find(Query.All(), start, limit:count).OrderBy(x => x.file_creation_utc);
+			}
+			else  { // SortBy.FileHash
+				if (ascend) imports = col.Find(Query.All(Query.Ascending), start, limit:count).OrderBy(x => x.komi64);
+				else imports = col.Find(Query.All(), start, limit:count);
+			}
+					
+			foreach (ImportGroup import in imports) {
+				dict_import_group[import.komi64] = import;
+				list_komi64.Add(import.komi64);
+			} 
+			return list_komi64.ToArray();	
+		} 
+		catch (Exception ex) { GD.Print("Database::GetImportGroupRange() : ", ex); return new string[0]; }
+	}
+	public void InsertImportGroup(string iid, string ikomi, string ipath, long isize, long itimeUTC) {
+		try {
+			var col = db_import.GetCollection<ImportGroup>(iid);
+			var temp = col.FindById(ikomi);
+			// Update() is not necessary for this data type
+			if (temp == null) {
+				var igroup = new ImportGroup {
+					komi64 = ikomi,
+					file_path = ipath,
+					file_size = isize,
+					file_creation_utc = itimeUTC
+				};
+				col.Insert(igroup);
+			}
+		}
+		catch (Exception ex) { GD.Print("Database::InsertImportGroup() : ", ex); return; }	
+	}
+	
+/*=========================================================================================
+										 MISC
+=========================================================================================*/	
+	public string GetRandomID(int num_bytes) {
+		try{
+			byte[] bytes = new byte[num_bytes];
+			var rng = new RNGCryptoServiceProvider();
+			rng.GetBytes(bytes);
+			rng.Dispose();
+			return BitConverter.ToString(bytes).Replace("-", "");
+		}
+		catch (Exception ex) { GD.Print("Database::GetRandomID() : ", ex); return ""; } 
+	}
+
+/*=========================================================================================
+									KOMI (UNORGANIZED)
+=========================================================================================*/	
 	// var count = collection.Count(Query.EQ("Name", "John Doe"));
 	public int GetTotalRowCountKomi() { return col_komi64.Count(Query.All()); }
 	
@@ -125,100 +262,5 @@ public class Database : Node {
 	public void RemoveKomi64sFromDict(string[] komi64s) {
 		foreach (string komi64 in komi64s)
 			dict_komi64.Remove(komi64);
-	}
-	
-	public int LoadAllImportInfoFromDatabase() {
-		try {
-			var imports = col_import_info.FindAll();
-			foreach (ImportInfo import in imports) {
-				if (import.import_name == null) import.import_name = ""; // prevents a crash caused by the database storing "" as null
-				dict_import_info[import.import_id] = import;
-			}
-			return 0;
-		}
-		catch (Exception ex) { GD.Print("Database::LoadAllImportInfoFromDatabase() : ", ex); return 1; }
-	}
-	public string[] GetAllImportIDsFromDict() {
-		try { return dict_import_info.Keys.ToArray(); }
-		catch (Exception ex) { GD.Print("Database::GetAllImportNamesFromList() : ", ex); return new string[0]; }
-	}
-	public bool ImportDictHasID(string import_id) { return dict_import_info.ContainsKey(import_id); }
-	public string GetImportNameFromDict(string import_id) { return dict_import_info[import_id].import_name; }
-	public string GetImportBaseFolder(string import_id) { return dict_import_info[import_id].import_base_folder; }
-	public DateTime GetImportTime(string import_id) { return dict_import_info[import_id].import_time; }
-	public int GetImportCount(string import_id) { return dict_import_info[import_id].import_count; } 
-	public int GetCurrentImportListCount(string import_id) { 
-		try {
-			var import = col_import_list.FindOne(Query.EQ("_Id", import_id));
-			return import.import_list.Count;
-		}
-		catch (Exception ex) { GD.Print("Database::GetCurrentImportListCount() : ", ex); return -1; }
-	}
-	public string[] GetImportListFromDatabase(string import_id) {
-		// logical issue with this, basically I have to decide between the following:
-		//		1. store like it is currently import_id:List(komi64) 
-		//		2. store them as _Id:import_id:komi64
-		// 1. has the problem of using a lot of memory if someone just picks a top-level directory and imports 10's of millions of images at once
-		// 2. has the problem of being slower and using more storage space, though I do not know how much slower/more space
-		try {
-			var import = col_import_list.FindOne(Query.EQ("_Id", import_id));
-			return import.import_list.ToArray();
-		}
-		catch (Exception ex) { GD.Print("Database::GetImportListFromDatabase() : ", ex); return new string[0]; }
-	}
-	// see comments in GetImportListFromDatabase(), not possible to do this without loading them all into memory first
-	// I will leave this function in in case I find a better way, and because it uses the memory for less time
-	// I could be wrong though, it is possible that 'import' does not actually store the entire query in memory, but instead loads it from the database once it is needed
-	public string[] GetImportListSubsetFromDatabase(string import_id, int start_index, int count) {
-		try {
-			//var import = col_import_list.FindOne(Query.EQ("_Id", import_id));
-			var import = col_import_list.FindById(import_id);
-			return import.import_list.GetRange(start_index, Math.Min(count, import.import_list.Count-start_index)).ToArray();
-		}
-		catch (Exception ex) { GD.Print("Database::GetImportListSubsetFromDatabase() : ", ex); return new string[0]; }
-	}
-	
-	public void AddImportInfoToDatabase(string iid, string name_n, string base_folder, int count) {
-		try {
-			var iinfo = new ImportInfo {
-				import_id = iid, 
-				import_name = name_n,
-				import_base_folder = base_folder,
-				import_time = DateTime.Now,
-				import_count = count
-			};
-			dict_import_info[iid] = iinfo; // add to dictionary as well
-			col_import_info.Insert(iinfo);
-		}
-		catch (Exception ex) { GD.Print("Database::AddImportInfoToDatabase() : ", ex); return; } 
-	}
-	public void CreateImportListInDatabase(string iid, string[] list) {
-		try {
-			var ilist = new ImportList {
-				import_id = iid,
-				import_list = new List<string>(list)
-			};
-			col_import_list.Insert(ilist);
-		}
-		catch (Exception ex) { GD.Print("Database::CreateImportListInDatabase() : ", ex); return; } 
-	}
-	public void AddKomi64ToImportListInDatabase(string iid, string komi64) {
-		try {
-			var ilist = col_import_list.FindOne(Query.EQ("_Id", iid));
-			ilist.import_list.Add(komi64);
-			col_import_list.Update(ilist);
-		}
-		catch (Exception ex) { GD.Print("Database::AddImportToListInDatabase() : ", ex); return; } 
-	}
-	
-	public string GetRandomID(int num_bytes) {
-		try{
-			byte[] bytes = new byte[num_bytes];
-			var rng = new RNGCryptoServiceProvider();
-			rng.GetBytes(bytes);
-			rng.Dispose();
-			return BitConverter.ToString(bytes).Replace("-", "");
-		}
-		catch (Exception ex) { GD.Print("Database::GetRandomID() : ", ex); return ""; } 
 	}
 }

@@ -3,6 +3,8 @@ extends ItemList
 const icon_broken:StreamTexture = preload("res://assets/icon-broken.png")
 const icon_loading:StreamTexture = preload("res://assets/buffer-01.png")
 
+enum SortBy { FileHash, FilePath, FileSize, FileCreationUtc }
+
 export (NodePath) var PrevPage ; onready var prev_page:Button = get_node(PrevPage)
 export (NodePath) var NextPage ; onready var next_page:Button = get_node(NextPage)
 export (NodePath) var Refresh ; onready var refresh:Button = get_node(Refresh)
@@ -31,13 +33,6 @@ var timer_delay:float = 0.3				# delay for allowed presses of prev/next buttons
 var loading:bool = false				# 
 var prepping:bool = false				# 
 var stop_all:bool = false				# indicates to the threads that they should stop running
-
-var lss:Dictionary = {					# stores user-defined settings for this script
-	"images_per_page" : 100,
-	"load_threads" : 5,
-	"pages_to_store" : 5,
-	"thumbail_folder" : "user://metadata/thumbnails" 
-}
 
 func stop_threads() -> void: 
 	stop_all = true
@@ -68,25 +63,26 @@ func load_import(import_id:String) -> void:
 	
   # calculate total_pages and total_image_count
 	#total_image_count = Database.GetTotalRowCountKomi()
-	total_image_count = Database.GetImportCount(import_id)
-	total_pages = ceil(total_image_count as float / lss.images_per_page as float) as int
+	total_image_count = Database.GetImportSuccessCountFromID(import_id)#Database.GetImportCount(import_id)
+	total_pages = ceil(total_image_count as float / Settings.settings.images_per_page as float) as int
 	
   # calculate offset (used for LoadRangeKomi64())
-	offset = (current_page-1) * lss.images_per_page
+	offset = (current_page-1) * Settings.settings.images_per_page
 	
   # determine which page the array will replace
-	if pages.size() >= lss.pages_to_store:
+	if pages.size() >= Settings.settings.pages_to_store:
 		var page_to_remove:int = pages_queue.pop_front()
 		# should be entirely unnecessary with current implementation
 		#Database.RemoveKomi64sFromDict(pages[page_to_remove])
 		var _had:bool = pages.erase(page_to_remove)
 		
   # load the hashes from the database into a temp List
-	var count:int
-	var tmp:int = Database.GetCurrentImportListCount(import_id)
-	if tmp < 0: count = lss.images_per_page # this is probably not a good thing to do, not sure how to error out of this function right now though
-	else: count = int(min(tmp, lss.images_per_page))
-	var arr:Array = Database.GetImportListSubsetFromDatabase(import_id, offset, count)
+	#var count:int
+	#var tmp:int = Database.GetCurrentImportListCount(import_id)
+	#if tmp < 0: count = Settings.settings.images_per_page # this is probably not a good thing to do, not sure how to error out of this function right now though
+	#else: count = int(min(tmp, Settings.settings.images_per_page))
+	#var arr:Array = Database.GetImportListSubsetFromDatabase(import_id, offset, count)
+	var arr:Array = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, SortBy.FileHash, false)
 	#Database.LoadRangeKomi64(offset, lss.images_per_page)
 	
   # retrieve the hashes from the temp list and clear the list
@@ -97,7 +93,7 @@ func load_import(import_id:String) -> void:
 	pages[current_page] = arr
 		
   #	calculate page_image_count (used for item generation)
-	if (pages.empty()): page_image_count = lss.images_per_page 
+	if (pages.empty()): page_image_count = Settings.settings.images_per_page 
 	else: page_image_count = pages[current_page].size()
 	
   # call next function
@@ -112,7 +108,7 @@ func _threadsafe_clear() -> void:
 		yield(get_tree(), "idle_frame")
 		yield(get_tree(), "idle_frame")
 	for i in page_image_count:
-		self.add_item("") #self.add_item(pages[current_page][i]) #self.add_item("") #
+		self.add_item(pages[current_page][i]) #self.add_item("") #self.add_item("") #
 		self.set_item_icon(i, icon_loading)
 	get_parent().get_node("page_buttons/Label").text = String(current_page) + "/" + String(total_pages)
 	sc.unlock()
@@ -123,7 +119,7 @@ func prep_load_thumbnails() -> void:
 	prepping = true
 	stop_threads()
 	load_threads.clear()
-	for i in lss.load_threads: load_threads.append(Thread.new())
+	for i in Settings.settings.load_threads: load_threads.append(Thread.new())
 	
 	fi.lock() ; item_index = 0; fi.unlock()
 	lt.lock() ; loaded_thumbnails.clear() ; lt.unlock()
@@ -168,12 +164,12 @@ func load_thumbnail(komi64:String, index:int) -> void:
 	else:
 		lt.unlock()
 		var i:Image = Image.new()
-		var e:int = i.load(lss.thumbail_folder.plus_file(komi64) + ".jpg")
+		var e:int = i.load(Settings.settings.thumbnail_path.plus_file(komi64) + ".jpg")
 		if e != OK: 
-			var p:String = ProjectSettings.globalize_path(lss.thumbail_folder).plus_file(komi64) + ".jpg"
+			var p:String = ProjectSettings.globalize_path(Settings.settings.thumbnail_path).plus_file(komi64) + ".jpg"
 			if ImageOp.IsImageCorrupt(p):
 				print("corrupt ::: ", p) 
-				_threadsafe_set_icon(komi64, 0, true)
+				_threadsafe_set_icon(komi64, index, true)
 				return
 			else: i = ImageOp.LoadUnknownFormatAlt(p)
 		if stop_all: return

@@ -21,8 +21,6 @@ onready var import_mutex:Mutex = Mutex.new()
 var queue:Array = []
 var importer_active:bool = false
 
-var time:int
-
 func start_importer() -> void:
 	if (importer_active): return
 	if (import_mutex.try_lock() != OK): return
@@ -38,9 +36,10 @@ func queue_append(import_folder:String, recursive:bool=true) -> void:
 
 func _thread() -> void:
 	while not queue.empty():
-		time = OS.get_ticks_msec()
+		var time:int = OS.get_ticks_msec()
 		var import:Array = queue.pop_front()
 		ImageOp.ImportImages(import[0], import[1])
+		print("DONE  (R=" + ("t" if import[1] else "f") + "):   ", import[0], "\t; took %1.3f" % [float(OS.get_ticks_msec()-time)/1000.0], " seconds") 
 		OS.delay_msec(50)
 	call_deferred("_done")
 	
@@ -48,6 +47,6 @@ func _done() -> void:
 	if import_thread.is_alive() or import_thread.is_active(): import_thread.wait_to_finish()
 	importer_active = false
 	import_mutex.unlock()
-	print("DONE, took %d ms \n" % [OS.get_ticks_msec() - time - 50])
+	print("DONE IMPORTING")
 	Signals.emit_signal("image_import_finished")
 	
