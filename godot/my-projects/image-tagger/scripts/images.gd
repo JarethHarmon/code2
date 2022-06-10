@@ -8,10 +8,6 @@ enum SortBy { FileHash, FilePath, FileSize, FileCreationUtc }
 var current_sort:int = SortBy.FileHash
 var ascending:bool = true
 
-export (NodePath) var PrevPage ; onready var prev_page:Button = get_node(PrevPage)
-export (NodePath) var NextPage ; onready var next_page:Button = get_node(NextPage)
-export (NodePath) var Refresh ; onready var refresh:Button = get_node(Refresh)
-
 onready var sc:Mutex = Mutex.new() 		# scene
 onready var fi:Mutex = Mutex.new() 		# file index
 onready var pf:Mutex = Mutex.new() 		# page_files

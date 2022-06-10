@@ -80,10 +80,16 @@ selected = 0
 
 [node name="SPACE_3" type="Control" parent="margin/vbox/sort_buttons"]
 margin_left = 244.0
-margin_right = 1910.0
+margin_right = 1846.0
 margin_bottom = 20.0
 mouse_filter = 2
 size_flags_horizontal = 3
+
+[node name="refresh" type="Button" parent="margin/vbox/sort_buttons"]
+margin_left = 1850.0
+margin_right = 1910.0
+margin_bottom = 20.0
+text = "Refresh"
 
 [node name="images" type="ItemList" parent="margin/vbox"]
 margin_top = 24.0
@@ -98,8 +104,6 @@ fixed_column_width = 150
 icon_mode = 0
 fixed_icon_size = Vector2( 150, 150 )
 script = ExtResource( 1 )
-PrevPage = NodePath("../page_buttons/prev_page")
-NextPage = NodePath("../page_buttons/next_page")
 
 [node name="Timer" type="Timer" parent="margin/vbox/images"]
 wait_time = 0.5
