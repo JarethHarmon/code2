@@ -55,6 +55,7 @@ func load_import_group(import_id:String) -> void:
 	stop_threads()
 	
 	total_image_count = Database.GetImportSuccessCountFromID(import_id)
+	Signals.emit_signal("page_refreshed", total_image_count, import_id)
 	total_page_count = ceil(total_image_count as float / Settings.settings.images_per_page as float) as int
 	
 	offset = (current_page_number-1) * Settings.settings.images_per_page
