@@ -23,3 +23,7 @@ func _ready() -> void:
 func test(count:int, id:String) -> void:
 	if import_id == id: set_import_count(count)
 	
+# this needs to create a confirmation popup() instead of just deleting
+func _on_delete_button_button_up() -> void:
+	Signals.emit_signal("delete_pressed", import_id)
+	self.queue_free()

@@ -43,6 +43,14 @@ func stop_threads() -> void:
 func _ready() -> void:
 	var _err:int = Signals.connect("image_import_finished", self, "_on_refresh_button_up")
 	_err = Signals.connect("import_button_pressed", self, "import_group_button_pressed")
+	_err = Signals.connect("delete_pressed", self, "import_group_button_delete")
+
+func import_group_button_delete(import_id:String) -> void:
+	if current_import_id == import_id:
+		stop_threads()
+		self.clear()
+	Database.DeleteImportInfoByID(import_id)
+	Database.DropImportTableByID(import_id)
 
 func import_group_button_pressed(import_id:String) -> void:
 	current_page_number = 1				# consider keeping page_number in history as well
@@ -68,7 +76,7 @@ func load_import_group(import_id:String) -> void:
 		
 		var komi_to_remove:Array = pages[page_to_remove]
 		lt.lock()
-		for komi in komi_to_remove: loaded_thumbnails.erase(komi)
+		for komi in komi_to_remove: var _had:bool = loaded_thumbnails.erase(komi)
 		lt.unlock()
 		var _had:bool = pages.erase(page_to_remove)
 		# delete from C# here if needed (for now it is fast enough not to need to save a history on c#)

@@ -132,6 +132,14 @@ public class Database : Node {
 	}
 	public void UpdateAllImportInfo() { foreach (string iid in dict_import_info.Keys.ToArray()) UpdateImportInfo(iid); }
 	
+	public void DeleteImportInfoByID(string import_id) {
+		try {
+			col_import_info.Delete(import_id);
+		}
+		catch (Exception ex) { GD.Print("Database::DeleteImportInfoByID() : ", ex); return; }	
+	}
+	public void DropImportTableByID(string import_id) { db_import.DropCollection(import_id); }
+	
 /*=========================================================================================
 									  IMPORT GROUP
 =========================================================================================*/	
