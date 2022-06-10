@@ -73,10 +73,7 @@ func load_import_group(import_id:String) -> void:
 	
 	if not page_history.has([current_page_number, import_id]):
 		page_history.push_back([current_page_number, import_id])
-		pages[[current_page_number, import_id]] = komi_arr
-	
-	for key in pages.keys(): print(key)
-	print()
+	pages[[current_page_number, import_id]] = komi_arr
 	
 	if pages.empty(): page_image_count = 0
 	else: page_image_count = pages[[current_page_number, import_id]].size()
