@@ -112,7 +112,6 @@ public class ImageOp : Node
 			if (err == 0) db.IncrementImportSuccessCount(iid);
 			else if (err == 1) db.IncrementImportDuplicateCount(iid);
 			else if (err < 0) db.IncrementImportFailCount(iid);
-			GD.Print(err, ":::", db.GetImportSuccessCountFromID(iid));
 		}
 	
 		db.CheckpointImport();
