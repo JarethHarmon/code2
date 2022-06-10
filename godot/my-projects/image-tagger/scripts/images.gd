@@ -5,6 +5,9 @@ const icon_loading:StreamTexture = preload("res://assets/buffer-01.png")
 
 enum SortBy { FileHash, FilePath, FileSize, FileCreationUtc }
 
+var current_sort:int = SortBy.FileHash
+var ascending:bool = true
+
 export (NodePath) var PrevPage ; onready var prev_page:Button = get_node(PrevPage)
 export (NodePath) var NextPage ; onready var next_page:Button = get_node(NextPage)
 export (NodePath) var Refresh ; onready var refresh:Button = get_node(Refresh)
@@ -70,7 +73,7 @@ func load_import_group(import_id:String) -> void:
 		var _had:bool = pages.erase(page_to_remove)
 		# delete from C# here if needed (for now it is fast enough not to need to save a history on c#)
 
-	var komi_arr:Array = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, SortBy.FileHash, true)
+	var komi_arr:Array = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, current_sort, ascending)
 	
 	if not page_history.has([current_page_number, import_id]):
 		page_history.push_back([current_page_number, import_id])
@@ -194,3 +197,14 @@ func _on_next_page_button_up() -> void:
 
 # move refresh button to image_list.tscn
 func _on_refresh_button_up() -> void: load_import_group(current_import_id)
+
+func _on_sort_by_item_selected(index:int) -> void:
+	current_sort = index
+	load_import_group(current_import_id)
+
+func _on_ascend_descend_item_selected(index) -> void:
+	if (index == 1): ascending = false
+	else: ascending = true
+	load_import_group(current_import_id)
+
+
