@@ -64,6 +64,7 @@ func load_import(import_id:String) -> void:
   # calculate total_pages and total_image_count
 	#total_image_count = Database.GetTotalRowCountKomi()
 	total_image_count = Database.GetImportSuccessCountFromID(import_id)#Database.GetImportCount(import_id)
+	#print(total_image_count)
 	total_pages = ceil(total_image_count as float / Settings.settings.images_per_page as float) as int
 	
   # calculate offset (used for LoadRangeKomi64())
@@ -82,7 +83,7 @@ func load_import(import_id:String) -> void:
 	#if tmp < 0: count = Settings.settings.images_per_page # this is probably not a good thing to do, not sure how to error out of this function right now though
 	#else: count = int(min(tmp, Settings.settings.images_per_page))
 	#var arr:Array = Database.GetImportListSubsetFromDatabase(import_id, offset, count)
-	var arr:Array = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, SortBy.FileHash, false)
+	var arr:Array = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, SortBy.FileHash, true)
 	#Database.LoadRangeKomi64(offset, lss.images_per_page)
 	
   # retrieve the hashes from the temp list and clear the list
@@ -196,6 +197,7 @@ func _threadsafe_set_icon(komi64:String, index:int, failed:bool=false) -> void:
 	if stop_all: return
 	sc.lock()
 	set_item_icon(index, im_tex)
+	set_item_tooltip(index, Database.GetFileSizeFromHash(komi64))
 	sc.unlock()
 
 func _on_images_item_selected(index:int) -> void:

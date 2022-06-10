@@ -130,6 +130,7 @@ public class Database : Node {
 		try { col_import_info.Update(dict_import_info[import_id]); }
 		catch (Exception ex) { GD.Print("Database::UpdateImportInfo() : ", ex); return; }	
 	}
+	public void UpdateAllImportInfo() { foreach (string iid in dict_import_info.Keys.ToArray()) UpdateImportInfo(iid); }
 	
 /*=========================================================================================
 									  IMPORT GROUP
@@ -143,20 +144,20 @@ public class Database : Node {
 			IEnumerable<ImportGroup> imports;
 			
 			if (sort_by == SortBy.FilePath) {
-				if (ascend) imports = col.Find(Query.All(Query.Ascending), start, limit:count).OrderBy(x => x.file_path);
-				else imports = col.Find(Query.All(), start, limit:count).OrderBy(x => x.file_path);
+				if (ascend) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
+				else imports = col.Find(Query.All("file_path", Query.Descending), start, limit:count);
 			}
 			else if (sort_by == SortBy.FileSize) {
-				if (ascend) imports = col.Find(Query.All(Query.Ascending), start, limit:count).OrderBy(x => x.file_size);
-				else imports = col.Find(Query.All(), start, limit:count).OrderBy(x => x.file_size);
+				if (ascend) imports = col.Find(Query.All("file_size", Query.Ascending), start, limit:count);
+				else imports = col.Find(Query.All("file_size", Query.Descending), start, limit:count);
 			}
 			else if (sort_by == SortBy.FileCreationUtc) {
-				if (ascend) imports = col.Find(Query.All(Query.Ascending), start, limit:count).OrderBy(x => x.file_creation_utc);
-				else imports = col.Find(Query.All(), start, limit:count).OrderBy(x => x.file_creation_utc);
+				if (ascend) imports = col.Find(Query.All("file_creation_utc", Query.Ascending), start, limit:count);
+				else imports = col.Find(Query.All("file_creation_utc", Query.Descending), start, limit:count);
 			}
 			else  { // SortBy.FileHash
-				if (ascend) imports = col.Find(Query.All(Query.Ascending), start, limit:count).OrderBy(x => x.komi64);
-				else imports = col.Find(Query.All(), start, limit:count);
+				if (ascend) imports = col.Find(Query.All(), start, limit:count);//imports = col.Find(Query.All(Query.Ascending), start, limit:count);
+				else imports = col.Find(Query.All(Query.Descending), start, limit:count);
 			}
 					
 			foreach (ImportGroup import in imports) {
@@ -167,6 +168,7 @@ public class Database : Node {
 		} 
 		catch (Exception ex) { GD.Print("Database::GetImportGroupRange() : ", ex); return new string[0]; }
 	}
+	public string GetFileSizeFromHash(string komi64) { return dict_import_group[komi64].file_size.ToString(); }
 	public void InsertImportGroup(string iid, string ikomi, string ipath, long isize, long itimeUTC) {
 		try {
 			var col = db_import.GetCollection<ImportGroup>(iid);

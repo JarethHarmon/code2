@@ -112,6 +112,7 @@ public class ImageOp : Node
 			if (err == 0) db.IncrementImportSuccessCount(iid);
 			else if (err == 1) db.IncrementImportDuplicateCount(iid);
 			else if (err < 0) db.IncrementImportFailCount(iid);
+			GD.Print(err, ":::", db.GetImportSuccessCountFromID(iid));
 		}
 	
 		db.CheckpointImport();
@@ -121,7 +122,7 @@ public class ImageOp : Node
 	//public void ImportImage(string image_path, string import_id) {
 	public int ImportImage((string, long, long) tuple, string import_id) {
 		try {
-			(string image_path, long image_size, long image_creation_utc) = tuple;
+			(string image_path, long image_creation_utc, long image_size) = tuple;
 			if (IsImageCorrupt(image_path)) return -1;
 			
 			string komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
