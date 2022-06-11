@@ -2,50 +2,41 @@ extends Control
 
 export (NodePath) var Images ; onready var images:ItemList = get_node(Images)
 
-#onready var default_metadata_path:String = OS.get_data_dir()
-onready var default_metadata_path:String = ProjectSettings.globalize_path("user://metadata/")
-onready var default_thumbnail_path:String = ProjectSettings.globalize_path("user://metadata/thumbnails/") 
-
-var use_default_thumbnail_path:bool = true
-var use_default_metadata_path:bool = true
-
 func _notification(what) -> void:
-	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST or what == MainLoop.NOTIFICATION_CRASH:
+ # if user tried to close the program, or the program crashed (though not sure if latter actually works)
+	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST or what == MainLoop.NOTIFICATION_CRASH or what == MainLoop.NOTIFICATION_WM_GO_BACK_REQUEST:
 		Database.CheckpointKomi64()
+		Database.UpdateAllImportInfo()
 		Database.Destroy() 
-		#print_stray_nodes()
+		#print_stray_nodes() # checks for orphan nodes, currently there are none
 		images.stop_threads()
 		Settings.save_settings()
+		print("exiting program")
 		get_tree().quit()
 
 func _ready() -> void:
-  # closing the program instead calls _notification(MainLoop.NOTIFICATION_WM_QUIT_REQUEST)
+ # closing the program instead calls _notification(MainLoop.NOTIFICATION_WM_QUIT_REQUEST)
 	get_tree().set_auto_accept_quit(false)
 	
-  # ensure other scripts have time to connect to any signals (they should even without this)
+ # ensure other scripts have time to connect to any signals (they should even without this)
 	call_deferred("_begin")
 
 func _begin() -> void:
-	# make and set default metadata folder
+ # make and set default metadata folder
 	var dir:Directory = Directory.new()
-	if use_default_metadata_path:
-		var err:int = dir.make_dir_recursive(default_metadata_path)
-		if err == OK: Database.SetMetadataPath(default_metadata_path)
+	if Settings.settings.use_default_metadata_path:
+		var err:int = dir.make_dir_recursive(Settings.settings.default_metadata_path)
+		if err == OK: Database.SetMetadataPath(Settings.settings.default_metadata_path)
 	
-	# make and set default thumbnail folder
-	if use_default_thumbnail_path:
-		var err:int = dir.make_dir_recursive(default_thumbnail_path)
-		if err == OK: ImageOp.SetThumbnailPath(default_thumbnail_path)
+ # make and set default thumbnail folder
+	if Settings.settings.use_default_thumbnail_path:
+		var err:int = dir.make_dir_recursive(Settings.settings.default_thumbnail_path)
+		if err == OK: ImageOp.SetThumbnailPath(Settings.settings.default_thumbnail_path)
 	
-	# create database and print its folder
+ # create database and print its folder
 	if (Database.Create() == OK): print("successfully opened databases")
-	if (Database.LoadAllImportInfoFromDatabase() == OK): print("successfully loaded imports")
+	if (Database.LoadImportInfoFromDatabase() == OK): print("successfully loaded imports")
 	Signals.emit_signal("import_info_load_finished")
-	
-	Settings.load_settings()
-	
-	if Settings.settings.thumbnail_path == "": Settings.settings.thumbnail_path = default_thumbnail_path
-	if Settings.settings.metadata_path == "": Settings.settings.metadata_path = default_metadata_path
-	
+
 
 

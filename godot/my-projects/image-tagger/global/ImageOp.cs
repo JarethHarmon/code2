@@ -28,22 +28,7 @@ public class ImageOp : Node
 		iscan = (ImageScanner) GetNode("/root/ImageScanner");
 		db = (Database) GetNode("/root/Database");
 	}
-	
-	public void ImportImages(string path, bool recursive) {
-		int image_count = iscan.ScanDirectories(@path, recursive);
-		if (image_count <= 0) return; 								// no images to import
 		
-		string iid = db.GetRandomID(16); 							// gets a random 128 bit ID	
-		db.AddImportInfoToDatabase(iid, "", path, image_count);		// 				
-		db.CreateImportListInDatabase(iid, new string[0]);			// create the import list
-		signals.Call("create_import_button", iid);					//
-		
-		foreach (string image_path in iscan.GetImages()) ImportImage(image_path, iid);
-
-		db.CheckpointImport();
-		db.CheckpointKomi64();
-	}
-	
 	public void CalcDifferenceHash(string path) {
 		var stream = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(path);
 		var algo = new DifferenceHash();
@@ -76,10 +61,7 @@ public class ImageOp : Node
 	static bool IsImageCorrupt(string image_path) {
 		try { var im = new MagickImage(image_path); }
 		catch (MagickCorruptImageErrorException) { return true; }
-		catch (MagickBlobErrorException) { 
-			GD.Print("fail :: ", image_path); 
-			return true; 
-		} // could have been caused by refreshing while loading; either way should probably try again since this is failed to find file
+		catch (MagickBlobErrorException) { GD.Print("blob"); return true; }
 		return false;
 	}
 	static string GetActualFormat(string image_path) {
@@ -114,28 +96,57 @@ public class ImageOp : Node
 		catch (Exception) { return null; }
 	}
 	
-	public void ImportImage(string image_path, string import_id) {
+	public void ImportImages(string path, bool recursive) {
+		int image_count = iscan.ScanDirectories(@path, recursive);
+		if (image_count <= 0) return; 								// no images to import
+		int success_count = 0;
+		
+		string iid = db.GetRandomID(4); 							// gets a random 32 bit ID	
+		iid = "C" + iid;											// collection names cannot start with a number
+		db.AddImportInfoToDatabase(iid, "", path);					// 				
+		signals.Call("create_import_button", iid);					//
+		
+		// change ImportImage to return an int and count the number of corrupt and duplicate images
+		//foreach (string image_path in iscan.GetImages()) ImportImage(image_path, iid);
+		foreach ((string, long, long) tuple in iscan.GetImages()) {
+			int err = ImportImage(tuple, iid);
+			if (err == 0) {
+				success_count++;
+				db.IncrementImportSuccessCount(iid);
+				signals.EmitSignal("update_button", success_count, iid);
+			}
+			else if (err == 1) db.IncrementImportDuplicateCount(iid);
+			else if (err < 0) db.IncrementImportFailCount(iid);
+		}
+	
+		db.CheckpointImport();
+		db.CheckpointKomi64();
+	}
+	
+	//public void ImportImage(string image_path, string import_id) {
+	public int ImportImage((string, long, long) tuple, string import_id) {
 		try {
-			if (IsImageCorrupt(image_path)) return;
-			
-			// currently thinking that the c++ code returns the image_path if it encounters certain unicode characters
+			(string image_path, long image_creation_utc, long image_size) = tuple;
+			if (IsImageCorrupt(image_path)) return -1;
 			
 			string komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
 			string save_path = thumbnail_path + komihash + ".jpg"; 
 			
 			//var now = DateTime.Now;
-			db.AddKomi64ToImportListInDatabase(import_id, komihash);
+			//db.AddKomi64ToImportListInDatabase(import_id, komihash);
+			db.InsertImportGroup(import_id, komihash, image_path, image_size, image_creation_utc);
 			//GD.Print("add komi64 to import database: ", (DateTime.Now-now).Milliseconds);
 			
 			//now = DateTime.Now;
 			int err = db.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
 			//GD.Print("add komi64 to komi64 database: ", (DateTime.Now-now).Milliseconds);
-			if (err != 0) return;
+			if (err != 0) return err;
 			//now = DateTime.Now;
 			SaveThumbnail(image_path, save_path);
 			//GD.Print("save thumbnail: ", (DateTime.Now-now).Milliseconds);
+			return 0;
 		}
-		catch (Exception ex) { GD.Print("ImageOp::ImportImage() : ", ex); return; }
+		catch (Exception ex) { GD.Print("ImageOp::ImportImage() : ", ex); return -1; }
 	}
 	
 }

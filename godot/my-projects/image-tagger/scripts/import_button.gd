@@ -17,3 +17,13 @@ func set_import_count(value:int):
 func _on_import_name_count_button_up() -> void:
 	Signals.emit_signal("import_button_pressed", import_id)
 
+func _ready() -> void:
+	Signals.connect("update_button", self, "test")
+
+func test(count:int, id:String) -> void:
+	if import_id == id: set_import_count(count)
+	
+# this needs to create a confirmation popup() instead of just deleting
+func _on_delete_button_button_up() -> void:
+	Signals.emit_signal("delete_pressed", import_id)
+	self.queue_free()

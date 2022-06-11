@@ -1,6 +1,6 @@
 extends VBoxContainer
 
-# button logic needs to be moved out of this script (especially image importing)
+# button logic needs to be moved out of this script (especially image importing) (create a preview_buttons node & script)
 
 const pixel_smooth = preload("res://shaders/SmoothPixel.tres")
 const BASE_MAX_DIMENSIONS=16384
@@ -17,9 +17,6 @@ onready var image_thread:Thread = Thread.new()
 
 enum selection { THUMBNAIL, IMPORT }
 var select:int = selection.IMPORT
-var use_recursion:bool = false
-var use_filter:bool = true
-var use_smooth_pixel:bool = false
 
 func _ready() -> void:
 	var _err:int = Signals.connect("load_image", self, "_on_FileDialog_file_selected") # should just work
@@ -28,7 +25,7 @@ func _on_FileDialog_dir_selected(dir:String) -> void:
 	match select:
 		selection.IMPORT: 
 			if ImageOp.thumbnail_path == "": return
-			Import.queue_append(dir, use_recursion)
+			Import.queue_append(dir, Settings.settings.use_recursion)
 			Settings.settings.last_used_directory = dir.get_base_dir()
 
 func _on_FileDialog_file_selected(path:String) -> void:
@@ -52,7 +49,7 @@ func _thread(path:String) -> void:
 	#if e == OK:
 	var it:ImageTexture = ImageTexture.new()
 	#it.create_from_image(i, 0)
-	it.create_from_image(i, 4 if use_filter else 0)
+	it.create_from_image(i, 4 if Settings.settings.use_filter else 0)
 	it.set_size_override(calc_size(it))
 	$hbox_0/image_0.texture = it
 		
@@ -103,18 +100,18 @@ func _on_choose_image_pressed() -> void:
 	
 func _on_color_grade_toggled(button_pressed:bool) -> void: color_grade.visible = button_pressed
 func _on_edge_mix_toggled(button_pressed:bool): edge_mix.visible = button_pressed
-func _on_use_recursion_toggled(button_pressed:bool) -> void: use_recursion = button_pressed
+func _on_use_recursion_toggled(button_pressed:bool) -> void: Settings.settings.use_recursion = button_pressed
 func _on_filter_toggled(button_pressed:bool) -> void:
-	use_filter = button_pressed
+	Settings.settings.use_filter = button_pressed
 	if button_pressed:
 		smooth_pixel_button.disabled = false
-		if use_smooth_pixel: 
+		if Settings.settings.use_smooth_pixel: 
 			_on_use_smooth_pixel_toggled(true)
 	else:
 		smooth_pixel_button.disabled = true
-		if use_smooth_pixel:
+		if Settings.settings.use_smooth_pixel:
 			_on_use_smooth_pixel_toggled(false)
-			use_smooth_pixel = true
+			Settings.settings.use_smooth_pixel = true
 		else: _on_use_smooth_pixel_toggled(false)
 	
 	var preview:TextureRect = $hbox_0/image_0
@@ -124,7 +121,7 @@ func _on_filter_toggled(button_pressed:bool) -> void:
 	it.set_size_override(calc_size(it))
 	preview.set_texture(it)
 func _on_use_smooth_pixel_toggled(button_pressed:bool) -> void:
-	use_smooth_pixel = button_pressed
+	Settings.settings.use_smooth_pixel = button_pressed
 	if button_pressed: 
 		$hbox_0/image_0.set_material(pixel_smooth)
 	else: $hbox_0/image_0.set_material(null)

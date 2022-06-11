@@ -89,12 +89,41 @@ size_flags_horizontal = 3
 [node name="vbox" parent="margin/hsplit/left/image_list/margin" index="0"]
 margin_right = 479.0
 
-[node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="0"]
+[node name="sort_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="0"]
+margin_right = 474.0
+margin_bottom = 29.0
+
+[node name="sort_by_label" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="0"]
+margin_top = 0.0
+margin_right = 71.0
+margin_bottom = 29.0
+
+[node name="sort_by" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="1"]
+margin_left = 75.0
+margin_right = 180.0
+margin_bottom = 29.0
+
+[node name="ascend_descend" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="2"]
+margin_left = 184.0
+margin_right = 296.0
+margin_bottom = 29.0
+
+[node name="SPACE_3" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="3"]
+margin_left = 300.0
+margin_right = 396.0
+margin_bottom = 29.0
+
+[node name="refresh" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="4"]
+margin_left = 400.0
+margin_right = 474.0
+margin_bottom = 29.0
+
+[node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="1"]
+margin_top = 33.0
 margin_right = 474.0
 margin_bottom = 1037.0
-Refresh = NodePath("../../../../../right/preview/margin/vb/bg_panel/hb/refresh")
 
-[node name="page_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="1"]
+[node name="page_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="2"]
 margin_top = 1041.0
 margin_right = 474.0
 
@@ -265,13 +294,7 @@ margin_bottom = 31.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="refresh" type="Button" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_right = 74.0
-margin_bottom = 29.0
-text = "Refresh"
-
 [node name="SPACE4" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel/hb"]
-margin_left = 78.0
 margin_right = 425.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
@@ -367,10 +390,10 @@ access = 2
 current_dir = "/git/code2/godot/my-projects/image-tagger"
 current_path = "/git/code2/godot/my-projects/image-tagger/"
 
+[connection signal="button_up" from="margin/hsplit/left/image_list/margin/vbox/sort_buttons/refresh" to="margin/hsplit/left/image_list/margin/vbox/images" method="_on_refresh_button_up"]
 [connection signal="gui_input" from="margin/hsplit/right/preview/viewport_display" to="margin/hsplit/right/preview/viewport_display" method="_on_viewport_display_gui_input"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_smooth_pixel" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_smooth_pixel_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
-[connection signal="button_up" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/refresh" to="margin/hsplit/left/image_list/margin/vbox/images" method="_on_refresh_button_up"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/filter" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_filter_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/edge_mix" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_edge_mix_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel/hb/color_grade" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_color_grade_toggled"]
