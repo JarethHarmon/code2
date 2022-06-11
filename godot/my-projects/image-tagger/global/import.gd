@@ -3,14 +3,10 @@ extends Node
 # calls function that starts scanning for images, calculating hash, creating thumbnail, storing metadata in database
 # currently does this all on a single additional thread (still fairly fast)
 
-func get_signed_komi_hash(path:String) -> int: 
+# returns unsigned komi hash as String
+func get_komi_hash(path:String) -> String: 
 	var gob:Gob = Gob.new()
-	var komi:int = gob.get_signed_komi_hash(path)
-	gob.queue_free()
-	return komi
-func get_unsigned_komi_hash(path:String) -> String: 
-	var gob:Gob = Gob.new()
-	var komi:String = gob.get_unsigned_komi_hash(path)
+	var komi:String = gob.get_komi_hash(path)
 	gob.queue_free()
 	return komi
 

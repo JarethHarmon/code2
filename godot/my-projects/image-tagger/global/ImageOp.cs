@@ -142,7 +142,7 @@ public class ImageOp : Node
 			(string image_path, long image_creation_utc, long image_size) = tuple;
 			if (IsImageCorrupt(image_path)) return -1;
 			
-			string komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
+			string komihash = (string) import.Call("get_komi_hash", image_path);
 			string save_path = thumbnail_path + komihash;
 			
 			if (db.ImportGroupHasKomi(import_id, komihash)) return 1;

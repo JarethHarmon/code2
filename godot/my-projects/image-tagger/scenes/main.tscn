@@ -103,11 +103,13 @@ margin_bottom = 29.0
 margin_left = 75.0
 margin_right = 180.0
 margin_bottom = 29.0
+items = [ "File Hash", null, false, 0, null, "File Path", null, false, 1, null, "File Size", null, false, 2, null, "File Creation Time", null, false, 3, null ]
 
 [node name="ascend_descend" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="2"]
 margin_left = 184.0
 margin_right = 296.0
 margin_bottom = 29.0
+items = [ "Ascending", null, false, 0, null, "Descending", null, false, 1, null ]
 
 [node name="SPACE_3" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="3"]
 margin_left = 300.0
