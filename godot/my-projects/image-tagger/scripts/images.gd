@@ -98,6 +98,7 @@ func _threadsafe_clear(import_id:String) -> void:
 	for i in page_image_count:
 		self.add_item(pages[[current_page_number, import_id]][i]) #self.add_item("") #self.add_item("") #
 		self.set_item_icon(i, icon_loading)
+	# should get a proper node reference instead here
 	get_parent().get_node("page_buttons/Label").text = String(current_page_number) + "/" + String(total_page_count)
 	sc.unlock()
 	prep_load_thumbnails(import_id)
@@ -144,7 +145,7 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		var i:Image = Image.new()
 		var e:int = i.load(Settings.settings.thumbnail_path.plus_file(komi64) + ".jpg")
 		if e != OK: 
-			var p:String = ProjectSettings.globalize_path(Settings.settings.thumbnail_path).plus_file(komi64) + ".jpg"
+			var p:String = Settings.settings.thumbnail_path.plus_file(komi64) + ".jpg"
 			if ImageOp.IsImageCorrupt(p):
 				print("corrupt ::: ", p) 
 				_threadsafe_set_icon(komi64, index, true)
