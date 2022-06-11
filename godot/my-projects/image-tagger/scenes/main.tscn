@@ -239,28 +239,60 @@ margin_right = 1024.0
 margin_bottom = 31.0
 
 [node name="SPACE5" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_right = 239.0
+margin_right = 100.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="SPACE8" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_left = 243.0
-margin_right = 482.0
+margin_left = 104.0
+margin_right = 204.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="SPACE13" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_left = 208.0
+margin_right = 308.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="SPACE11" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_left = 312.0
+margin_right = 413.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="use_smooth_pixel" type="CheckBox" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_left = 486.0
-margin_right = 620.0
+margin_left = 417.0
+margin_right = 551.0
 margin_bottom = 29.0
 text = "Smooth Pixel"
 
 [node name="SPACE9" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
-margin_left = 624.0
+margin_left = 555.0
+margin_right = 655.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="SPACE12" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_left = 659.0
+margin_right = 759.0
+margin_bottom = 29.0
+rect_min_size = Vector2( 16, 0 )
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="SPACE10" type="Control" parent="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2"]
+margin_left = 763.0
 margin_right = 863.0
 margin_bottom = 29.0
 rect_min_size = Vector2( 16, 0 )
