@@ -155,7 +155,7 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		if stop_all: return
 		
 		var it:ImageTexture = ImageTexture.new()
-		it.create_from_image(i, 0) #4# flags
+		it.create_from_image(i, 4) #0# flags
 		it.set_meta("komi64", komi64)
 		
 		lt.lock()
