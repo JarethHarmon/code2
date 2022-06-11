@@ -134,13 +134,16 @@ public class ImageOp : Node
 			
 			//var now = DateTime.Now;
 			//db.AddKomi64ToImportListInDatabase(import_id, komihash);
+			if (db.ImportGroupHasKomi(import_id, komihash)) return 1;
+			
 			db.InsertImportGroup(import_id, komihash, image_path, image_size, image_creation_utc);
 			//GD.Print("add komi64 to import database: ", (DateTime.Now-now).Milliseconds);
 			
 			//now = DateTime.Now;
 			int err = db.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
 			//GD.Print("add komi64 to komi64 database: ", (DateTime.Now-now).Milliseconds);
-			if (err != 0) return err;
+			//if (err != 0) return err;
+			if (err < 0) return err;
 			//now = DateTime.Now;
 			SaveThumbnail(image_path, save_path);
 			//GD.Print("save thumbnail: ", (DateTime.Now-now).Milliseconds);

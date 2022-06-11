@@ -194,6 +194,15 @@ public class Database : Node {
 		}
 		catch (Exception ex) { GD.Print("Database::InsertImportGroup() : ", ex); return; }	
 	}
+	public bool ImportGroupHasKomi(string import_id, string komi64) {
+		try {
+			var col = db_import.GetCollection<ImportGroup>(import_id);
+			var temp = col.FindById(komi64);
+			if (temp != null) return true;
+			return false;
+		}
+		catch (Exception ex) { GD.Print("Database::ImportGroupHasKomi() : ", ex); return false; }	
+	}
 	
 /*=========================================================================================
 										 MISC
