@@ -96,7 +96,7 @@ func _threadsafe_clear(import_id:String) -> void:
 		yield(get_tree(), "idle_frame")
 		yield(get_tree(), "idle_frame")
 	for i in page_image_count:
-		self.add_item(pages[[current_page_number, import_id]][i]) #self.add_item("") #self.add_item("") #
+		self.add_item("") #self.add_item(pages[[current_page_number, import_id]][i]) #
 		self.set_item_icon(i, icon_loading)
 	# should get a proper node reference instead here
 	get_parent().get_node("page_buttons/Label").text = String(current_page_number) + "/" + String(total_page_count)
@@ -176,7 +176,7 @@ func _threadsafe_set_icon(komi64:String, index:int, failed:bool=false) -> void:
 	if stop_all: return
 	sc.lock()
 	set_item_icon(index, im_tex)
-	set_item_tooltip(index, Database.GetFileSizeFromHash(komi64))
+	set_item_tooltip(index, "hash: " + komi64 + "\nsize: " + Database.GetFileSizeFromHash(komi64))
 	sc.unlock()
 
 func _on_images_item_selected(index:int) -> void:

@@ -11,6 +11,7 @@ signal import_button_pressed(import_id)
 signal import_list_location(node_path)
 signal update_button(import_count, import_id)
 signal delete_pressed(import_id)
+signal resize_preview_image
 
 var import_list:NodePath
 
