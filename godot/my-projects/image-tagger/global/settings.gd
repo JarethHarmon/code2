@@ -27,6 +27,7 @@ var settings:Dictionary = {
 }
 
 func _ready() -> void:
+	
 	settings.default_metadata_path = ProjectSettings.globalize_path("user://metadata/")
 	settings.default_thumbnail_path = ProjectSettings.globalize_path("user://metadata/thumbnails/") 
 	load_settings()

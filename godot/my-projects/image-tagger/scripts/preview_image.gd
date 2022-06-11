@@ -101,7 +101,7 @@ func _on_choose_image_pressed() -> void:
 func _on_color_grade_toggled(button_pressed:bool) -> void: color_grade.visible = button_pressed
 func _on_edge_mix_toggled(button_pressed:bool): edge_mix.visible = button_pressed
 func _on_use_recursion_toggled(button_pressed:bool) -> void: Settings.settings.use_recursion = button_pressed
-func _on_filter_toggled(button_pressed:bool) -> void:
+func _on_filter_toggled(button_pressed:bool) -> void:	
 	Settings.settings.use_filter = button_pressed
 	if button_pressed:
 		smooth_pixel_button.disabled = false
@@ -115,7 +115,10 @@ func _on_filter_toggled(button_pressed:bool) -> void:
 		else: _on_use_smooth_pixel_toggled(false)
 	
 	var preview:TextureRect = $hbox_0/image_0
-	var i:Image = preview.get_texture().get_data()
+	var tex:Texture = preview.get_texture()
+	if tex == null: return
+	
+	var i:Image = tex.get_data()
 	var it:ImageTexture = ImageTexture.new()
 	it.create_from_image(i, 4 if button_pressed else 0)
 	it.set_size_override(calc_size(it))

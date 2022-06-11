@@ -144,7 +144,8 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		lt.unlock()
 		var i:Image = Image.new()
 		var e:int = i.load(Settings.settings.thumbnail_path.plus_file(komi64) + ".jpg")
-		if e != OK: 
+		if e != OK: e = i.load(Settings.settings.thumbnail_path.plus_file(komi64) + ".png")
+		if e != OK:
 			var p:String = Settings.settings.thumbnail_path.plus_file(komi64) + ".jpg"
 			if ImageOp.IsImageCorrupt(p):
 				print("corrupt ::: ", p) 
@@ -154,7 +155,7 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		if stop_all: return
 		
 		var it:ImageTexture = ImageTexture.new()
-		it.create_from_image(i, 4) # flags
+		it.create_from_image(i, 0) #4# flags
 		it.set_meta("komi64", komi64)
 		
 		lt.lock()
