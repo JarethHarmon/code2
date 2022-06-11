@@ -2,6 +2,8 @@ extends Node
 
 const import_button = preload("res://scenes/import_button.tscn")
 
+signal settings_loaded
+
 signal load_image(image_path)
 signal image_import_finished
 signal import_info_load_finished

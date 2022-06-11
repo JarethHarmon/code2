@@ -24,10 +24,15 @@ var settings:Dictionary = {
   # IMAGE PREVIEWER
 	"use_filter" : true,
 	"use_smooth_pixel" : false,
+  
+  # COLOR GRADE
+	"use_color_grade" : false,
+	
+  # Edge Mix
+	"use_edge_mix" : false,
 }
 
 func _ready() -> void:
-	
 	settings.default_metadata_path = ProjectSettings.globalize_path("user://metadata/")
 	settings.default_thumbnail_path = ProjectSettings.globalize_path("user://metadata/thumbnails/") 
 	load_settings()
@@ -45,4 +50,4 @@ func load_settings() -> void:
 	var e:int = f.open(settings_path, File.READ)
 	if e == OK: settings = str2var(f.get_as_text())
 	f.close()
-	
+	Signals.call_deferred("emit_signal", "settings_loaded") # needs to be deferred or it does not get sent out on time

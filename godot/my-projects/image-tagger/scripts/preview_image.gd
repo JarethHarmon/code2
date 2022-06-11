@@ -20,6 +20,14 @@ var select:int = selection.IMPORT
 
 func _ready() -> void:
 	var _err:int = Signals.connect("load_image", self, "_on_FileDialog_file_selected") # should just work
+	_err = Signals.connect("settings_loaded", self, "_settings_loaded")
+
+func _settings_loaded() -> void:
+	_on_color_grade_toggled(Settings.settings.use_color_grade)
+	_on_edge_mix_toggled(Settings.settings.use_edge_mix)
+	_on_use_smooth_pixel_toggled(Settings.settings.use_smooth_pixel)
+	_on_filter_toggled(Settings.settings.use_filter)
+	_on_use_recursion_toggled(Settings.settings.use_recursion)
 
 func _on_FileDialog_dir_selected(dir:String) -> void: 
 	match select:
@@ -98,8 +106,14 @@ func _on_choose_image_pressed() -> void:
 	fd.window_title = "Choose an image"
 	fd.popup()
 	
-func _on_color_grade_toggled(button_pressed:bool) -> void: color_grade.visible = button_pressed
-func _on_edge_mix_toggled(button_pressed:bool): edge_mix.visible = button_pressed
+func _on_color_grade_toggled(button_pressed:bool) -> void: 
+	Settings.settings.use_color_grade = button_pressed
+	color_grade.visible = button_pressed
+	
+func _on_edge_mix_toggled(button_pressed:bool): 
+	Settings.settings.use_edge_mix = button_pressed
+	edge_mix.visible = button_pressed
+	
 func _on_use_recursion_toggled(button_pressed:bool) -> void: Settings.settings.use_recursion = button_pressed
 func _on_filter_toggled(button_pressed:bool) -> void:	
 	Settings.settings.use_filter = button_pressed

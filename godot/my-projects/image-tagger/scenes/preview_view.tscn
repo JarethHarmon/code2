@@ -46,11 +46,11 @@ copy_mode = 2
 rect = Rect2( 0, 0, 0, 0 )
 
 [node name="Shader" type="ColorRect" parent="ColorGrade"]
+modulate = Color( 1, 1, 1, 0.25098 )
 material = ExtResource( 2 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color( 1, 1, 1, 0.501961 )
 
 [node name="EdgeCustomDefaultMix" type="Control" parent="."]
 visible = false
@@ -63,11 +63,11 @@ copy_mode = 2
 rect = Rect2( 0, 0, 0, 0 )
 
 [node name="Shader" type="ColorRect" parent="EdgeCustomDefaultMix"]
+modulate = Color( 1, 1, 1, 0.25098 )
 material = ExtResource( 4 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color( 1, 1, 1, 0.501961 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2( 960, 540 )
