@@ -99,6 +99,7 @@ public class ImageOp : Node
 	public void ImportImages(string path, bool recursive) {
 		int image_count = iscan.ScanDirectories(@path, recursive);
 		if (image_count <= 0) return; 								// no images to import
+		int success_count = 0;
 		
 		string iid = db.GetRandomID(4); 							// gets a random 32 bit ID	
 		iid = "C" + iid;											// collection names cannot start with a number
@@ -109,7 +110,11 @@ public class ImageOp : Node
 		//foreach (string image_path in iscan.GetImages()) ImportImage(image_path, iid);
 		foreach ((string, long, long) tuple in iscan.GetImages()) {
 			int err = ImportImage(tuple, iid);
-			if (err == 0) db.IncrementImportSuccessCount(iid);
+			if (err == 0) {
+				success_count++;
+				db.IncrementImportSuccessCount(iid);
+				signals.EmitSignal("update_button", success_count, iid);
+			}
 			else if (err == 1) db.IncrementImportDuplicateCount(iid);
 			else if (err < 0) db.IncrementImportFailCount(iid);
 		}

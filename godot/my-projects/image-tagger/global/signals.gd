@@ -7,7 +7,7 @@ signal image_import_finished
 signal import_info_load_finished
 signal import_button_pressed(import_id)
 signal import_list_location(node_path)
-signal page_refreshed(import_count, import_id)
+signal update_button(import_count, import_id)
 signal delete_pressed(import_id)
 
 var import_list:NodePath

@@ -62,7 +62,7 @@ func load_import_group(import_id:String) -> void:
 	stop_threads()
 	
 	total_image_count = Database.GetImportSuccessCountFromID(import_id)
-	Signals.emit_signal("page_refreshed", total_image_count, import_id)
+	Signals.emit_signal("update_button", total_image_count, import_id)
 	total_page_count = ceil(total_image_count as float / Settings.settings.images_per_page as float) as int
 	
 	offset = (current_page_number-1) * Settings.settings.images_per_page
@@ -174,7 +174,7 @@ func _threadsafe_set_icon(komi64:String, index:int, failed:bool=false) -> void:
 	if stop_all: return
 	sc.lock()
 	set_item_icon(index, im_tex)
-	# set_item_tooltip(index, Database.GetFileSizeFromHash(komi64))
+	set_item_tooltip(index, Database.GetFileSizeFromHash(komi64))
 	sc.unlock()
 
 func _on_images_item_selected(index:int) -> void:
