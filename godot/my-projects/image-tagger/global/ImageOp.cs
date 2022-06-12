@@ -73,8 +73,8 @@ public class ImageOp : Node
 	}
 	static bool IsImageCorrupt(string image_path) {
 		try { var im = new MagickImage(image_path); }
-		catch (MagickCorruptImageErrorException) { return true; }
-		catch (MagickBlobErrorException) { GD.Print("blob"); return true; }
+		catch (MagickCorruptImageErrorException) { GD.Print("err (corrupt) ::: ", image_path); return true; }
+		catch (MagickBlobErrorException) { GD.Print("err (blob) ::: ", image_path); return true; }
 		return false;
 	}
 	static string GetActualFormat(string image_path) {

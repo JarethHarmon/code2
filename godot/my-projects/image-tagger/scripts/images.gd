@@ -148,7 +148,7 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		if e != OK:
 			var p:String = Settings.settings.thumbnail_path.plus_file(komi64) + ".jpg"
 			if ImageOp.IsImageCorrupt(p):
-				print("corrupt ::: ", p) 
+				#print("corrupt ::: ", p) 
 				_threadsafe_set_icon(komi64, index, true)
 				return
 			else: i = ImageOp.LoadUnknownFormatAlt(p)
