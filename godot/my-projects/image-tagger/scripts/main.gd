@@ -5,8 +5,10 @@ export (NodePath) var Images ; onready var images:ItemList = get_node(Images)
 func _notification(what) -> void:
  # if user tried to close the program, or the program crashed (though not sure if latter actually works)
 	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST or what == MainLoop.NOTIFICATION_CRASH or what == MainLoop.NOTIFICATION_WM_GO_BACK_REQUEST:
-		Database.CheckpointKomi64()
 		Database.UpdateAllImportInfo()
+		Database.CheckpointKomi64()
+		Database.CheckpointImport()
+		Database.CheckpointTag()
 		Database.Destroy() 
 		#print_stray_nodes() # checks for orphan nodes, currently there are none
 		images.stop_threads()

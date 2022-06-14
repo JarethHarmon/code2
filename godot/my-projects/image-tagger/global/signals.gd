@@ -5,6 +5,7 @@ const import_button = preload("res://scenes/import_button.tscn")
 signal settings_loaded
 
 signal load_image(image_path)
+signal load_tags(komi64)
 signal image_import_finished
 signal import_info_load_finished
 signal import_button_pressed(import_id)

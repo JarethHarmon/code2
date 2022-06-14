@@ -32,11 +32,18 @@ public class ImportGroup {
 	public long file_creation_utc { get; set; }			// the time (UTC) that the file was created (in ticks)
 }
 
+//public cla
+
 public class SortBy {
 	public const int FileHash = 0;			
 	public const int FilePath = 1;			
 	public const int FileSize = 2;			
 	public const int FileCreationUtc = 3;
+}
+
+public class TagInfo {
+	public string tag { get; set; }
+	public HashSet<string> hashes { get; set; }
 }
 
 // there are ~4000 bytes total of space for collection names in a database, with each import_id taking 8 bytes; I will set the limit of the number of import_groups to ~400
@@ -49,13 +56,18 @@ public class Database : Node {
 	
 	public LiteDatabase db_komi64;
 	public LiteDatabase db_import;
+	public LiteDatabase db_tag;
 	
 	public ILiteCollection<Komi64Info> col_komi64;
 	public ILiteCollection<ImportInfo> col_import_info;
+	public ILiteCollection<TagInfo> col_tag_info;
 	
 	public Dictionary<string, Komi64Info> dict_komi64 = new Dictionary<string, Komi64Info>();
 	public Dictionary<string, ImportInfo> dict_import_info = new Dictionary<string, ImportInfo>();
 	public Dictionary<string, ImportGroup> dict_import_group = new Dictionary<string, ImportGroup>();
+	//public Dictionary<string, TagInfo> dict_tag_info = new Dictionary<string, TagInfo>();
+	
+	public HashSet<string> set_tags = new HashSet<string>();
 	
 	public int Create() {
 		try {
@@ -69,6 +81,10 @@ public class Database : Node {
 				BsonMapper.Global.Entity<ImportGroup>().Id(x => x.komi64);
 				col_import_info = db_import.GetCollection<ImportInfo>("import_info");
 				//col_import_list = db_import.GetCollection<ImportList>("import_list");
+				
+				db_tag = new LiteDatabase(metadata_path + "tag_info.db");
+				BsonMapper.Global.Entity<TagInfo>().Id(x => x.tag);
+				col_tag_info = db_tag.GetCollection<TagInfo>("tags");
 			}
 			return 0;
 		}
@@ -77,9 +93,11 @@ public class Database : Node {
 	public void Destroy() { 
 		db_komi64.Dispose(); 
 		db_import.Dispose();
+		db_tag.Dispose();
 	}
 	public void CheckpointKomi64() { db_komi64.Checkpoint(); }
 	public void CheckpointImport() { db_import.Checkpoint(); }
+	public void CheckpointTag() { db_tag.Checkpoint(); }
 	
 /*=========================================================================================
 									   IMPORT INFO
@@ -281,5 +299,61 @@ public class Database : Node {
 	public void RemoveKomi64sFromDict(string[] komi64s) {
 		foreach (string komi64 in komi64s)
 			dict_komi64.Remove(komi64);
+	}
+	public void AddTagToKomi(string komi64, string tag) {
+		try {
+			var tmp = col_komi64.FindById(komi64);
+			if (tmp == null) return;
+			if (tmp.tags == null) tmp.tags = new HashSet<string>();
+			tmp.tags.Add(tag);
+			col_komi64.Update(tmp);
+		} catch (Exception ex) { GD.Print("Database::AddTagToKomi() : ", ex); return; }
+	}
+
+/*=========================================================================================
+								  		  TAG
+=========================================================================================*/	
+	//public bool CheckDatabaseHasTag(string tag) { return  }
+	
+	public void LoadTagsFromDatabase() {
+		try {
+			var tags = col_tag_info.FindAll();
+			foreach (TagInfo tag in tags) set_tags.Add(tag.tag);
+		} catch (Exception ex) { GD.Print("Database::LoadTagsFromDatabase() : ", ex); return; }
+	}
+	public string[] GetHashesFromTag(string tag) { 
+		try {
+			var tmp = col_tag_info.FindById(tag);
+			if (tmp != null) return tmp.hashes.ToArray();
+			return new string[0];
+		} catch (Exception ex) { GD.Print("Database::GetHashesFromTag() : ", ex); return new string[0]; }
+	}
+	public void CreateTag(string tag_n, string[] hashes_n) {
+		try {
+			if (set_tags.Contains(tag_n)) {
+				var tmp = col_tag_info.FindById(tag_n);
+				foreach (string hash in hashes_n)
+					tmp.hashes.Add(hash);
+				col_tag_info.Update(tmp);
+			} else {
+				var tmp = new TagInfo {
+					tag = tag_n,
+					hashes = new HashSet<string>(hashes_n)
+				};
+				set_tags.Add(tag_n);
+				col_tag_info.Insert(tmp);
+			}
+		} catch (Exception ex) { GD.Print("Database::CreateTag() : ", ex); return; }
+	}
+	public void AddHashToTag(string tag, string hash) {
+		try {
+			if (!set_tags.Contains(tag)) CreateTag(tag, new string[]{hash});
+			else {
+				var tmp = col_tag_info.FindById(tag);
+				tmp.hashes.Add(hash);
+				set_tags.Add(tag);
+				col_tag_info.Update(tmp);
+			}
+		} catch (Exception ex) { GD.Print("Database::AddHashToTag() : ", ex); return; }
 	}
 }

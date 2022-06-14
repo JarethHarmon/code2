@@ -188,6 +188,7 @@ func _on_images_item_selected(index:int) -> void:
 	var komi64:String = im_tex.get_meta("komi64")
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
 	Signals.emit_signal("load_image", paths[0])
+	Signals.emit_signal("load_tags", komi64)
 
 func _on_Timer_timeout() -> void: pass
 
