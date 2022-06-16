@@ -8,7 +8,9 @@ enum SortBy { FileHash, FilePath, FileSize, FileCreationUtc }
 var current_sort:int = SortBy.FileHash
 var ascending:bool = true
 
-export (NodePath) var SearchBar ; onready var search_bar:LineEdit = get_node(SearchBar)
+export (NodePath) var IncludeAllBar ; onready var include_all_bar:LineEdit = get_node(IncludeAllBar)
+export (NodePath) var IncludeOneBar ; onready var include_one_bar:LineEdit = get_node(IncludeOneBar)
+export (NodePath) var ExcludeAllBar ; onready var exclude_all_bar:LineEdit = get_node(ExcludeAllBar)
 export (NodePath) var SearchButton ; onready var search_button:Button = get_node(SearchButton)
 
 onready var sc:Mutex = Mutex.new() 		# scene
@@ -218,16 +220,15 @@ func _on_ascend_descend_item_selected(index) -> void:
 	load_import_group(current_import_id)
 
 
-func _on_search_bar_text_entered(new_text:String) -> void: _on_search_button_button_up(new_text)
-func _on_search_button_button_up(text:String="") -> void:
-	var text_n:String = text if text != "" else search_bar.text
-	#if text_n == "": return
+func _on_search_button_button_up() -> void:
+	var text_in_all:String = include_all_bar.text
+	var text_in_one:String = include_one_bar.text
+	var text_ex_all:String = exclude_all_bar.text
 	
-	var tags:Array = text_n.split(",")
-	Database.LoadRangeKomi64FromTags(0, 100, tags, null, null, SortBy.FileHash, ascending)
-	#examples:
-		#Database.LoadRangeKomi64FromTags(0, 100, null, ["A", "B", "C"], ["D"], SortBy.FileHash, ascending)
-			#means that the images must have at least one of A/B/C and cannot have the tag "D"
-		#Database.LoadRangeKomi64FromTags(0, 100, ["A"], ["B", "C"], ["D"], SortBy.FileHash, ascending)
-			#means that the images must have the tag "A", must have at least one of B/C and cannot have the tag "D"
+	var tags_in_all:Array = text_in_all.split(",", false) 
+	var tags_in_one:Array = text_in_one.split(",", false) 
+	var tags_ex_all:Array = text_ex_all.split(",", false) 
+	
+	Database.LoadRangeKomi64FromTags(0, 100, tags_in_all, tags_in_one, tags_ex_all, SortBy.FileHash, ascending)
+
 	

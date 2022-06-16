@@ -95,25 +95,45 @@ text = "  Refresh  "
 [node name="search_buttons" type="HBoxContainer" parent="margin/vbox"]
 margin_top = 28.0
 margin_right = 1910.0
-margin_bottom = 52.0
+margin_bottom = 108.0
 rect_min_size = Vector2( 0, 24 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="search_bar" type="LineEdit" parent="margin/vbox/search_buttons"]
+[node name="search_bars" type="VBoxContainer" parent="margin/vbox/search_buttons"]
+margin_right = 1836.0
+margin_bottom = 80.0
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="include_all" type="LineEdit" parent="margin/vbox/search_buttons/search_bars"]
 margin_right = 1836.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
-placeholder_text = "Type comma separated tags.."
+placeholder_text = "(Include All) comma separated tags.."
+
+[node name="include_one" type="LineEdit" parent="margin/vbox/search_buttons/search_bars"]
+margin_top = 28.0
+margin_right = 1836.0
+margin_bottom = 52.0
+size_flags_horizontal = 3
+placeholder_text = "(Include One) comma separated tags.."
+
+[node name="exclude_all" type="LineEdit" parent="margin/vbox/search_buttons/search_bars"]
+margin_top = 56.0
+margin_right = 1836.0
+margin_bottom = 80.0
+size_flags_horizontal = 3
+placeholder_text = "(Exclude All) comma separated tags.."
 
 [node name="search_button" type="Button" parent="margin/vbox/search_buttons"]
 margin_left = 1840.0
 margin_right = 1910.0
-margin_bottom = 24.0
+margin_bottom = 80.0
 text = "  Search  "
 
 [node name="images" type="ItemList" parent="margin/vbox"]
-margin_top = 56.0
+margin_top = 112.0
 margin_right = 1910.0
 margin_bottom = 1046.0
 size_flags_horizontal = 3
@@ -125,7 +145,9 @@ fixed_column_width = 150
 icon_mode = 0
 fixed_icon_size = Vector2( 150, 150 )
 script = ExtResource( 1 )
-SearchBar = NodePath("../search_buttons/search_bar")
+IncludeAllBar = NodePath("../search_buttons/search_bars/include_all")
+IncludeOneBar = NodePath("../search_buttons/search_bars/include_one")
+ExcludeAllBar = NodePath("../search_buttons/search_bars/exclude_all")
 SearchButton = NodePath("../search_buttons/search_button")
 
 [node name="Timer" type="Timer" parent="margin/vbox/images"]
@@ -173,7 +195,6 @@ text = "NEXT"
 
 [connection signal="item_selected" from="margin/vbox/sort_buttons/sort_by" to="margin/vbox/images" method="_on_sort_by_item_selected"]
 [connection signal="item_selected" from="margin/vbox/sort_buttons/ascend_descend" to="margin/vbox/images" method="_on_ascend_descend_item_selected"]
-[connection signal="text_entered" from="margin/vbox/search_buttons/search_bar" to="margin/vbox/images" method="_on_search_bar_text_entered"]
 [connection signal="button_up" from="margin/vbox/search_buttons/search_button" to="margin/vbox/images" method="_on_search_button_button_up"]
 [connection signal="item_selected" from="margin/vbox/images" to="margin/vbox/images" method="_on_images_item_selected"]
 [connection signal="timeout" from="margin/vbox/images/Timer" to="margin/vbox/images" method="_on_Timer_timeout"]

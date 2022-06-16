@@ -123,19 +123,33 @@ margin_bottom = 29.0
 [node name="search_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="1"]
 margin_top = 33.0
 margin_right = 474.0
-margin_bottom = 62.0
+margin_bottom = 128.0
 
-[node name="search_bar" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons" index="0"]
+[node name="search_bars" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons" index="0"]
+margin_right = 381.0
+margin_bottom = 95.0
+
+[node name="include_all" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons/search_bars" index="0"]
 margin_right = 381.0
 margin_bottom = 29.0
+
+[node name="include_one" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons/search_bars" index="1"]
+margin_top = 33.0
+margin_right = 381.0
+margin_bottom = 62.0
+
+[node name="exclude_all" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons/search_bars" index="2"]
+margin_top = 66.0
+margin_right = 381.0
+margin_bottom = 95.0
 
 [node name="search_button" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons" index="1"]
 margin_left = 385.0
 margin_right = 474.0
-margin_bottom = 29.0
+margin_bottom = 95.0
 
 [node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="2"]
-margin_top = 66.0
+margin_top = 132.0
 margin_right = 474.0
 margin_bottom = 1037.0
 
