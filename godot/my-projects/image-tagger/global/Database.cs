@@ -431,14 +431,33 @@ public class Database : Node {
 								.Offset(start_index)
 								.Limit(count)
 								.ToEnumerable();
-								
-		GD.Print((DateTime.Now-now).Milliseconds, " ms");	
+		for (int i = 0; i < 999; i++) {
+			results = col_komi64.Query()
+	//								//.Where(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one) && !ContainsOneTag(x.tags, tags_have_none))
+	//								//.Where(x => tags_have_all.All(y => x.tags.Contains(y))) 
+	//								//.Where(x => tags_have_all.All(tag => x.tags.Contains(tag)))
+	//								//.Where(x => !tags_have_all.Except(x.tags).Any())
+	//								//.Where(x => x.file_size != null)
+	//								//.Where(x => tags_have_all.All(x.tags.Contains))
+	//								//.Where(x => x != null && x.tags != null && tags_have_all.All(x.tags.Contains))
+	//								//.Where(x => x.tags.Any(y => tags_have_all.Contains(y)))
+									.Where(x => x != null && x.tags != null && x.tags.Contains(s))
+	//								//.Skip(start_index)
+	//								//.OrderBy(x => x.file_size, Query.Ascending)
+									.OrderBy(x => x.komi64, Query.Ascending)
+									.Offset(start_index)
+									.Limit(count)
+									.ToEnumerable();
+		}				
+		GD.Print("LiteDB::Query() : ", (DateTime.Now-now).Milliseconds, " ms");	
 		now = DateTime.Now;
-		var results2 = col_komi64.Find(Query.All("komi64", Query.Ascending))
-								.Where(x => x != null && x.tags != null && tags_have_all.All(x.tags.Contains))
-								.Skip(start_index)
-								.Take(count);
-		GD.Print((DateTime.Now-now).Milliseconds, " ms");					
+		for (int i = 0; i < 1000; i++) {
+			var results2 = col_komi64.Find(Query.All("komi64", Query.Ascending))
+									.Where(x => x != null && x.tags != null && tags_have_all.All(x.tags.Contains))
+									.Skip(start_index)
+									.Take(count);
+		}
+		GD.Print("Linq::Find() : ", (DateTime.Now-now).Milliseconds, " ms");					
 		//var results = col_komi64.Find(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one));
 //		var hashes = new List<string>();
 //		foreach (Komi64Info komi in results)
