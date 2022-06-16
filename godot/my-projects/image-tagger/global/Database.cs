@@ -388,87 +388,12 @@ public class Database : Node {
 				}
 		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return; }
 	}
-	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
-		// https://github.com/mbdavid/LiteDB/wiki/Queries says that you can use Query.EQ("PhoneNumbers", "555-5555") instead of Find(x => x.PhoneNumbers.Contains("555-5555"))
-		// Argument Validity Checks Go Here
-		//var results = col_komi64.Find(Query.All("file_size", Query.Ascending))
-		string s = tags_have_all[0];
-		
-//		
-//		queries.Add(Query.All("komi64", Query.Ascending));
-//		
-//
-		//col_komi64.EnsureIndex("tags", "$.tags[*]");
-//		var queries = new List<BsonExpression>();
-//		foreach (string tag in tags_have_all) 
-//			queries.Add(Query.Contains("tags", tag));
-//			//queries.Add(Query.EQ("tags", tag));
-//		var q = (queries.Count > 1) ? Query.And(queries.ToArray()) : queries[0];
-//
-//		var q = Query.And(queries.ToArray());
-//
-//		//var results = col_komi64.Find(Query.And(q, Query.All("komi64", Query.Ascending)), start_index, limit:count);
-//		var results = col_komi64.Find(q, start_index, limit:count);
-//		//if (ascend) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
-		
-		//var results = col_komi64.Query().Where()
-		
-		//var results = col_komi64.Find(Query.And(Query.All("komi64", Query.Ascending), q), start_index, limit:count);
-		var now = DateTime.Now;
-		var results = col_komi64.Query()
-//								//.Where(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one) && !ContainsOneTag(x.tags, tags_have_none))
-//								//.Where(x => tags_have_all.All(y => x.tags.Contains(y))) 
-//								//.Where(x => tags_have_all.All(tag => x.tags.Contains(tag)))
-//								//.Where(x => !tags_have_all.Except(x.tags).Any())
-//								//.Where(x => x.file_size != null)
-//								//.Where(x => tags_have_all.All(x.tags.Contains))
-//								//.Where(x => x != null && x.tags != null && tags_have_all.All(x.tags.Contains))
-//								//.Where(x => x.tags.Any(y => tags_have_all.Contains(y)))
-								.Where(x => x != null && x.tags != null && x.tags.Contains(s))
-//								//.Skip(start_index)
-//								//.OrderBy(x => x.file_size, Query.Ascending)
-								.OrderBy(x => x.komi64, Query.Ascending)
-								.Offset(start_index)
-								.Limit(count)
-								.ToEnumerable();
-		for (int i = 0; i < 999; i++) {
-			results = col_komi64.Query()
-	//								//.Where(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one) && !ContainsOneTag(x.tags, tags_have_none))
-	//								//.Where(x => tags_have_all.All(y => x.tags.Contains(y))) 
-	//								//.Where(x => tags_have_all.All(tag => x.tags.Contains(tag)))
-	//								//.Where(x => !tags_have_all.Except(x.tags).Any())
-	//								//.Where(x => x.file_size != null)
-	//								//.Where(x => tags_have_all.All(x.tags.Contains))
-	//								//.Where(x => x != null && x.tags != null && tags_have_all.All(x.tags.Contains))
-	//								//.Where(x => x.tags.Any(y => tags_have_all.Contains(y)))
-									.Where(x => x != null && x.tags != null && x.tags.Contains(s))
-	//								//.Skip(start_index)
-	//								//.OrderBy(x => x.file_size, Query.Ascending)
-									.OrderBy(x => x.komi64, Query.Ascending)
-									.Offset(start_index)
-									.Limit(count)
-									.ToEnumerable();
-		}				
-		GD.Print("LiteDB::Query() : ", (DateTime.Now-now).Milliseconds, " ms");	
-		now = DateTime.Now;
-		for (int i = 0; i < 1000; i++) {
-			var results2 = col_komi64.Find(Query.All("komi64", Query.Ascending))
-									.Where(x => x != null && x.tags != null && tags_have_all.All(x.tags.Contains))
-									.Skip(start_index)
-									.Take(count);
-		}
-		GD.Print("Linq::Find() : ", (DateTime.Now-now).Milliseconds, " ms");					
-		//var results = col_komi64.Find(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one));
-//		var hashes = new List<string>();
-//		foreach (Komi64Info komi in results)
-//			hashes.Add(komi.komi64);
-		
-		// for now I will just have include_all, exclude_all, include_one
-		// eventually need to replace them with include_all, exclude_all, include_combo, exclude_combo
-		// exclude_all : do not return a hash that possesses any of these tags [e]
-		// exclude_combo : do not return a hash that possesses any of these tag combinations [[a, b], [a, c], [a, d]]
-		
-		//return hashes.ToArray();
+	// currently only takes tags_have_all into account; meaning that it checks for images that possess all tags in that array and returns their Komi64Infos
+	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {					
+		var results = col_komi64.Find(Query.All("komi64", Query.Ascending))
+								.Where(x => x != null && x.tags != null && tags_have_all.All(x.tags.Contains))
+								.Skip(start_index)
+								.Take(count);
 		return results;
 	}
 	
