@@ -115,7 +115,17 @@ public class Database : Node {
 		} catch (Exception ex) { GD.Print("Database::LoadImportInfoFromDatabase() : ", ex); return 1; }
 	}
 	// returns the keys in dict_import_info
-	public string[] GetImportIDsFromDict() { return dict_import_info.Keys.ToArray(); }
+	public string[] GetImportIDsFromDict(int sort_by = SortBy.FilePath) { 
+		var list = new List<ImportInfo>();
+		foreach (string iid in dict_import_info.Keys.ToArray())
+			list.Add(dict_import_info[iid]);
+		
+		var list2 = list.OrderBy(x => x.import_base_folder);
+		var list3 = new List<string>();
+		foreach (ImportInfo ii in list2) list3.Add(ii.import_id);
+		return list3.ToArray();
+		//return dict_import_info.Keys.ToArray(); 
+	}
 	// checks if dict_import contains the key import_id
 	public bool ImportDictHasID(string import_id) { return dict_import_info.ContainsKey(import_id); } 
 	
@@ -375,18 +385,22 @@ public class Database : Node {
 		}
 		return s;
 	}
-	public void LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
+	//public void LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
+	public string[] LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
 		try {
 			// may need to be moved elsewhere / only done if komihashes != null
 			dict_komi64.Clear(); 
+			var list = new List<string>();
 			var komihashes = GetKomi64RangeFromTags(start_index, count, tags_have_all, tags_have_one, tags_have_none, sort_by, ascend);
 			if (komihashes != null)
 				foreach (Komi64Info khinfo in komihashes)
 				{
 					dict_komi64[khinfo.komi64] = khinfo;
-					GD.Print(khinfo.komi64);
+					list.Add(khinfo.komi64);
+					//GD.Print(khinfo.komi64);
 				}
-		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return; }
+			return list.ToArray();
+		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return null; }
 	}
 	// currently only takes tags_have_all into account; meaning that it checks for images that possess all tags in that array and returns their Komi64Infos
 	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {					
