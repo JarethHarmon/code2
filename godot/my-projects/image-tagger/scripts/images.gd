@@ -224,5 +224,4 @@ func _on_search_button_button_up(text:String="") -> void:
 	if text_n == "": return
 	
 	var tags:Array = text_n.split(",")
-	var arr:Array = Database.GetKomi64RangeFromTags(0, 100, tags, [], [], SortBy.FileHash, ascending)
-	for tag in arr: print(tag)
+	Database.LoadRangeKomi64FromTags(0, 100, tags, [], [], SortBy.FileHash, ascending)

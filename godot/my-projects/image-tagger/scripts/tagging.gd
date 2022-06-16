@@ -36,7 +36,6 @@ func _on_new_tag_button_up(text:String="") -> void:
 	var text_n:String = text if text != "" else tag_entry.text
 	tag_entry.text = ""
 	
-	if text_n == "Type a tag..": return
 	if text_n == "": return
 	if curr_hash == "": return
 	if curr_tags.has(text_n): return

@@ -125,11 +125,11 @@ margin_top = 33.0
 margin_right = 474.0
 margin_bottom = 62.0
 
-[node name="LineEdit" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons" index="0"]
+[node name="search_bar" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons" index="0"]
 margin_right = 381.0
 margin_bottom = 29.0
 
-[node name="Button" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons" index="1"]
+[node name="search_button" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons" index="1"]
 margin_left = 385.0
 margin_right = 474.0
 margin_bottom = 29.0
@@ -473,8 +473,8 @@ size_flags_horizontal = 3
 margin_right = 208.0
 margin_bottom = 29.0
 size_flags_horizontal = 3
-text = "Type a tag.."
 align = 1
+placeholder_text = "Type a tag.."
 
 [node name="new_tag" type="Button" parent="margin/hsplit/right/tagging/margin/vbox/hbox"]
 margin_left = 212.0
