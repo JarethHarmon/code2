@@ -221,7 +221,13 @@ func _on_ascend_descend_item_selected(index) -> void:
 func _on_search_bar_text_entered(new_text:String) -> void: _on_search_button_button_up(new_text)
 func _on_search_button_button_up(text:String="") -> void:
 	var text_n:String = text if text != "" else search_bar.text
-	if text_n == "": return
+	#if text_n == "": return
 	
 	var tags:Array = text_n.split(",")
-	Database.LoadRangeKomi64FromTags(0, 100, tags, [], [], SortBy.FileHash, ascending)
+	Database.LoadRangeKomi64FromTags(0, 100, tags, null, null, SortBy.FileHash, ascending)
+	#examples:
+		#Database.LoadRangeKomi64FromTags(0, 100, null, ["A", "B", "C"], ["D"], SortBy.FileHash, ascending)
+			#means that the images must have at least one of A/B/C and cannot have the tag "D"
+		#Database.LoadRangeKomi64FromTags(0, 100, ["A"], ["B", "C"], ["D"], SortBy.FileHash, ascending)
+			#means that the images must have the tag "A", must have at least one of B/C and cannot have the tag "D"
+	

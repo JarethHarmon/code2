@@ -391,12 +391,16 @@ public class Database : Node {
 	// currently only takes tags_have_all into account; meaning that it checks for images that possess all tags in that array and returns their Komi64Infos
 	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {					
 		try {
+			GD.Print("test");
 			var results = col_komi64.Find(Query.All("komi64", Query.Ascending))
-									.Where(x => x != null && x.tags != null && tags_have_all.All(x.tags.Contains) && !tags_have_none.All(x.tags.Contains))
+									.Where(x => x != null && x.tags != null)
+									.Where(x => tags_have_all == null || tags_have_all.Length == 0 || tags_have_all.All(x.tags.Contains))
+									.Where(x => tags_have_one == null || tags_have_one.Length == 0 || tags_have_one.Any(x.tags.Contains))
+									.Where(x => tags_have_none == null || tags_have_none.Length == 0 || !tags_have_none.All(x.tags.Contains))
 									.Skip(start_index)
 									.Take(count);
 			return results;
 		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
 	}
-	
+	//public static bool IsNullOrEmpty<T>(this T[] arr) { return arr == null || arr.Length == 0; }
 }
