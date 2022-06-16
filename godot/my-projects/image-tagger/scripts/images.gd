@@ -8,6 +8,9 @@ enum SortBy { FileHash, FilePath, FileSize, FileCreationUtc }
 var current_sort:int = SortBy.FileHash
 var ascending:bool = true
 
+export (NodePath) var SearchBar ; onready var search_bar:LineEdit = get_node(SearchBar)
+export (NodePath) var SearchButton ; onready var search_button:Button = get_node(SearchButton)
+
 onready var sc:Mutex = Mutex.new() 		# scene
 onready var fi:Mutex = Mutex.new() 		# file index
 onready var pf:Mutex = Mutex.new() 		# page_files
@@ -215,3 +218,11 @@ func _on_ascend_descend_item_selected(index) -> void:
 	load_import_group(current_import_id)
 
 
+func _on_search_bar_text_entered(new_text:String) -> void: _on_search_button_button_up(new_text)
+func _on_search_button_button_up(text:String="") -> void:
+	var text_n:String = text if text != "" else search_bar.text
+	if text_n == "": return
+	
+	var tags:Array = text_n.split(",")
+	var arr:Array = Database.GetKomi64RangeFromTags(0, 100, tags, [], [], SortBy.FileHash, ascending)
+	for tag in arr: print(tag)

@@ -359,21 +359,67 @@ public class Database : Node {
 		} catch (Exception ex) { GD.Print("Database::AddHashToTag() : ", ex); return; }
 	}
 	
+	// probably possible to use same function for all 4 checks (ContainsTags()) ; need to step through boolean logic to confirm
 	private bool ContainsAllTags(HashSet<string> tag_list, string[] check_tags) { foreach (string tag in check_tags) if (!tag_list.Contains(tag)) return false; return true; }
 	private bool ContainsOneTag(HashSet<string> tag_list, string[] check_tags) { foreach (string tag in check_tags) if (tag_list.Contains(tag)) return true; return false; }
 //	
+	public string GetRandomString(int length) {
+		var rand = new Random();
+		string s = "";
+		char letter;
+		int char_value;
+		for (int i = 0; i < length; i++) {
+			char_value = rand.Next(0, 26);
+			letter = Convert.ToChar(char_value+65);
+			s += letter;
+		}
+		return s;
+	}
 	public string[] GetKomi64RangeFromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
 		// https://github.com/mbdavid/LiteDB/wiki/Queries says that you can use Query.EQ("PhoneNumbers", "555-5555") instead of Find(x => x.PhoneNumbers.Contains("555-5555"))
 		// Argument Validity Checks Go Here
-		
 		//var results = col_komi64.Find(Query.All("file_size", Query.Ascending))
+		string s = tags_have_all[0];
+		var tmp = tags_have_all.All(x => x.Equals(s));
+		GD.Print(tmp);
+		
+//		
+//		queries.Add(Query.All("komi64", Query.Ascending));
+//		
+//
+		//col_komi64.EnsureIndex("tags", "$.tags[*]");
+//		var queries = new List<BsonExpression>();
+//		foreach (string tag in tags_have_all) 
+//			queries.Add(Query.Contains("tags", tag));
+//			//queries.Add(Query.EQ("tags", tag));
+//		var q = (queries.Count > 1) ? Query.And(queries.ToArray()) : queries[0];
+//
+//		var q = Query.And(queries.ToArray());
+//
+//		//var results = col_komi64.Find(Query.And(q, Query.All("komi64", Query.Ascending)), start_index, limit:count);
+//		var results = col_komi64.Find(q, start_index, limit:count);
+//		//if (ascend) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
+		
+		//var results = col_komi64.Query().Where()
+		
+		//var results = col_komi64.Find(Query.And(Query.All("komi64", Query.Ascending), q), start_index, limit:count);
+		
 		var results = col_komi64.Query()
-								.Where(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one) && !ContainsOneTag(x.tags, tags_have_none))
-								//.Skip(start_index)
-								.OrderBy(x => x.file_size, Query.Ascending)
+//								//.Where(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one) && !ContainsOneTag(x.tags, tags_have_none))
+//								//.Where(x => tags_have_all.All(y => x.tags.Contains(y))) 
+//								//.Where(x => tags_have_all.All(tag => x.tags.Contains(tag)))
+//								//.Where(x => !tags_have_all.Except(x.tags).Any())
+//								//.Where(x => x.file_size != null)
+//								//.Where(x => tags_have_all.All(x.tags.Contains))
+//								//.Where(x => x != null && x.tags != null && tags_have_all.All(x.tags.Contains))
+//								//.Where(x => x.tags.Any(y => tags_have_all.Contains(y)))
+								.Where(x => x != null && x.tags != null && x.tags.Contains(s))
+//								//.Skip(start_index)
+//								//.OrderBy(x => x.file_size, Query.Ascending)
+								.OrderBy(x => x.komi64, Query.Ascending)
 								.Offset(start_index)
 								.Limit(count)
-								.ToList();
+								.ToEnumerable();
 		
 		//var results = col_komi64.Find(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one));
 		var hashes = new List<string>();

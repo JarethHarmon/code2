@@ -52,20 +52,21 @@ size_flags_vertical = 3
 
 [node name="sort_buttons" type="HBoxContainer" parent="margin/vbox"]
 margin_right = 1910.0
-margin_bottom = 20.0
+margin_bottom = 24.0
+rect_min_size = Vector2( 0, 24 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="sort_by_label" type="Label" parent="margin/vbox/sort_buttons"]
-margin_top = 3.0
+margin_top = 5.0
 margin_right = 49.0
-margin_bottom = 17.0
+margin_bottom = 19.0
 text = "Sort By:"
 
 [node name="sort_by" type="OptionButton" parent="margin/vbox/sort_buttons"]
 margin_left = 53.0
 margin_right = 141.0
-margin_bottom = 20.0
+margin_bottom = 24.0
 text = "File Hash"
 items = [ "File Hash", null, false, 0, null, "File Path", null, false, 1, null, "File Size", null, false, 2, null, "File Creation Time", null, false, 3, null ]
 selected = 0
@@ -73,26 +74,46 @@ selected = 0
 [node name="ascend_descend" type="OptionButton" parent="margin/vbox/sort_buttons"]
 margin_left = 145.0
 margin_right = 240.0
-margin_bottom = 20.0
+margin_bottom = 24.0
 text = "Ascending"
 items = [ "Ascending", null, false, 0, null, "Descending", null, false, 1, null ]
 selected = 0
 
 [node name="SPACE_3" type="Control" parent="margin/vbox/sort_buttons"]
 margin_left = 244.0
-margin_right = 1846.0
-margin_bottom = 20.0
+margin_right = 1830.0
+margin_bottom = 24.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
 [node name="refresh" type="Button" parent="margin/vbox/sort_buttons"]
-margin_left = 1850.0
+margin_left = 1834.0
 margin_right = 1910.0
-margin_bottom = 20.0
-text = "Refresh"
+margin_bottom = 24.0
+text = "  Refresh  "
+
+[node name="search_buttons" type="HBoxContainer" parent="margin/vbox"]
+margin_top = 28.0
+margin_right = 1910.0
+margin_bottom = 52.0
+rect_min_size = Vector2( 0, 24 )
+mouse_filter = 2
+size_flags_horizontal = 3
+
+[node name="search_bar" type="LineEdit" parent="margin/vbox/search_buttons"]
+margin_right = 1836.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+placeholder_text = "Type comma separated tags.."
+
+[node name="search_button" type="Button" parent="margin/vbox/search_buttons"]
+margin_left = 1840.0
+margin_right = 1910.0
+margin_bottom = 24.0
+text = "  Search  "
 
 [node name="images" type="ItemList" parent="margin/vbox"]
-margin_top = 24.0
+margin_top = 56.0
 margin_right = 1910.0
 margin_bottom = 1046.0
 size_flags_horizontal = 3
@@ -104,6 +125,8 @@ fixed_column_width = 150
 icon_mode = 0
 fixed_icon_size = Vector2( 150, 150 )
 script = ExtResource( 1 )
+SearchBar = NodePath("../search_buttons/search_bar")
+SearchButton = NodePath("../search_buttons/search_button")
 
 [node name="Timer" type="Timer" parent="margin/vbox/images"]
 wait_time = 0.5
@@ -150,6 +173,8 @@ text = "NEXT"
 
 [connection signal="item_selected" from="margin/vbox/sort_buttons/sort_by" to="margin/vbox/images" method="_on_sort_by_item_selected"]
 [connection signal="item_selected" from="margin/vbox/sort_buttons/ascend_descend" to="margin/vbox/images" method="_on_ascend_descend_item_selected"]
+[connection signal="text_entered" from="margin/vbox/search_buttons/search_bar" to="margin/vbox/images" method="_on_search_bar_text_entered"]
+[connection signal="button_up" from="margin/vbox/search_buttons/search_button" to="margin/vbox/images" method="_on_search_button_button_up"]
 [connection signal="item_selected" from="margin/vbox/images" to="margin/vbox/images" method="_on_images_item_selected"]
 [connection signal="timeout" from="margin/vbox/images/Timer" to="margin/vbox/images" method="_on_Timer_timeout"]
 [connection signal="button_up" from="margin/vbox/page_buttons/prev_page" to="margin/vbox/images" method="_on_prev_page_button_up"]
