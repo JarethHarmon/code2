@@ -11,6 +11,8 @@ using Alphaleonis.Win32.Filesystem;
 public class Komi64Info {
 	public string komi64 { get; set; }
 	public bool filter { get; set; }
+	public long file_size { get; set; }
+	public long file_creation_utc { get; set; }
 	public HashSet<string> paths { get; set; }
 	public HashSet<string> tags { get; set; }
 }
@@ -356,4 +358,34 @@ public class Database : Node {
 			}
 		} catch (Exception ex) { GD.Print("Database::AddHashToTag() : ", ex); return; }
 	}
+	
+	private bool ContainsAllTags(HashSet<string> tag_list, string[] check_tags) { foreach (string tag in check_tags) if (!tag_list.Contains(tag)) return false; return true; }
+	private bool ContainsOneTag(HashSet<string> tag_list, string[] check_tags) { foreach (string tag in check_tags) if (tag_list.Contains(tag)) return true; return false; }
+//	
+	public string[] GetKomi64RangeFromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
+		// https://github.com/mbdavid/LiteDB/wiki/Queries says that you can use Query.EQ("PhoneNumbers", "555-5555") instead of Find(x => x.PhoneNumbers.Contains("555-5555"))
+		// Argument Validity Checks Go Here
+		
+		//var results = col_komi64.Find(Query.All("file_size", Query.Ascending))
+		var results = col_komi64.Query()
+								.Where(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one) && !ContainsOneTag(x.tags, tags_have_none))
+								//.Skip(start_index)
+								.OrderBy(x => x.file_size, Query.Ascending)
+								.Offset(start_index)
+								.Limit(count)
+								.ToList();
+		
+		//var results = col_komi64.Find(x => ContainsAllTags(x.tags, tags_have_all) && ContainsOneTag(x.tags, tags_have_one));
+		var hashes = new List<string>();
+		foreach (Komi64Info komi in results)
+			hashes.Add(komi.komi64);
+		
+		// for now I will just have include_all, exclude_all, include_one
+		// eventually need to replace them with include_all, exclude_all, include_combo, exclude_combo
+		// exclude_all : do not return a hash that possesses any of these tags [e]
+		// exclude_combo : do not return a hash that possesses any of these tag combinations [[a, b], [a, c], [a, d]]
+		
+		return hashes.ToArray();
+	}
+	
 }

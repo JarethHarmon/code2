@@ -43,6 +43,7 @@ func _begin() -> void:
  # create database and print its folder
 	if (Database.Create() == OK): print("successfully opened databases")
 	if (Database.LoadImportInfoFromDatabase() == OK): print("successfully loaded imports")
+	Database.LoadTagsFromDatabase()
 	Signals.emit_signal("import_info_load_finished")
 
 

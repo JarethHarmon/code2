@@ -11,6 +11,8 @@ func _ready() -> void: var _err:int = Signals.connect("load_tags", self, "_load_
 
 func _load_tags(komi64:String) -> void:
 	curr_hash = komi64
+	curr_tags.clear()
+	
 	var tags:Array = Database.GetKomiTagsFromDict(komi64)
 	for tag in tags: curr_tags[tag] = null
 	
