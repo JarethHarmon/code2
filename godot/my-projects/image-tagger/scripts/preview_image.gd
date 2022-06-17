@@ -90,7 +90,9 @@ func calc_size(it:ImageTexture) -> Vector2:
 	var size_i:Vector2 = Vector2(it.get_width(), it.get_height())
 	var size:Vector2 = Vector2.ZERO
 	
-	var ratio_h:float = size_1.y / size_i.y
+	if size_i == Vector2.ZERO: return size_i # prevent /0 (still need to handle images that are too large somewhere else)
+	
+	var ratio_h:float = size_1.y / size_i.y # causes /0 crash when image is too large (fails to load and gives size of 0)
 	var ratio_w:float = size_1.x / size_i.x
 	var ratio_s:Vector2 = size_2 / size_1
 	
