@@ -15,7 +15,6 @@ onready var sc:Mutex = Mutex.new() 		# scene mutex
 onready var fi:Mutex = Mutex.new() 		# file index mutex
 onready var pf:Mutex = Mutex.new() 		# page_files mutex
 onready var lt:Mutex = Mutex.new() 		# loaded_thumbnails mutex
-onready var pn:Mutex = Mutex.new()		# current_page_number mutex
 
 var page_history:Array = []				# fifo queue, stores page numbers
 var pages:Dictionary = {}				# [page_number, import_id] : [komihash]
@@ -54,18 +53,14 @@ func import_group_button_delete(import_id:String) -> void:
 	Database.DropImportTableByID(import_id)
 
 func import_group_button_pressed(import_id:String) -> void:
-	#pn.lock()
 	current_page_number = 1				# consider keeping page_number in history as well
-	#pn.unlock()
 	total_page_count = 1
 	total_image_count = 0
 	current_import_id = import_id
 	load_import_group(import_id)		# not sure if I will use "" to represent all, or just create another function for that
 
 func all_button_pressed() -> void:
-	#pn.lock()
 	current_page_number = 1
-	#pn.unlock()
 	total_page_count = 1
 	total_image_count = 0
 	current_import_id = "all"
@@ -93,9 +88,7 @@ func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[
 	Signals.emit_signal("update_button", total_image_count, import_id)
 	total_page_count = ceil(total_image_count as float / Settings.settings.images_per_page as float) as int
 	
-	#pn.lock()
 	offset = (current_page_number-1) * Settings.settings.images_per_page
-	#pn.unlock()	
 	
 	if pages.size() >= Settings.settings.pages_to_store:
 		var page_to_remove:Array = page_history.pop_front()
@@ -114,7 +107,6 @@ func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[
 	else:
 		komi_arr = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, current_sort, ascending)
 	
-	#pn.lock()
 	if not page_history.has([current_page_number, import_id]):
 		page_history.push_back([current_page_number, import_id])
 	pages[[current_page_number, import_id]] = komi_arr
@@ -122,8 +114,7 @@ func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[
 	if pages.empty(): page_image_count = 0
 	else: page_image_count = pages[[current_page_number, import_id]].size()
 	
-	print("LIG : ", current_page_number, ":", pages.has([current_page_number, import_id]))
-	#pn.unlock()
+	# print("LIG : ", current_page_number, ":", pages.has([current_page_number, import_id]))
 
 	self.call_deferred("_threadsafe_clear", import_id, current_page_number)
 
@@ -148,7 +139,7 @@ func prep_load_thumbnails(import_id:String, page_number:int) -> void:
 	
 	fi.lock() ; item_index = 0; fi.unlock()	
 	current_page_images.clear()
-	print("PLT : ", page_number, ":", pages.has([page_number, import_id]))
+	# print("PLT : ", page_number, ":", pages.has([page_number, import_id]))
 	current_page_images = pages[[page_number, import_id]].duplicate() # clears the original if not duplicated here (no idea why though, it should not do this)
 	
 	# if stop_all: return
@@ -233,21 +224,13 @@ func _on_images_item_selected(index:int) -> void:
 func _on_Timer_timeout() -> void: pass
 
 func _on_prev_page_button_up() -> void:	
-	#pn.lock()
-	if current_page_number == 1: 
-		#pn.unlock()
-		return
+	if current_page_number == 1: return
 	current_page_number -= 1
-	#pn.unlock()
 	load_import_group(current_import_id)
 
 func _on_next_page_button_up() -> void:
-	#pn.lock()
-	if current_page_number == total_page_count: 
-	#	pn.unlock()
-		return
+	if current_page_number == total_page_count: return
 	current_page_number += 1
-#	pn.unlock()
 	load_import_group(current_import_id)
 
 # move refresh button to image_list.tscn

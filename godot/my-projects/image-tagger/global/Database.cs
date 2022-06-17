@@ -3,7 +3,7 @@ using System;							// access to System
 using System.IO;						// (?)
 using System.Linq;						// everything related to the database
 using System.Collections.Generic;		// HashSet, Dictionary
-using System.Reflection;
+using System.Reflection;				// needed for x.GetType().GetProperty(column_name).GetValue(x, null) (I think)
 using System.Security.Cryptography;		// (?)
 using LiteDB;							// everything related to the database
 using ImageMagick;						// (?)
@@ -457,8 +457,8 @@ public class Database : Node {
 			return list.ToArray();
 		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return null; }
 	}
-	// currently only takes tags_have_all into account; meaning that it checks for images that possess all tags in that array and returns their Komi64Infos
-	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {					
+	
+	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_in_all, string[] tags_in_one, string[] tags_ex_all, int sort_by=SortBy.FileHash, bool ascend=false) {					
 		try {
 			GD.Print("Querying...");
 			var now = DateTime.Now;
@@ -466,14 +466,19 @@ public class Database : Node {
 			if (sort_by == SortBy.FileSize) column_name = "file_size";
 			else if (sort_by == SortBy.FileCreationUtc) column_name = "file_creation_utc";
 			
-			var results = col_komi64.Find(Query.All())
-									.Where(x => x != null && x.tags != null)
-									.Where(x => tags_have_all == null || tags_have_all.Length == 0 || tags_have_all.All(x.tags.Contains))
-									.Where(x => tags_have_one == null || tags_have_one.Length == 0 || tags_have_one.Any(x.tags.Contains))
-									.Where(x => tags_have_none == null || tags_have_none.Length == 0 || !tags_have_none.All(x.tags.Contains))
-									.OrderBy(x => x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 
-									.Skip(start_index)
-									.Take(count);
+			// would like to add support for sorting by file paths; but any image could have any number of paths or filenames and even just choosing one would be difficult (syntax-wise)
+			// need to consider either removing file_paths from the sort_by dropdown while ALL is selected, or have 2 dropdowns and toggle their visibility depending on whether ALL is selected 
+			// need to add support for a global blacklist (tags/hashes in this case)
+			
+			var results = col_komi64.Find(Query.All())																// find all Komi64Info in col_komi64
+				.Where(x => x != null && x.tags != null)															// only check those that are not null and whose tags are not null
+				.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))		// if tags_in_all has tags, check only images that possess every tag inside of tags_in_all
+				.Where(x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains))		// if tags_in_one has tags, check only images that possess at least one tag inside of tags_in_one
+				.Where(x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains))	// if tags_ex_all has tags, check only images that do not possess any tags in tags_ex_all
+				.OrderBy(x => x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 						// order the results by column_name; ascending/descending
+				.Skip(start_index)																					// (OFFSET) skip to the starting point for this query (say 1000/5000 for example)
+				.Take(count);																						// (LIMIT)  take the specified number of images 
+				
 			GD.Print("Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
 			return results;
 		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
