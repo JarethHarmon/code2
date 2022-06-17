@@ -114,7 +114,9 @@ func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[
 	
 	if pages.empty(): page_image_count = 0
 	else: page_image_count = pages[[current_page_number, import_id]].size()
-
+	
+	# print("LIG : ", current_page_number, ":", pages.has([current_page_number, import_id]))
+	
 	self.call_deferred("_threadsafe_clear", import_id)
 
 func _threadsafe_clear(import_id:String) -> void:
@@ -139,6 +141,7 @@ func prep_load_thumbnails(import_id:String) -> void:
 	fi.lock() ; item_index = 0; fi.unlock()	
 	pf.lock()
 	current_page_images.clear()
+	# print("PLT : ", current_page_number, ":", pages.has([current_page_number, import_id]))
 	current_page_images = pages[[current_page_number, import_id]].duplicate() # clears the original if not duplicated here (no idea why though, it should not do this)
 	pf.unlock()
 	
@@ -222,13 +225,21 @@ func _on_images_item_selected(index:int) -> void:
 func _on_Timer_timeout() -> void: pass
 
 func _on_prev_page_button_up() -> void:	
-	if current_page_number == 1: return
+	pf.lock()
+	if current_page_number == 1: 
+		pf.unlock()
+		return
 	current_page_number -= 1
+	pf.unlock()
 	load_import_group(current_import_id)
 
 func _on_next_page_button_up() -> void:
-	if current_page_number == total_page_count: return
+	pf.lock()
+	if current_page_number == total_page_count: 
+		pf.unlock()
+		return
 	current_page_number += 1
+	pf.unlock()
 	load_import_group(current_import_id)
 
 # move refresh button to image_list.tscn
