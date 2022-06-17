@@ -68,10 +68,12 @@ using Alphaleonis.Win32.Filesystem;		// (?)
 	}
 
 	public class SortBy {
+		// need to turn these into flags
 		public const int FileHash = 0;			
 		public const int FilePath = 1;			
 		public const int FileSize = 2;			
 		public const int FileCreationUtc = 3;
+		public const int Random = 4; 
 	}
 	
 	public class ErrorCodes {
@@ -223,6 +225,11 @@ public class Database : Node {
 			dict_import_group.Clear();
 			IEnumerable<ImportGroup> imports;
 			
+			GD.Print("Querying...");
+			var now = DateTime.Now;
+			
+			bool random = sort_by == SortBy.Random;
+			
 			if (sort_by == SortBy.FilePath) {
 				if (ascend) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
 				else imports = col.Find(Query.All("file_path", Query.Descending), start, limit:count);
@@ -239,7 +246,9 @@ public class Database : Node {
 				if (ascend) imports = col.Find(Query.All(), start, limit:count);//imports = col.Find(Query.All(Query.Ascending), start, limit:count);
 				else imports = col.Find(Query.All(Query.Descending), start, limit:count);
 			}
-					
+			
+			GD.Print("IG Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
+				
 			foreach (ImportGroup import in imports) {
 				dict_import_group[import.komi64] = import;
 				list_komi64.Add(import.komi64);
@@ -316,7 +325,9 @@ public class Database : Node {
 		}
 		catch (Exception ex) { GD.Print("Database::LoadOneKomi64() : ", ex); } 
 	}
-		
+	
+	public string GetFileSizeFromKomi(string komi64) { return dict_komi64.ContainsKey(komi64) ? dict_komi64[komi64].file_size.ToString() : ""; }
+	
 	public int InsertKomi64Info(string komi64_n, bool filter_n, string[] paths_n, string[] tags_n, long size_n, long utc_creation_n) {
 		try {
 			//var temp = col_komi64.FindOne(Query.EQ("_Id", komi64_n));
@@ -463,19 +474,26 @@ public class Database : Node {
 			GD.Print("Querying...");
 			var now = DateTime.Now;
 			string column_name = "komi64";
+			bool random = false;
+			
 			if (sort_by == SortBy.FileSize) column_name = "file_size";
 			else if (sort_by == SortBy.FileCreationUtc) column_name = "file_creation_utc";
-			
+			else if (sort_by == SortBy.Random) random = true;
+
 			// would like to add support for sorting by file paths; but any image could have any number of paths or filenames and even just choosing one would be difficult (syntax-wise)
 			// need to consider either removing file_paths from the sort_by dropdown while ALL is selected, or have 2 dropdowns and toggle their visibility depending on whether ALL is selected 
 			// need to add support for a global blacklist (tags/hashes in this case)
+			
+			var rng = new Random();
 			
 			var results = col_komi64.Find(Query.All())																// find all Komi64Info in col_komi64
 				.Where(x => x != null && x.tags != null)															// only check those that are not null and whose tags are not null
 				.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))		// if tags_in_all has tags, check only images that possess every tag inside of tags_in_all
 				.Where(x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains))		// if tags_in_one has tags, check only images that possess at least one tag inside of tags_in_one
 				.Where(x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains))	// if tags_ex_all has tags, check only images that do not possess any tags in tags_ex_all
-				.OrderBy(x => x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 						// order the results by column_name; ascending/descending
+				//.OrderBy(x => x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 					// order the results by column_name; ascending/descending
+				.OrderBy(x => (random) ? rng.Next() : x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 
+				//.OrderBy(x => sort_by == SortBy.Random ? rng.Next() : x, ascend)
 				.Skip(start_index)																					// (OFFSET) skip to the starting point for this query (say 1000/5000 for example)
 				.Take(count);																						// (LIMIT)  take the specified number of images 
 				

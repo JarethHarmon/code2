@@ -195,7 +195,19 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		
 		if stop_all: return
 		_threadsafe_set_icon(komi64, index)
-		
+
+const kb:int = 1024
+func get_file_size(komi64:String, all:bool=false) -> String:
+	# float is 64bit and I would not expect image file sizes to be approaching the limits of that (and I see no reason to attack a local-only image application)
+	var size:float = 0.0
+	if all: size = float(Database.GetFileSizeFromKomi(komi64))
+	else: size = float(Database.GetFileSizeFromHash(komi64))
+	if size < kb: return String(size) + " Bytes"
+	elif size < kb*kb: return "%1.2f KB" % [size/float(kb)]
+	elif size < kb*kb*kb: return "%1.2f MB" % [size/float(kb*kb)]
+	else: return "%1.2f GB" % [size/float(kb*kb*kb)]
+
+	
 func _threadsafe_set_icon(komi64:String, index:int, failed:bool=false) -> void:
 	var im_tex:Texture
 	if failed: im_tex = icon_broken
@@ -207,7 +219,9 @@ func _threadsafe_set_icon(komi64:String, index:int, failed:bool=false) -> void:
 	if stop_all: return
 	sc.lock()
 	set_item_icon(index, im_tex)
-	if (current_import_id != "all"): set_item_tooltip(index, "hash: " + komi64 + "\nsize: " + Database.GetFileSizeFromHash(komi64))
+	# should try to make these 1 function (additional argument if needed)
+	if (current_import_id != "all"): set_item_tooltip(index, "hash: " + komi64 + "\nsize: " + get_file_size(komi64))
+	else: set_item_tooltip(index, "hash: " + komi64 + "\nsize: " + get_file_size(komi64, true))
 	sc.unlock()
 
 func _on_images_item_selected(index:int) -> void:

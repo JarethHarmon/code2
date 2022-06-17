@@ -1,3 +1,3 @@
 extends Node
 
-enum SortBy { FileHash, FilePath, FileSize, FileCreationUtc }
+enum SortBy { FileHash, FilePath, FileSize, FileCreationUtc, Random }
