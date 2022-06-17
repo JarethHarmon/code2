@@ -236,12 +236,14 @@ func _on_refresh_button_up() -> void: load_import_group(current_import_id)
 
 func _on_sort_by_item_selected(index:int) -> void:
 	current_sort = index
-	load_import_group(current_import_id)
+	if current_import_id == "all": all_button_pressed()
+	else: import_group_button_pressed(current_import_id)
 
 func _on_ascend_descend_item_selected(index) -> void:
 	if (index == 1): ascending = false
 	else: ascending = true
-	load_import_group(current_import_id)
+	if current_import_id == "all": all_button_pressed()
+	else: import_group_button_pressed(current_import_id)
 
 
 func _on_search_button_button_up() -> void:

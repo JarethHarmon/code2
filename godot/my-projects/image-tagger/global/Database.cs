@@ -471,16 +471,9 @@ public class Database : Node {
 									.Where(x => tags_have_all == null || tags_have_all.Length == 0 || tags_have_all.All(x.tags.Contains))
 									.Where(x => tags_have_one == null || tags_have_one.Length == 0 || tags_have_one.Any(x.tags.Contains))
 									.Where(x => tags_have_none == null || tags_have_none.Length == 0 || !tags_have_none.All(x.tags.Contains))
-									//.OrderBy(x => x.komi64, ascend)
-									//.OrderBy(x => x.GetProperty(v), ascend)
-									//.OrderBy(x => x.GetType().GetTypeInfo().GetDeclaredProperty(column_name), ascend)
 									.OrderBy(x => x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 
 									.Skip(start_index)
 									.Take(count);
-									
-			// counting the IEnumerable increases time of my current test from ~15ms to ~600ms (even though it only returns ~20 results)
-			// so best to only iterate it when I have to to access results (in LoadRangeKomi64FromTags())
-			//GD.Print("Query finished, found ", Enumerable.Count(results), " images in ", (DateTime.Now-now).Milliseconds, " ms\n");
 			GD.Print("Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
 			return results;
 		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
