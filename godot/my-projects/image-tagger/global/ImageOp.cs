@@ -148,7 +148,7 @@ public class ImageOp : Node
 			if (db.ImportGroupHasKomi(import_id, komihash)) return 1;
 			
 			db.InsertImportGroup(import_id, komihash, image_path, image_size, image_creation_utc);
-			int err = db.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
+			int err = db.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0], image_size, image_creation_utc);
 			if (err < 0) return err;
 			
 			if (image_size < AVG_THUMBNAIL_SIZE) SaveMinimalThumbnail(image_path, save_path + ".png");

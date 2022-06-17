@@ -43,7 +43,7 @@ func _ready() -> void:
 	var _err:int = Signals.connect("image_import_finished", self, "_on_refresh_button_up")
 	_err = Signals.connect("import_button_pressed", self, "import_group_button_pressed")
 	_err = Signals.connect("delete_pressed", self, "import_group_button_delete")
-	_err = Signals.connect("load_all_images", self, "_load_all_images")
+	_err = Signals.connect("load_all_images", self, "all_button_pressed")
 
 func import_group_button_delete(import_id:String) -> void:
 	if current_import_id == import_id:
@@ -59,7 +59,7 @@ func import_group_button_pressed(import_id:String) -> void:
 	current_import_id = import_id
 	load_import_group(import_id)		# not sure if I will use "" to represent all, or just create another function for that
 
-func _load_all_images() -> void:
+func all_button_pressed() -> void:
 	current_page_number = 1
 	total_page_count = 1
 	total_image_count = 0
@@ -74,7 +74,7 @@ func _load_all_images() -> void:
 	var tags_ex_all:Array = text_ex_all.split(",", false) 
 	
 	load_import_group("all", tags_in_all, tags_in_one, tags_ex_all)
-
+	
 func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[], tag_ex_all:Array=[]) -> void:
 	if loading: return
 	if import_id == "": return

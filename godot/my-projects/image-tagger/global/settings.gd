@@ -19,7 +19,7 @@ var settings:Dictionary = {
 	"use_recursion" : false,
 
   # THUMBNAIL LOADER
-	"images_per_page" : 100,
+	"images_per_page" : 10,
 	"load_threads" : 2,
 	"pages_to_store" : 5,
 	
