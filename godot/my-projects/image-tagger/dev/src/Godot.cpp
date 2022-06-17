@@ -16,21 +16,19 @@ class Gob : public Node
 public:
     static void _register_methods()
     {
-        register_method("get_unsigned_komi_hash", &Gob::get_unsigned_komi_hash);
-        register_method("get_signed_komi_hash", &Gob::get_signed_komi_hash);
+        register_method("get_komi_hash", &Gob::get_komi_hash);
     }
 
     void _init()
     {
     }
 
-    String get_unsigned_komi_hash(String file_path)
+    String get_komi_hash(String file_path)
     {
         FILE* fptr;
         char* buffer;
         long filelen;
 
-        // this is why I don't like c++: the official method of using ccs does not work at all, and instead you have to use setlocale()
         setlocale(LC_ALL, ".65001");
         fptr = fopen(file_path.utf8().get_data(), "rb");
         //fptr = fopen(file_path.utf8().get_data(), "rb, ccs=UTF-8");
@@ -53,35 +51,10 @@ public:
             File *test = File::_new();
             test->open(file_path, 1); // 1 is read, not sure how to access the constant from c++
             String s = test->get_as_text();
-            
-            //buffer = (char*)malloc(filelen * sizeof(char));
-            //strcpy(buffer, s.utf8().get_data());
+
             uint64_t kh = komihash(s.utf8().get_data(), test->get_len(), 0);
             return String(std::to_string(kh).c_str());
-            //return String("fail");
         }
-    }
-
-    uint64_t get_signed_komi_hash(String file_path) {
-        FILE* fptr;
-        char* buffer;
-        long filelen;
-
-        setlocale(LC_ALL, ".65001");
-        fptr = fopen(file_path.utf8().get_data(), "rb");
-        if (fptr == NULL) return 1;
-
-        fseek(fptr, 0, SEEK_END);
-        filelen = ftell(fptr);
-        rewind(fptr);
-
-        buffer = (char*)malloc(filelen * sizeof(char));
-        fread(buffer, filelen, 1, fptr);
-        fclose(fptr);
-
-        uint64_t kh = komihash(buffer, filelen, 0);
-        std::free(buffer);
-        return kh;
     }
 
 };

@@ -12,6 +12,9 @@ using CoenM.ImageHash.HashAlgorithms;
 public class ImageOp : Node
 {
 	public const int MAX_PATH_LENGTH = 256;
+	public const long KB = 1024;
+	public const long MB = 1048576;
+	public const long AVG_THUMBNAIL_SIZE = 7424; // 7.25KB
 	
 	public Node import;
 	public Node signals;
@@ -50,18 +53,28 @@ public class ImageOp : Node
 			var im = new MagickImage(image_path);
 			im.Format = MagickFormat.Jpg;
 			im.Quality = 50;
-			im.Interlace = Interlace.Plane;
-			//im.ColorSpace = ColorSpace.RGB; // not sure if needed
+			//im.Interlace = Interlace.Plane; // small sample test was larger
 			im.Resize(256, 256);
 			im.Strip();
 			im.Write(thumbnail_path);
+			new ImageOptimizer().Compress(thumbnail_path);
 		} 
 		catch (Exception ex) { GD.Print("ImageOp::SaveThumbnail() : ", ex); return; }
 	}
+	static void SaveMinimalThumbnail(string image_path, string thumbnail_path) {
+		try {
+			var im = new MagickImage(image_path);
+			im.Format = MagickFormat.Png;
+			im.Strip();
+			im.Write(thumbnail_path);
+			new ImageOptimizer().LosslessCompress(thumbnail_path);
+		}
+		catch (Exception ex) { GD.Print("ImageOp::SaveMinimalThumbnail() : ", ex); return; }
+	}
 	static bool IsImageCorrupt(string image_path) {
 		try { var im = new MagickImage(image_path); }
-		catch (MagickCorruptImageErrorException) { return true; }
-		catch (MagickBlobErrorException) { GD.Print("blob"); return true; }
+		catch (MagickCorruptImageErrorException) { GD.Print("err (corrupt) ::: ", image_path); return true; }
+		catch (MagickBlobErrorException) { GD.Print("err (blob) ::: ", image_path); return true; }
 		return false;
 	}
 	static string GetActualFormat(string image_path) {
@@ -129,21 +142,18 @@ public class ImageOp : Node
 			(string image_path, long image_creation_utc, long image_size) = tuple;
 			if (IsImageCorrupt(image_path)) return -1;
 			
-			string komihash = (string) import.Call("get_unsigned_komi_hash", image_path);
-			string save_path = thumbnail_path + komihash + ".jpg"; 
+			string komihash = (string) import.Call("get_komi_hash", image_path);
+			string save_path = thumbnail_path + komihash;
 			
-			//var now = DateTime.Now;
-			//db.AddKomi64ToImportListInDatabase(import_id, komihash);
+			if (db.ImportGroupHasKomi(import_id, komihash)) return 1;
+			
 			db.InsertImportGroup(import_id, komihash, image_path, image_size, image_creation_utc);
-			//GD.Print("add komi64 to import database: ", (DateTime.Now-now).Milliseconds);
+			int err = db.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0], image_size, image_creation_utc);
+			if (err < 0) return err;
 			
-			//now = DateTime.Now;
-			int err = db.InsertKomi64Info(komihash, filter_by_default, new string[1]{image_path}, new string[0]);
-			//GD.Print("add komi64 to komi64 database: ", (DateTime.Now-now).Milliseconds);
-			if (err != 0) return err;
-			//now = DateTime.Now;
-			SaveThumbnail(image_path, save_path);
-			//GD.Print("save thumbnail: ", (DateTime.Now-now).Milliseconds);
+			if (image_size < AVG_THUMBNAIL_SIZE) SaveMinimalThumbnail(image_path, save_path + ".png");
+			else SaveThumbnail(image_path, save_path + ".jpg");
+			
 			return 0;
 		}
 		catch (Exception ex) { GD.Print("ImageOp::ImportImage() : ", ex); return -1; }

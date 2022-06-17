@@ -46,6 +46,7 @@ copy_mode = 2
 rect = Rect2( 0, 0, 0, 0 )
 
 [node name="Shader" type="ColorRect" parent="ColorGrade"]
+modulate = Color( 1, 1, 1, 0.25098 )
 material = ExtResource( 2 )
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -62,6 +63,7 @@ copy_mode = 2
 rect = Rect2( 0, 0, 0, 0 )
 
 [node name="Shader" type="ColorRect" parent="EdgeCustomDefaultMix"]
+modulate = Color( 1, 1, 1, 0.25098 )
 material = ExtResource( 4 )
 anchor_right = 1.0
 anchor_bottom = 1.0

@@ -5,6 +5,7 @@ func _ready() -> void:
 	Signals.emit_signal("import_list_location", $margin/vbox.get_path())
 
 func _import_info_load_finished() -> void:
-	var import_ids:Array = Database.GetImportIDsFromDict()
+	var import_ids:Array = Database.GetImportIDsFromDict(Globals.SortBy.FilePath)
 	for id in import_ids: Signals.create_import_button(id)
 
+func _on_load_all_button_up() -> void: Signals.emit_signal("load_all_images")

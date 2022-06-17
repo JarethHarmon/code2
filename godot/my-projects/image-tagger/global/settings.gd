@@ -2,6 +2,8 @@ extends Node
 
 # all settings need to be moved here
 
+
+var settings_hash:int
 var settings_path:String = "user://settings.tres"
 var settings:Dictionary = {
   # GLOBAL
@@ -17,13 +19,19 @@ var settings:Dictionary = {
 	"use_recursion" : false,
 
   # THUMBNAIL LOADER
-	"images_per_page" : 100,
-	"load_threads" : 5,
+	"images_per_page" : 10,
+	"load_threads" : 2,
 	"pages_to_store" : 5,
 	
   # IMAGE PREVIEWER
 	"use_filter" : true,
 	"use_smooth_pixel" : false,
+  
+  # COLOR GRADE
+	"use_color_grade" : false,
+	
+  # Edge Mix
+	"use_edge_mix" : false,
 }
 
 func _ready() -> void:
@@ -34,6 +42,9 @@ func _ready() -> void:
 	if settings.metadata_path == "": settings.metadata_path = settings.default_metadata_path
 
 func save_settings() -> void:
+	# don't waste time saving if nothing has changed
+	if (settings.hash() == settings_hash): return
+	
 	var f:File = File.new()
 	var e:int = f.open(settings_path, File.WRITE)
 	if e == OK: f.store_string(var2str(settings))
@@ -42,6 +53,8 @@ func save_settings() -> void:
 func load_settings() -> void: 
 	var f:File = File.new()
 	var e:int = f.open(settings_path, File.READ)
-	if e == OK: settings = str2var(f.get_as_text())
+	if e == OK: 
+		settings = str2var(f.get_as_text())
+		settings_hash = settings.hash()
 	f.close()
-	
+	Signals.call_deferred("emit_signal", "settings_loaded") # needs to be deferred or it does not get sent out on time

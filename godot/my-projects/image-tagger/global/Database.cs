@@ -1,44 +1,93 @@
-using Godot;
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using LiteDB;
-using ImageMagick;
-using Alphaleonis.Win32.Filesystem;
+using Godot;							// access to Godot
+using System;							// access to System
+using System.IO;						// (?)
+using System.Linq;						// everything related to the database
+using System.Collections.Generic;		// HashSet, Dictionary
+using System.Reflection;
+using System.Security.Cryptography;		// (?)
+using LiteDB;							// everything related to the database
+using ImageMagick;						// (?)
+using Alphaleonis.Win32.Filesystem;		// (?)
 
-public class Komi64Info {
-	public string komi64 { get; set; }
-	public bool filter { get; set; }
-	public HashSet<string> paths { get; set; }
-	public HashSet<string> tags { get; set; }
-}
-/* stores the metadata of an import */
-public class ImportInfo {
-	public string import_id { get; set; }				// the 32 bit ID of the import group
-	public string import_name { get; set; }				// the user-defined name of the import group
-	public string import_base_folder { get; set; }		// the folder that the import started at
-	public long import_time { get; set; }				// the time that the import was started (completed?) (in ticks)
-	public int import_count { get; set; }				// the total number of images imported for this group
-	public int import_fail_count { get; set; }			// the total number of images that failed to import for this group
-	public int import_duplicate_count { get; set; }		// the total number of duplicate images for this group		[A,A,V,F,C,F,A,B,H] = 3 (A,A,F)
-}
-/* these will be members of a collection, with collection_name == import_id */
-public class ImportGroup {
-	public string komi64 { get; set; }					// the komi64 hash of the image
-	public string file_path { get; set; }				// the first found file path of the image in this import
-	public long file_size { get; set; }					// the file size of the image
-	public long file_creation_utc { get; set; }			// the time (UTC) that the file was created (in ticks)
-}
+/*=========================================================================================
+										 CLASSES
+=========================================================================================*/
 
-public class SortBy {
-	public const int FileHash = 0;			
-	public const int FilePath = 1;			
-	public const int FileSize = 2;			
-	public const int FileCreationUtc = 3;
-}
+	/* stores the metadata for a specific image */
+	public class Komi64Info {
+		public string komi64 { get; set; }					// the 64bit komi hash of the image
+		public bool filter { get; set; }					// whether the image should be filtered (this will be replaced with a settings FLAG)(if I allow settings on an individual image basis)
+		public long file_size { get; set; }					// the file size of the image in bytes
+		public long file_creation_utc { get; set; }			// the UTC time that the image was created, in Ticks
+		public HashSet<string> paths { get; set; }			// the set of all file_paths that the image can be found at
+		public HashSet<string> tags { get; set; }			// the set of all tags applied to this image (may be split up into multiple sets)
+	}
 
+	/* stores the metadata of an import */
+	public class ImportInfo {
+		public string import_id { get; set; }				// the 32 bit ID of the import group
+		public string import_name { get; set; }				// the user-defined name of the import group
+		public string import_base_folder { get; set; }		// the folder that the import started at
+		public long import_time { get; set; }				// the time that the import was started (completed?) (in ticks)
+		public int import_count { get; set; }				// the total number of images imported for this group
+		public int import_fail_count { get; set; }			// the total number of images that failed to import for this group
+		public int import_duplicate_count { get; set; }		// the total number of duplicate images for this group		[A,A,V,F,C,F,A,B,H] = 3 (A,A,F)
+	}
+	/* these will be members of a collection, with collection_name == import_id */
+	public class ImportGroup {
+		public string komi64 { get; set; }					// the komi64 hash of the image
+		public string file_path { get; set; }				// the first found file path of the image in this import
+		public long file_size { get; set; }					// the file size of the image
+		public long file_creation_utc { get; set; }			// the time (UTC) that the file was created (in ticks)
+	}
+
+	/* stores the metadata for a group of related images */
+	public class ImageGroupInfo {
+		public string group_id { get; set; }				// the (??) ID of the group
+		public int count { get; set; }						// the total number of images in this group
+		public HashSet<string> images { get; set; }			// the set of all komi hashes that are members of this image group
+		public HashSet<string> tags { get; set; }			// the tags applied to this group as a whole (not its individual members)
+		// might be more metadata like the type of group (user-defined) (comic being an example);; public string group_type { get; set; } // group_type = "Comic";
+		// user would be able to define the accepted types in a menu somewhere, then they can select them in a drop-down while creating the group
+	}
+
+	/**/
+	public class ImageGroupMetadata {
+		public string database_file_path { get; set; }		// the path to the database
+		public int table_names_total_length { get; set; }	// the sum total of all table names in the database
+	}
+
+	/* class may not be needed; will be stored in a table named with the group_id */
+	public class ImportGroups {
+		public string komi64 { get; set; }	
+	}
+
+	public class TagInfo {
+		public string tag { get; set; }
+		public HashSet<string> hashes { get; set; }
+	}
+
+	public class SortBy {
+		public const int FileHash = 0;			
+		public const int FilePath = 1;			
+		public const int FileSize = 2;			
+		public const int FileCreationUtc = 3;
+	}
+	
+	public class ErrorCodes {
+		public const int OK = 0;
+		public const int ERROR = 1;
+		public const int DUPLICATE = 2;
+		public const int INT_ERROR = -1;
+	}
+	
+	
+	public static class LinqExtensions {
+		public static IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, bool ascend) {
+			return ascend ? source.OrderBy(keySelector) : source.OrderByDescending(keySelector);
+		}
+	}
+	
 // there are ~4000 bytes total of space for collection names in a database, with each import_id taking 8 bytes; I will set the limit of the number of import_groups to ~400
 // I think EnsureIndex() might be a way around checking if class fields are null
 
@@ -49,13 +98,18 @@ public class Database : Node {
 	
 	public LiteDatabase db_komi64;
 	public LiteDatabase db_import;
+	public LiteDatabase db_tag;
 	
 	public ILiteCollection<Komi64Info> col_komi64;
 	public ILiteCollection<ImportInfo> col_import_info;
+	public ILiteCollection<TagInfo> col_tag_info;
 	
 	public Dictionary<string, Komi64Info> dict_komi64 = new Dictionary<string, Komi64Info>();
 	public Dictionary<string, ImportInfo> dict_import_info = new Dictionary<string, ImportInfo>();
 	public Dictionary<string, ImportGroup> dict_import_group = new Dictionary<string, ImportGroup>();
+	//public Dictionary<string, TagInfo> dict_tag_info = new Dictionary<string, TagInfo>();
+	
+	public HashSet<string> set_tags = new HashSet<string>();
 	
 	public int Create() {
 		try {
@@ -63,12 +117,17 @@ public class Database : Node {
 				db_komi64 = new LiteDatabase(metadata_path + "komi64_info.db");
 				BsonMapper.Global.Entity<Komi64Info>().Id(x => x.komi64);		
 				col_komi64 = db_komi64.GetCollection<Komi64Info>("komihashes");
+				col_komi64.EnsureIndex((Komi64Info x) => x.komi64, true);
 				
 				db_import = new LiteDatabase(metadata_path + "import_info.db");
 				BsonMapper.Global.Entity<ImportInfo>().Id(x => x.import_id);
 				BsonMapper.Global.Entity<ImportGroup>().Id(x => x.komi64);
 				col_import_info = db_import.GetCollection<ImportInfo>("import_info");
 				//col_import_list = db_import.GetCollection<ImportList>("import_list");
+				
+				db_tag = new LiteDatabase(metadata_path + "tag_info.db");
+				BsonMapper.Global.Entity<TagInfo>().Id(x => x.tag);
+				col_tag_info = db_tag.GetCollection<TagInfo>("tags");
 			}
 			return 0;
 		}
@@ -77,25 +136,38 @@ public class Database : Node {
 	public void Destroy() { 
 		db_komi64.Dispose(); 
 		db_import.Dispose();
+		db_tag.Dispose();
 	}
 	public void CheckpointKomi64() { db_komi64.Checkpoint(); }
 	public void CheckpointImport() { db_import.Checkpoint(); }
+	public void CheckpointTag() { db_tag.Checkpoint(); }
 	
 /*=========================================================================================
 									   IMPORT INFO
 =========================================================================================*/	
-	// loads everything from the "import_info" collection into dict_import_info
+	/* loads everything from the "import_info" collection into dict_import_info */
 	public int LoadImportInfoFromDatabase() {
 		try {
 			var imports = col_import_info.FindAll();
 			foreach (ImportInfo import in imports) {
 				if (import.import_name == null) import.import_name = ""; // prevents a crash caused by the database storing "" as null
 				dict_import_info[import.import_id] = import;
-			} return 0;
-		} catch (Exception ex) { GD.Print("Database::LoadImportInfoFromDatabase() : ", ex); return 1; }
+			} return ErrorCodes.OK;
+		} catch (Exception ex) { GD.Print("Database::LoadImportInfoFromDatabase() : ", ex); return ErrorCodes.ERROR; }
 	}
-	// returns the keys in dict_import_info
-	public string[] GetImportIDsFromDict() { return dict_import_info.Keys.ToArray(); }
+	
+	/* gets the ImportInfos from dict_import_info; sorts them, returns the import_ids in sorted order */
+	public string[] GetImportIDsFromDict(int sort_by = SortBy.FilePath) { 
+		var list = new List<ImportInfo>();
+		foreach (string iid in dict_import_info.Keys.ToArray())
+			list.Add(dict_import_info[iid]);
+		// probably a better way to do this
+		var list2 = list.OrderBy(x => x.import_base_folder);
+		var list3 = new List<string>();
+		foreach (ImportInfo ii in list2) list3.Add(ii.import_id);
+		return list3.ToArray();
+	}
+	
 	// checks if dict_import contains the key import_id
 	public bool ImportDictHasID(string import_id) { return dict_import_info.ContainsKey(import_id); } 
 	
@@ -194,6 +266,15 @@ public class Database : Node {
 		}
 		catch (Exception ex) { GD.Print("Database::InsertImportGroup() : ", ex); return; }	
 	}
+	public bool ImportGroupHasKomi(string import_id, string komi64) {
+		try {
+			var col = db_import.GetCollection<ImportGroup>(import_id);
+			var temp = col.FindById(komi64);
+			if (temp != null) return true;
+			return false;
+		}
+		catch (Exception ex) { GD.Print("Database::ImportGroupHasKomi() : ", ex); return false; }	
+	}
 	
 /*=========================================================================================
 										 MISC
@@ -236,7 +317,7 @@ public class Database : Node {
 		catch (Exception ex) { GD.Print("Database::LoadOneKomi64() : ", ex); } 
 	}
 		
-	public int InsertKomi64Info(string komi64_n, bool filter_n, string[] paths_n, string[] tags_n) {
+	public int InsertKomi64Info(string komi64_n, bool filter_n, string[] paths_n, string[] tags_n, long size_n, long utc_creation_n) {
 		try {
 			//var temp = col_komi64.FindOne(Query.EQ("_Id", komi64_n));
 			var temp = col_komi64.FindById(komi64_n);
@@ -248,6 +329,12 @@ public class Database : Node {
 						changed = true;
 					}
 				}
+				foreach (string tag in tags_n) {
+					if (!temp.tags.Contains(tag)) {
+						temp.tags.Add(tag);
+						changed = true;
+					}
+				}
 				if (changed) col_komi64.Update(temp);
 				return 1; // duplicate
 			}
@@ -255,6 +342,8 @@ public class Database : Node {
 				var komi64_info = new Komi64Info {
 					komi64 = komi64_n,
 					filter = filter_n,
+					file_size = size_n,
+					file_creation_utc = utc_creation_n,
 					paths = new HashSet<string>(paths_n),
 					tags = new HashSet<string>(tags_n)
 				};
@@ -273,4 +362,122 @@ public class Database : Node {
 		foreach (string komi64 in komi64s)
 			dict_komi64.Remove(komi64);
 	}
+	public void AddTagToKomi(string komi64, string tag) {
+		try {
+			var tmp = col_komi64.FindById(komi64);
+			if (tmp == null) return;
+			if (tmp.tags == null) tmp.tags = new HashSet<string>();
+			tmp.tags.Add(tag);
+			col_komi64.Update(tmp);
+		} catch (Exception ex) { GD.Print("Database::AddTagToKomi() : ", ex); return; }
+	}
+
+/*=========================================================================================
+								  		  TAG
+=========================================================================================*/	
+	//public bool CheckDatabaseHasTag(string tag) { return  }
+	
+	public void LoadTagsFromDatabase() {
+		try {
+			var tags = col_tag_info.FindAll();
+			foreach (TagInfo tag in tags) set_tags.Add(tag.tag);
+		} catch (Exception ex) { GD.Print("Database::LoadTagsFromDatabase() : ", ex); return; }
+	}
+	public string[] GetHashesFromTag(string tag) { 
+		try {
+			var tmp = col_tag_info.FindById(tag);
+			if (tmp != null) return tmp.hashes.ToArray();
+			return new string[0];
+		} catch (Exception ex) { GD.Print("Database::GetHashesFromTag() : ", ex); return new string[0]; }
+	}
+	public void CreateTag(string tag_n, string[] hashes_n) {
+		try {
+			if (set_tags.Contains(tag_n)) {
+				var tmp = col_tag_info.FindById(tag_n);
+				foreach (string hash in hashes_n)
+					tmp.hashes.Add(hash);
+				col_tag_info.Update(tmp);
+			} else {
+				var tmp = new TagInfo {
+					tag = tag_n,
+					hashes = new HashSet<string>(hashes_n)
+				};
+				set_tags.Add(tag_n);
+				col_tag_info.Insert(tmp);
+			}
+		} catch (Exception ex) { GD.Print("Database::CreateTag() : ", ex); return; }
+	}
+	public void AddHashToTag(string tag, string hash) {
+		try {
+			if (!set_tags.Contains(tag)) CreateTag(tag, new string[]{hash});
+			else {
+				var tmp = col_tag_info.FindById(tag);
+				tmp.hashes.Add(hash);
+				set_tags.Add(tag);
+				col_tag_info.Update(tmp);
+			}
+		} catch (Exception ex) { GD.Print("Database::AddHashToTag() : ", ex); return; }
+	}
+	
+	// probably possible to use same function for all 4 checks (ContainsTags()) ; need to step through boolean logic to confirm
+	private bool ContainsAllTags(HashSet<string> tag_list, string[] check_tags) { foreach (string tag in check_tags) if (!tag_list.Contains(tag)) return false; return true; }
+	private bool ContainsOneTag(HashSet<string> tag_list, string[] check_tags) { foreach (string tag in check_tags) if (tag_list.Contains(tag)) return true; return false; }
+//	
+	public string GetRandomString(int length) {
+		var rand = new Random();
+		string s = "";
+		char letter;
+		int char_value;
+		for (int i = 0; i < length; i++) {
+			char_value = rand.Next(0, 26);
+			letter = Convert.ToChar(char_value+65);
+			s += letter;
+		}
+		return s;
+	}
+	public int last_query_count = 0;
+	public int GetTagQueryCount() { return last_query_count; }	
+	//public void LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
+	public string[] LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
+		try {
+			// may need to be moved elsewhere / only done if komihashes != null
+			dict_komi64.Clear();
+			last_query_count = 0;
+			var list = new List<string>();
+			
+			var komihashes = GetKomi64RangeFromTags(start_index, count, tags_have_all, tags_have_one, tags_have_none, sort_by, ascend);
+			if (komihashes != null)
+				foreach (Komi64Info khinfo in komihashes)
+				{
+					dict_komi64[khinfo.komi64] = khinfo;
+					list.Add(khinfo.komi64);
+					last_query_count++;
+					//GD.Print(khinfo.komi64);
+				}
+			return list.ToArray();
+		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return null; }
+	}
+	// currently only takes tags_have_all into account; meaning that it checks for images that possess all tags in that array and returns their Komi64Infos
+	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {					
+		try {
+			GD.Print("Querying...");
+			var now = DateTime.Now;
+			string column_name = "komi64";
+			if (sort_by == SortBy.FileSize) column_name = "file_size";
+			else if (sort_by == SortBy.FileCreationUtc) column_name = "file_creation_utc";
+			
+			var results = col_komi64.Find(Query.All())
+									.Where(x => x != null && x.tags != null)
+									.Where(x => tags_have_all == null || tags_have_all.Length == 0 || tags_have_all.All(x.tags.Contains))
+									.Where(x => tags_have_one == null || tags_have_one.Length == 0 || tags_have_one.Any(x.tags.Contains))
+									.Where(x => tags_have_none == null || tags_have_none.Length == 0 || !tags_have_none.All(x.tags.Contains))
+									.OrderBy(x => x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 
+									.Skip(start_index)
+									.Take(count);
+			GD.Print("Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
+			return results;
+		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
+	}
+	
+	
 }

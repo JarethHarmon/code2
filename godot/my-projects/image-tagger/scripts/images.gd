@@ -3,15 +3,18 @@ extends ItemList
 const icon_broken:StreamTexture = preload("res://assets/icon-broken.png")
 const icon_loading:StreamTexture = preload("res://assets/buffer-01.png")
 
-enum SortBy { FileHash, FilePath, FileSize, FileCreationUtc }
-
-var current_sort:int = SortBy.FileHash
+var current_sort:int = Globals.SortBy.FileHash
 var ascending:bool = true
 
-onready var sc:Mutex = Mutex.new() 		# scene
-onready var fi:Mutex = Mutex.new() 		# file index
-onready var pf:Mutex = Mutex.new() 		# page_files
-onready var lt:Mutex = Mutex.new() 		# loaded_thumbnails
+export (NodePath) var IncludeAllBar ; onready var include_all_bar:LineEdit = get_node(IncludeAllBar)
+export (NodePath) var IncludeOneBar ; onready var include_one_bar:LineEdit = get_node(IncludeOneBar)
+export (NodePath) var ExcludeAllBar ; onready var exclude_all_bar:LineEdit = get_node(ExcludeAllBar)
+export (NodePath) var SearchButton ; onready var search_button:Button = get_node(SearchButton)
+
+onready var sc:Mutex = Mutex.new() 		# scene mutex
+onready var fi:Mutex = Mutex.new() 		# file index mutex
+onready var pf:Mutex = Mutex.new() 		# page_files mutex
+onready var lt:Mutex = Mutex.new() 		# loaded_thumbnails mutex
 
 var page_history:Array = []				# fifo queue, stores page numbers
 var pages:Dictionary = {}				# [page_number, import_id] : [komihash]
@@ -27,8 +30,8 @@ var total_image_count:int = 0			# the total number of images
 var page_image_count:int = 0			# the number of images for the current page
 var current_import_id:String = ""		# the import_id for the current group
 
-var loading:bool = false
-var stop_all:bool = false
+var loading:bool = false				# whether the threads are currently loading
+var stop_all:bool = false				# whether the threads should stop
 
 func stop_threads() -> void:
 	stop_all = true
@@ -40,6 +43,7 @@ func _ready() -> void:
 	var _err:int = Signals.connect("image_import_finished", self, "_on_refresh_button_up")
 	_err = Signals.connect("import_button_pressed", self, "import_group_button_pressed")
 	_err = Signals.connect("delete_pressed", self, "import_group_button_delete")
+	_err = Signals.connect("load_all_images", self, "all_button_pressed")
 
 func import_group_button_delete(import_id:String) -> void:
 	if current_import_id == import_id:
@@ -55,13 +59,32 @@ func import_group_button_pressed(import_id:String) -> void:
 	current_import_id = import_id
 	load_import_group(import_id)		# not sure if I will use "" to represent all, or just create another function for that
 
-func load_import_group(import_id:String) -> void:
+func all_button_pressed() -> void:
+	current_page_number = 1
+	total_page_count = 1
+	total_image_count = 0
+	current_import_id = "all"
+	
+	var text_in_all:String = include_all_bar.text
+	var text_in_one:String = include_one_bar.text
+	var text_ex_all:String = exclude_all_bar.text
+	
+	var tags_in_all:Array = text_in_all.split(",", false) # false prevents [""] from happening when splitting an empty string
+	var tags_in_one:Array = text_in_one.split(",", false) 
+	var tags_ex_all:Array = text_ex_all.split(",", false) 
+	
+	load_import_group("all", tags_in_all, tags_in_one, tags_ex_all)
+	
+func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[], tag_ex_all:Array=[]) -> void:
 	if loading: return
 	if import_id == "": return
 	loading = true
 	stop_threads()
 	
-	total_image_count = Database.GetImportSuccessCountFromID(import_id)
+	if import_id == "all":
+		total_image_count = Database.GetTotalRowCountKomi()
+	else:
+		total_image_count = Database.GetImportSuccessCountFromID(import_id)
 	Signals.emit_signal("update_button", total_image_count, import_id)
 	total_page_count = ceil(total_image_count as float / Settings.settings.images_per_page as float) as int
 	
@@ -77,7 +100,13 @@ func load_import_group(import_id:String) -> void:
 		var _had:bool = pages.erase(page_to_remove)
 		# delete from C# here if needed (for now it is fast enough not to need to save a history on c#)
 
-	var komi_arr:Array = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, current_sort, ascending)
+	var komi_arr:Array = []
+	if import_id == "all":
+		var tmp = Database.LoadRangeKomi64FromTags(offset, Settings.settings.images_per_page, tag_in_all, tag_in_one, tag_ex_all, current_sort, ascending)
+		if tmp != null: komi_arr = tmp
+	else:
+		komi_arr = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, current_sort, ascending)
+	
 	
 	if not page_history.has([current_page_number, import_id]):
 		page_history.push_back([current_page_number, import_id])
@@ -96,8 +125,9 @@ func _threadsafe_clear(import_id:String) -> void:
 		yield(get_tree(), "idle_frame")
 		yield(get_tree(), "idle_frame")
 	for i in page_image_count:
-		self.add_item(pages[[current_page_number, import_id]][i]) #self.add_item("") #self.add_item("") #
+		self.add_item("") #self.add_item(pages[[current_page_number, import_id]][i]) #
 		self.set_item_icon(i, icon_loading)
+	# should get a proper node reference instead here
 	get_parent().get_node("page_buttons/Label").text = String(current_page_number) + "/" + String(total_page_count)
 	sc.unlock()
 	prep_load_thumbnails(import_id)
@@ -143,17 +173,18 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		lt.unlock()
 		var i:Image = Image.new()
 		var e:int = i.load(Settings.settings.thumbnail_path.plus_file(komi64) + ".jpg")
-		if e != OK: 
-			var p:String = ProjectSettings.globalize_path(Settings.settings.thumbnail_path).plus_file(komi64) + ".jpg"
+		if e != OK: e = i.load(Settings.settings.thumbnail_path.plus_file(komi64) + ".png")
+		if e != OK:
+			var p:String = Settings.settings.thumbnail_path.plus_file(komi64) + ".jpg"
 			if ImageOp.IsImageCorrupt(p):
-				print("corrupt ::: ", p) 
+				#print("corrupt ::: ", p) 
 				_threadsafe_set_icon(komi64, index, true)
 				return
 			else: i = ImageOp.LoadUnknownFormatAlt(p)
 		if stop_all: return
 		
 		var it:ImageTexture = ImageTexture.new()
-		it.create_from_image(i, 4) # flags
+		it.create_from_image(i, 4) #0# flags
 		it.set_meta("komi64", komi64)
 		
 		lt.lock()
@@ -174,7 +205,7 @@ func _threadsafe_set_icon(komi64:String, index:int, failed:bool=false) -> void:
 	if stop_all: return
 	sc.lock()
 	set_item_icon(index, im_tex)
-	set_item_tooltip(index, Database.GetFileSizeFromHash(komi64))
+	if (current_import_id != "all"): set_item_tooltip(index, "hash: " + komi64 + "\nsize: " + Database.GetFileSizeFromHash(komi64))
 	sc.unlock()
 
 func _on_images_item_selected(index:int) -> void:
@@ -185,7 +216,8 @@ func _on_images_item_selected(index:int) -> void:
 	
 	var komi64:String = im_tex.get_meta("komi64")
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
-	Signals.emit_signal("load_image", paths[0])
+	if !paths.empty(): Signals.emit_signal("load_image", paths[0]) # fix crash if paths empty
+	Signals.emit_signal("load_tags", komi64)
 
 func _on_Timer_timeout() -> void: pass
 
@@ -204,11 +236,32 @@ func _on_refresh_button_up() -> void: load_import_group(current_import_id)
 
 func _on_sort_by_item_selected(index:int) -> void:
 	current_sort = index
-	load_import_group(current_import_id)
+	if current_import_id == "all": all_button_pressed()
+	else: import_group_button_pressed(current_import_id)
 
 func _on_ascend_descend_item_selected(index) -> void:
 	if (index == 1): ascending = false
 	else: ascending = true
-	load_import_group(current_import_id)
+	if current_import_id == "all": all_button_pressed()
+	else: import_group_button_pressed(current_import_id)
 
 
+func _on_search_button_button_up() -> void:
+	var text_in_all:String = include_all_bar.text
+	var text_in_one:String = include_one_bar.text
+	var text_ex_all:String = exclude_all_bar.text
+	
+	var tags_in_all:Array = text_in_all.split(",", false) # false prevents [""] from happening when splitting an empty string
+	var tags_in_one:Array = text_in_one.split(",", false) 
+	var tags_ex_all:Array = text_ex_all.split(",", false) 
+	
+	load_import_group(current_import_id, tags_in_all, tags_in_one, tags_ex_all)
+	
+	#Database.LoadRangeKomi64FromTags(0, 100, tags_in_all, tags_in_one, tags_ex_all, Globals.SortBy.FileHash, ascending)
+
+	# I need to check whether current_import_id == ""
+	# if not, then I need to query within the confines of the current import (?) (db_import does not include tags though, so not certain how to do this)
+	# if it does, I need to query all images (what it is doing currently)
+	# then I need to call a load function to get started; if current_import_id != "" then it will just filter the current import
+	# otherwise it will call a separate function that loads from all images
+	

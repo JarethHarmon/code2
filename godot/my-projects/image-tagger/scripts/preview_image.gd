@@ -12,14 +12,43 @@ export (NodePath) var ColorGrade ; onready var color_grade:Control = get_node(Co
 export (NodePath) var EdgeMix ; onready var edge_mix:Control = get_node(EdgeMix)
 export (NodePath) var SmoothPixelButton ; onready var smooth_pixel_button:CheckBox = get_node(SmoothPixelButton)
 
+onready var preview:TextureRect = $hbox_0/image_0
+
 onready var image_mutex:Mutex = Mutex.new()
 onready var image_thread:Thread = Thread.new()
 
 enum selection { THUMBNAIL, IMPORT }
 var select:int = selection.IMPORT
+var current_image:Texture
 
 func _ready() -> void:
 	var _err:int = Signals.connect("load_image", self, "_on_FileDialog_file_selected") # should just work
+	_err = Signals.connect("settings_loaded", self, "_settings_loaded")
+	_err = Signals.connect("resize_preview_image", self, "resize_current_image")
+
+func create_current_image(im:Image=null) -> void:
+	if im == null:
+		var tex:Texture = preview.get_texture()
+		if tex == null: return
+		im = tex.get_data()
+	
+	var it:ImageTexture = ImageTexture.new()
+	it.create_from_image(im, 4 if Settings.settings.use_filter else 0)
+	current_image = it
+
+func resize_current_image() -> void:
+	if current_image == null: return
+	preview.set_texture(null)
+	current_image.set_size_override(calc_size(current_image))
+	yield(get_tree(), "idle_frame")
+	preview.set_texture(current_image)
+
+func _settings_loaded() -> void:
+	_on_color_grade_toggled(Settings.settings.use_color_grade)
+	_on_edge_mix_toggled(Settings.settings.use_edge_mix)
+	_on_use_smooth_pixel_toggled(Settings.settings.use_smooth_pixel)
+	_on_filter_toggled(Settings.settings.use_filter)
+	_on_use_recursion_toggled(Settings.settings.use_recursion)
 
 func _on_FileDialog_dir_selected(dir:String) -> void: 
 	match select:
@@ -38,26 +67,22 @@ func _on_FileDialog_file_selected(path:String) -> void:
 func _thread(path:String) -> void:
 	var actual_format:String = ImageOp.GetActualFormat(path)
 	var saved_format:String = path.get_extension().to_upper().replace("JPEG", "JPG")
-	var i:Image ; var e:int = 0
+	var im:Image ; var e:int = 0
 	if (actual_format != saved_format): 
 		print("\n", path, "\n\tactual format: ", actual_format, "\n\tsaved format: ", saved_format)
-		i = ImageOp.LoadUnknownFormat(path)
+		im = ImageOp.LoadUnknownFormat(path)
 	else:
-		i = Image.new() 
-		e = i.load(path)
-		if e != OK: i = ImageOp.LoadUnknownFormatAlt(path)
-	#if e == OK:
-	var it:ImageTexture = ImageTexture.new()
-	#it.create_from_image(i, 0)
-	it.create_from_image(i, 4 if Settings.settings.use_filter else 0)
-	it.set_size_override(calc_size(it))
-	$hbox_0/image_0.texture = it
-		
+		im = Image.new() 
+		e = im.load(path)
+		if e != OK: im = ImageOp.LoadUnknownFormatAlt(path)
+	
+	create_current_image(im)
 	call_deferred("_done")
 
 func _done() -> void:
 	if image_thread.is_alive() or image_thread.is_active(): image_thread.wait_to_finish()
 	image_mutex.unlock()
+	resize_current_image()
 
 func calc_size(it:ImageTexture) -> Vector2:
 	var size_1:Vector2 = viewport_display.rect_size
@@ -98,10 +123,16 @@ func _on_choose_image_pressed() -> void:
 	fd.window_title = "Choose an image"
 	fd.popup()
 	
-func _on_color_grade_toggled(button_pressed:bool) -> void: color_grade.visible = button_pressed
-func _on_edge_mix_toggled(button_pressed:bool): edge_mix.visible = button_pressed
+func _on_color_grade_toggled(button_pressed:bool) -> void: 
+	Settings.settings.use_color_grade = button_pressed
+	color_grade.visible = button_pressed
+	
+func _on_edge_mix_toggled(button_pressed:bool): 
+	Settings.settings.use_edge_mix = button_pressed
+	edge_mix.visible = button_pressed
+	
 func _on_use_recursion_toggled(button_pressed:bool) -> void: Settings.settings.use_recursion = button_pressed
-func _on_filter_toggled(button_pressed:bool) -> void:
+func _on_filter_toggled(button_pressed:bool) -> void:	
 	Settings.settings.use_filter = button_pressed
 	if button_pressed:
 		smooth_pixel_button.disabled = false
@@ -114,12 +145,9 @@ func _on_filter_toggled(button_pressed:bool) -> void:
 			Settings.settings.use_smooth_pixel = true
 		else: _on_use_smooth_pixel_toggled(false)
 	
-	var preview:TextureRect = $hbox_0/image_0
-	var i:Image = preview.get_texture().get_data()
-	var it:ImageTexture = ImageTexture.new()
-	it.create_from_image(i, 4 if button_pressed else 0)
-	it.set_size_override(calc_size(it))
-	preview.set_texture(it)
+	create_current_image()
+	resize_current_image()
+	
 func _on_use_smooth_pixel_toggled(button_pressed:bool) -> void:
 	Settings.settings.use_smooth_pixel = button_pressed
 	if button_pressed: 

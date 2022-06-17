@@ -2,13 +2,18 @@ extends Node
 
 const import_button = preload("res://scenes/import_button.tscn")
 
+signal settings_loaded
+
+signal load_all_images
 signal load_image(image_path)
+signal load_tags(komi64)
 signal image_import_finished
 signal import_info_load_finished
 signal import_button_pressed(import_id)
 signal import_list_location(node_path)
 signal update_button(import_count, import_id)
 signal delete_pressed(import_id)
+signal resize_preview_image
 
 var import_list:NodePath
 
