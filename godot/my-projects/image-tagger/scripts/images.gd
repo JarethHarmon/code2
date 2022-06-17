@@ -89,7 +89,7 @@ func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[
 	total_page_count = ceil(total_image_count as float / Settings.settings.images_per_page as float) as int
 	
 	offset = (current_page_number-1) * Settings.settings.images_per_page
-		
+	
 	if pages.size() >= Settings.settings.pages_to_store:
 		var page_to_remove:Array = page_history.pop_front()
 		
@@ -107,17 +107,18 @@ func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[
 	else:
 		komi_arr = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, current_sort, ascending)
 	
-	
 	if not page_history.has([current_page_number, import_id]):
 		page_history.push_back([current_page_number, import_id])
 	pages[[current_page_number, import_id]] = komi_arr
 	
 	if pages.empty(): page_image_count = 0
 	else: page_image_count = pages[[current_page_number, import_id]].size()
+	
+	# print("LIG : ", current_page_number, ":", pages.has([current_page_number, import_id]))
 
-	self.call_deferred("_threadsafe_clear", import_id)
+	self.call_deferred("_threadsafe_clear", import_id, current_page_number)
 
-func _threadsafe_clear(import_id:String) -> void:
+func _threadsafe_clear(import_id:String, page_number:int) -> void:
 	sc.lock()
 	if self.get_item_count() > 0:
 		yield(get_tree(), "idle_frame")
@@ -125,22 +126,23 @@ func _threadsafe_clear(import_id:String) -> void:
 		yield(get_tree(), "idle_frame")
 		yield(get_tree(), "idle_frame")
 	for i in page_image_count:
-		self.add_item("") #self.add_item(pages[[current_page_number, import_id]][i]) #
+		self.add_item("") #self.add_item(pages[[page_number, import_id]][i]) #
 		self.set_item_icon(i, icon_loading)
 	# should get a proper node reference instead here
-	get_parent().get_node("page_buttons/Label").text = String(current_page_number) + "/" + String(total_page_count)
+	get_parent().get_node("page_buttons/Label").text = String(page_number) + "/" + String(total_page_count)
 	sc.unlock()
-	prep_load_thumbnails(import_id)
+	prep_load_thumbnails(import_id, page_number)
 
-func prep_load_thumbnails(import_id:String) -> void: 
+func prep_load_thumbnails(import_id:String, page_number:int) -> void: 
 	loading_threads.clear()
 	for i in Settings.settings.load_threads: loading_threads.append(Thread.new())
 	
 	fi.lock() ; item_index = 0; fi.unlock()	
-	pf.lock()
 	current_page_images.clear()
-	current_page_images = pages[[current_page_number, import_id]].duplicate() # clears the original if not duplicated here (no idea why though, it should not do this)
-	pf.unlock()
+	# print("PLT : ", page_number, ":", pages.has([page_number, import_id]))
+	current_page_images = pages[[page_number, import_id]].duplicate() # clears the original if not duplicated here (no idea why though, it should not do this)
+	
+	# if stop_all: return
 	
 	stop_all = false
 	for t in loading_threads.size(): if not loading_threads[t].is_active(): loading_threads[t].start(self, "_thread", t)	

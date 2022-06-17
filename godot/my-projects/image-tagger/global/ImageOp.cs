@@ -72,14 +72,15 @@ public class ImageOp : Node
 		catch (Exception ex) { GD.Print("ImageOp::SaveMinimalThumbnail() : ", ex); return; }
 	}
 	static bool IsImageCorrupt(string image_path) {
-		try { var im = new MagickImage(image_path); }
+		try { var im = new MagickImage(image_path); return false; }
 		catch (MagickCorruptImageErrorException) { GD.Print("err (corrupt) ::: ", image_path); return true; }
 		catch (MagickBlobErrorException) { GD.Print("err (blob) ::: ", image_path); return true; }
-		return false;
+		catch (Exception) { return true; }
 	}
 	static string GetActualFormat(string image_path) {
 		try { return new MagickImageInfo(image_path).Format.ToString().ToUpperInvariant().Replace("JPEG", "JPG"); }
 		catch (MagickCorruptImageErrorException) { return ""; }
+		catch (Exception ex) { return ""; }
 	}
 	static Godot.Image LoadUnknownFormat(string image_path) {
 		try {
