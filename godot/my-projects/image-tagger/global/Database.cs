@@ -561,7 +561,23 @@ public class Database : Node {
 			}
 			GD.Print(count);
 			GD.Print("Counting2 finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
+			GD.Print("Counting3...");
+			now = DateTime.Now;
 			
+			count = col_komi64.Query()
+				.Where(x => tags_in_all.All(x.tags.Contains))
+				//.Where(x => x != null && x.tags != null)// && x.tags.Length > 0)
+				//.Where("$.tags[*] ALL IN @0", BsonMapper.Global.Serialize(tags_in_all))
+				//.Where("$.tags[*] ALL IN @0", BsonMapper.Global.Serialize(tags_in_all))
+				//.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))
+				//.Where("@0 ALL IN $.tags[*]", BsonMapper.Global.Serialize(tags_in_all))
+				//.Where("$.tags[*] ANY IN @0", BsonMapper.Global.Serialize(tags_in_one))
+				//.Where("$.tags[*] ANY IN @0 AND $.tags[*] ALL IN @1", BsonMapper.Global.Serialize(tags_in_one), BsonMapper.Global.Serialize(tags_in_all))
+				//.Where("$.tags[*] NONE in @0", BsonMapper.Global.Serialize(tags_ex_all))
+				.Count();
+			
+			GD.Print(count);
+			GD.Print("Counting3 finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
 			
 			return count;
 		} catch (Exception ex) { GD.Print("Database::GetQueryCountFromTags() : ", ex); return -1; }
