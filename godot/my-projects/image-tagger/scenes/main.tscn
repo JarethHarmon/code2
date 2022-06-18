@@ -466,6 +466,16 @@ access = 2
 current_dir = "/git/code2/godot/my-projects/image-tagger"
 current_path = "/git/code2/godot/my-projects/image-tagger/"
 
+[node name="Label2" type="Label" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -931.0
+margin_top = -55.0
+margin_right = -595.0
+margin_bottom = 107.0
+
 [connection signal="gui_input" from="margin/hsplit/right/preview/viewport_display" to="margin/hsplit/right/preview/viewport_display" method="_on_viewport_display_gui_input"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_smooth_pixel" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_smooth_pixel_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]

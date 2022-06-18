@@ -27,6 +27,7 @@ var offset:int = 0						# offset for querying the database
 var current_page_number:int = 1			# the current page
 var total_page_count:int = 1			# the total number of pages
 var total_image_count:int = 0			# the total number of images
+var queried_image_count:int = 0			# the total number of images found by the most recent query
 var page_image_count:int = 0			# the number of images for the current page
 var current_import_id:String = ""		# the import_id for the current group
 
@@ -74,7 +75,9 @@ func all_button_pressed() -> void:
 	var tags_ex_all:Array = text_ex_all.split(",", false) 
 	
 	load_import_group("all", tags_in_all, tags_in_one, tags_ex_all)
-	
+
+
+
 func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[], tag_ex_all:Array=[]) -> void:
 	if loading: return
 	if import_id == "": return
@@ -103,6 +106,10 @@ func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[
 	var komi_arr:Array = []
 	if import_id == "all":
 		var tmp = Database.LoadRangeKomi64FromTags(offset, Settings.settings.images_per_page, tag_in_all, tag_in_one, tag_ex_all, current_sort, ascending)
+		var t = OS.get_ticks_msec()
+		var count:int = Database.GetQueryCountFromTags(tag_in_all, tag_in_one, tag_ex_all)
+		get_node("/root/main/Label2").text = String(OS.get_ticks_msec()-t) + " ms"
+		print(count)
 		if tmp != null: komi_arr = tmp
 	else:
 		komi_arr = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, current_sort, ascending)
@@ -206,7 +213,6 @@ func get_file_size(komi64:String, all:bool=false) -> String:
 	elif size < kb*kb: return "%1.2f KB" % [size/float(kb)]
 	elif size < kb*kb*kb: return "%1.2f MB" % [size/float(kb*kb)]
 	else: return "%1.2f GB" % [size/float(kb*kb*kb)]
-
 	
 func _threadsafe_set_icon(komi64:String, index:int, failed:bool=false) -> void:
 	var im_tex:Texture

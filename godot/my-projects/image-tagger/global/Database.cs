@@ -98,6 +98,9 @@ public class Database : Node {
 	public string metadata_path;
 	public void SetMetadataPath(string path) { metadata_path = path; }
 	
+	public int last_query_count = 0;
+	public int GetTagQueryCount() { return last_query_count; }	
+	
 	public LiteDatabase db_komi64;
 	public LiteDatabase db_import;
 	public LiteDatabase db_tag;
@@ -119,7 +122,9 @@ public class Database : Node {
 				db_komi64 = new LiteDatabase(metadata_path + "komi64_info.db");
 				BsonMapper.Global.Entity<Komi64Info>().Id(x => x.komi64);		
 				col_komi64 = db_komi64.GetCollection<Komi64Info>("komihashes");
-				col_komi64.EnsureIndex((Komi64Info x) => x.komi64, true);
+				//col_komi64.EnsureIndex((Komi64Info x) => x.komi64, true); // probably not needed since they are _Id
+				col_komi64.EnsureIndex(x => x.tags);
+				col_komi64.EnsureIndex("tags_index", "$.tags[*]");
 				
 				db_import = new LiteDatabase(metadata_path + "import_info.db");
 				BsonMapper.Global.Entity<ImportInfo>().Id(x => x.import_id);
@@ -248,16 +253,18 @@ public class Database : Node {
 			}
 			
 			GD.Print("IG Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
-				
+			
+			last_query_count = 0;
 			foreach (ImportGroup import in imports) {
 				dict_import_group[import.komi64] = import;
 				list_komi64.Add(import.komi64);
+				last_query_count++;
 			} 
 			return list_komi64.ToArray();	
 		} 
 		catch (Exception ex) { GD.Print("Database::GetImportGroupRange() : ", ex); return new string[0]; }
 	}
-	public string GetFileSizeFromHash(string komi64) { return dict_import_group[komi64].file_size.ToString(); }
+	public string GetFileSizeFromHash(string komi64) { return dict_import_group.ContainsKey(komi64) ? dict_import_group[komi64].file_size.ToString() : ""; }
 	public void InsertImportGroup(string iid, string ikomi, string ipath, long isize, long itimeUTC) {
 		try {
 			var col = db_import.GetCollection<ImportGroup>(iid);
@@ -446,8 +453,7 @@ public class Database : Node {
 		}
 		return s;
 	}
-	public int last_query_count = 0;
-	public int GetTagQueryCount() { return last_query_count; }	
+	
 	//public void LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
 	public string[] LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
 		try {
@@ -466,7 +472,7 @@ public class Database : Node {
 					//GD.Print(khinfo.komi64);
 				}
 			return list.ToArray();
-		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return null; }
+		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return new string[0]; } //null; }
 	}
 	
 	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_in_all, string[] tags_in_one, string[] tags_ex_all, int sort_by=SortBy.FileHash, bool ascend=false) {					
@@ -500,6 +506,65 @@ public class Database : Node {
 			GD.Print("Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
 			return results;
 		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
+	}
+	
+	private int GetQueryCountFromTags(string[] tags_in_all, string[] tags_in_one, string[] tags_ex_all) {
+		try {
+			GD.Print("Counting1...");
+			var now = DateTime.Now;
+			/*int count = col_komi64.Count(Query.All()
+				.Where(x => x != null && x.tags != null)															// only check those that are not null and whose tags are not null
+				.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))		// if tags_in_all has tags, check only images that possess every tag inside of tags_in_all
+				.Where(x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains))		// if tags_in_one has tags, check only images that possess at least one tag inside of tags_in_one
+				.Where(x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains)));	// if tags_ex_all has tags, check only images that do not possess any tags in tags_ex_all
+			*/
+			/*int count = col_komi64.Count(Query.And(
+				Query.Where("tags", x => x != null && x.tags != null),
+				Query.Where("tags", x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains)),
+				Query.Where("tags", x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains)),
+				Query.Where("tags", x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains))));*/
+			int count=0;
+			
+			/*var queries = new List<Query>();
+			//var results = col.Find(Query.Where("Name", name => name.AsString.Length > 20));
+			queries.Add(Query.Where("tags", x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains)));
+			queries.Add(Query.Where("tags", x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains)));
+			
+			count = col_komi64.Count(Query.And(queries));*/
+			
+			//count = col_komi64.Count(Query.All()
+			//	.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains)));
+			
+			count = col_komi64.Find(Query.All())																
+				.Where(x => x != null && x.tags != null)														
+				.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))	
+				.Where(x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains))		
+				.Where(x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains))	
+				.Count();
+			
+			GD.Print(count);
+			GD.Print("Counting1 finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
+			GD.Print("Counting2...");
+			now = DateTime.Now;
+			
+			//var list = new List<Query>();
+			var list = new List<BsonExpression>();
+			foreach (string tag in tags_in_all) list.Add(Query.EQ("tags_index", tag));
+			//foreach (string tag in tags_in_all) list.Add(Query.EQ("tags_index", tag));
+			//foreach (string tag in tags_in_all) list.Add(Query.Contains("tags_index", tag));
+			if (list.Count > 0) {
+				var query = list.Count > 1 ? Query.And(list.ToArray()) : list[0];
+				GD.Print(query);
+				count = col_komi64.Count(query);
+			} else  {
+				count = col_komi64.Count();
+			}
+			GD.Print(count);
+			GD.Print("Counting2 finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
+			
+			
+			return count;
+		} catch (Exception ex) { GD.Print("Database::GetQueryCountFromTags() : ", ex); return -1; }
 	}
 	
 	
