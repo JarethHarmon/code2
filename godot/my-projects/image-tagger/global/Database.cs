@@ -116,6 +116,10 @@ public class Database : Node {
 	
 	public HashSet<string> set_tags = new HashSet<string>();
 	
+	public Label time_display;
+	
+	public override void _Ready() { time_display = (Label)GetNode("/root/main/Label2"); }
+	
 	public int Create() {
 		try {
 			if (use_journal) {
@@ -508,95 +512,30 @@ public class Database : Node {
 		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
 	}
 	
-	private int GetQueryCountFromTags(string[] tags_in_all, string[] tags_in_one, string[] tags_ex_all) {
+	private int GetQueryCountFromTags(string[] tags_all, string[] tags_any, string[] tags_none) {
 		try {
-			GD.Print("Counting1...");
 			var now = DateTime.Now;
-			/*int count = col_komi64.Count(Query.All()
-				.Where(x => x != null && x.tags != null)															// only check those that are not null and whose tags are not null
-				.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))		// if tags_in_all has tags, check only images that possess every tag inside of tags_in_all
-				.Where(x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains))		// if tags_in_one has tags, check only images that possess at least one tag inside of tags_in_one
-				.Where(x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains)));	// if tags_ex_all has tags, check only images that do not possess any tags in tags_ex_all
-			*/
-			/*int count = col_komi64.Count(Query.And(
-				Query.Where("tags", x => x != null && x.tags != null),
-				Query.Where("tags", x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains)),
-				Query.Where("tags", x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains)),
-				Query.Where("tags", x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains))));*/
-			int count=0;
+			int count = 0;
 			
-			/*var queries = new List<Query>();
-			//var results = col.Find(Query.Where("Name", name => name.AsString.Length > 20));
-			queries.Add(Query.Where("tags", x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains)));
-			queries.Add(Query.Where("tags", x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains)));
-			
-			count = col_komi64.Count(Query.And(queries));*/
-			
-			//count = col_komi64.Count(Query.All()
-			//	.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains)));
-			
-			count = col_komi64.Find(Query.All())																
-				.Where(x => x != null && x.tags != null)														
-				.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))	
-				.Where(x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains))		
-				.Where(x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains))	
-				.Count();
-			
-			GD.Print(count);
-			GD.Print("Counting1 finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
-			GD.Print("Counting2...");
-			now = DateTime.Now;
-			
-			//var list = new List<Query>();
-			var list = new List<BsonExpression>();
-			foreach (string tag in tags_in_all) list.Add(Query.EQ("tags_index", tag));
-			//foreach (string tag in tags_in_all) list.Add(Query.EQ("tags_index", tag));
-			//foreach (string tag in tags_in_all) list.Add(Query.Contains("tags_index", tag));
-			if (list.Count > 0) {
-				var query = list.Count > 1 ? Query.And(list.ToArray()) : list[0];
-				GD.Print(query);
-				count = col_komi64.Count(query);
-			} else  {
-				count = col_komi64.Count();
+			if (tags_all.Length == 0) {
+				if (tags_any.Length == 0) {
+					if (tags_none.Length == 0) count = col_komi64.Count();
+					else count = col_komi64.Find(Query.All()).Where(x => !tags_none.All(x.tags.Contains)).Count();
+				} else { 
+					if (tags_none.Length == 0) count = col_komi64.Query().Where("$.tags[*] ANY IN @0", BsonMapper.Global.Serialize(tags_any)).Count();
+					else count = col_komi64.Find(Query.All()).Where(x => tags_any.Any(x.tags.Contains) && !tags_none.All(x.tags.Contains)).Count();
+				}
+			} else {
+				if (tags_any.Length == 0) {
+					if (tags_none.Length == 0) count = db_komi64.Execute("select $ from komihashes include tags where @0 all in $.tags", BsonMapper.Global.Serialize(tags_all)).ToArray().Length;
+					else count = col_komi64.Find(Query.All()).Where(x => tags_all.All(x.tags.Contains) && !tags_none.All(x.tags.Contains)).Count();
+				} else {
+					if (tags_none.Length == 0) count = db_komi64.Execute("select $ from komihashes include tags where @0 all in $.tags and @1 any in $.tags", BsonMapper.Global.Serialize(tags_all), BsonMapper.Global.Serialize(tags_any)).ToArray().Length;
+					else count = col_komi64.Find(Query.All()).Where(x => tags_all.All(x.tags.Contains) && tags_any.Any(x.tags.Contains) && !tags_none.All(x.tags.Contains)).Count();
+				}
 			}
-			GD.Print(count);
-			GD.Print("Counting2 finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
-			GD.Print("Counting3...");
-			now = DateTime.Now;
 			
-			count = col_komi64.Query()
-			  // can exclude images with no tags (for ALL IN) using this, but the query takes considerably longer
-			  // with this line ALL IN returns 5 (so the only remaining issues are that 'ALL IN' is slower and that the logic is still backwards) 
-				.Where(x => x != null && x.tags != null && x.tags.Count > 0)
-				
-			  // counts incorrectly for two reasons: 1. it counts imags with no tags, 2. the logic for counting is reversed from what it should be
-				.Where("$.tags[*] ALL IN @0", BsonMapper.Global.Serialize(tags_in_all))
-				
-			  // return a count of 0 (instead of 12)
-				//.Where(Query.Contains("tags", "example_tag"))
-				//.Where(Query.Contains("tags_index", "example_tag"))
-				//.Where(Query.EQ("tags", "example_tag"))
-				//.Where(Query.EQ("tags_index", "example_tag"))
-				
-			  // throws System.NullReferenceException: Object reference not set to an instance of an object.
-				//.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))
-				
-			  // throws LiteDB.LiteException: Right expression `$.tags[*]` must return a single value
-				//.Where("@0 ALL IN $.tags[*]", BsonMapper.Global.Serialize(tags_in_all))
-				
-			  // no errors, returns correct result; but because logic is reversed: slower than it could be
-				//.Where("$.tags[*] ANY IN @0", BsonMapper.Global.Serialize(tags_in_one))
-				
-			  // doesn't work because of the issues with 'ALL IN'
-				//.Where("$.tags[*] ANY IN @0 AND $.tags[*] ALL IN @1", BsonMapper.Global.Serialize(tags_in_one), BsonMapper.Global.Serialize(tags_in_all))
-			
-				
-				
-				.Count();
-			
-			GD.Print(count);
-			GD.Print("Counting3 finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
-			
+			time_display.Text = count.ToString() + " : " + (DateTime.Now-now).Milliseconds.ToString() + " ms";
 			return count;
 		} catch (Exception ex) { GD.Print("Database::GetQueryCountFromTags() : ", ex); return -1; }
 	}
