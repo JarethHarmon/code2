@@ -565,15 +565,33 @@ public class Database : Node {
 			now = DateTime.Now;
 			
 			count = col_komi64.Query()
-				.Where(x => tags_in_all.All(x.tags.Contains))
-				//.Where(x => x != null && x.tags != null)// && x.tags.Length > 0)
-				//.Where("$.tags[*] ALL IN @0", BsonMapper.Global.Serialize(tags_in_all))
-				//.Where("$.tags[*] ALL IN @0", BsonMapper.Global.Serialize(tags_in_all))
+			  // can exclude images with no tags (for ALL IN) using this, but the query takes considerably longer
+			  // with this line ALL IN returns 5 (so the only remaining issues are that 'ALL IN' is slower and that the logic is still backwards) 
+				.Where(x => x != null && x.tags != null && x.tags.Count > 0)
+				
+			  // counts incorrectly for two reasons: 1. it counts imags with no tags, 2. the logic for counting is reversed from what it should be
+				.Where("$.tags[*] ALL IN @0", BsonMapper.Global.Serialize(tags_in_all))
+				
+			  // return a count of 0 (instead of 12)
+				//.Where(Query.Contains("tags", "example_tag"))
+				//.Where(Query.Contains("tags_index", "example_tag"))
+				//.Where(Query.EQ("tags", "example_tag"))
+				//.Where(Query.EQ("tags_index", "example_tag"))
+				
+			  // throws System.NullReferenceException: Object reference not set to an instance of an object.
 				//.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))
+				
+			  // throws LiteDB.LiteException: Right expression `$.tags[*]` must return a single value
 				//.Where("@0 ALL IN $.tags[*]", BsonMapper.Global.Serialize(tags_in_all))
+				
+			  // no errors, returns correct result; but because logic is reversed: slower than it could be
 				//.Where("$.tags[*] ANY IN @0", BsonMapper.Global.Serialize(tags_in_one))
+				
+			  // doesn't work because of the issues with 'ALL IN'
 				//.Where("$.tags[*] ANY IN @0 AND $.tags[*] ALL IN @1", BsonMapper.Global.Serialize(tags_in_one), BsonMapper.Global.Serialize(tags_in_all))
-				//.Where("$.tags[*] NONE in @0", BsonMapper.Global.Serialize(tags_ex_all))
+			
+				
+				
 				.Count();
 			
 			GD.Print(count);
