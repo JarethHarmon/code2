@@ -2,7 +2,9 @@ using Godot;							// access to Godot
 using System;							// access to System
 using System.IO;						// (?)
 using System.Linq;						// everything related to the database
+using System.Linq.Expressions;			// Predicate Builder
 using System.Collections.Generic;		// HashSet, Dictionary
+using System.Diagnostics;				// Stopwatch
 using System.Reflection;				// needed for x.GetType().GetProperty(column_name).GetValue(x, null) (I think)
 using System.Security.Cryptography;		// (?)
 using LiteDB;							// everything related to the database
@@ -68,10 +70,12 @@ using Alphaleonis.Win32.Filesystem;		// (?)
 	}
 
 	public class SortBy {
+		// need to turn these into flags
 		public const int FileHash = 0;			
 		public const int FilePath = 1;			
 		public const int FileSize = 2;			
 		public const int FileCreationUtc = 3;
+		public const int Random = 4; 
 	}
 	
 	public class ErrorCodes {
@@ -81,11 +85,81 @@ using Alphaleonis.Win32.Filesystem;		// (?)
 		public const int INT_ERROR = -1;
 	}
 	
+	// https://petemontgomery.wordpress.com/2011/02/10/a-universal-predicatebuilder/
+	public static class PredicateBuilder{
+		public static System.Linq.Expressions.Expression<Func<T, bool>> True<T>() { return param => true; }
+		public static System.Linq.Expressions.Expression<Func<T, bool>> False<T>() { return param => false; }
+		public static System.Linq.Expressions.Expression<Func<T, bool>> Create<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) { return predicate; }
+	
+		public static System.Linq.Expressions.Expression<Func<T, bool>> And<T>(this System.Linq.Expressions.Expression<Func<T, bool>> first, System.Linq.Expressions.Expression<Func<T, bool>> second)
+		{
+			return first.Compose(second, System.Linq.Expressions.Expression.AndAlso);
+		}
+		public static System.Linq.Expressions.Expression<Func<T, bool>> Or<T>(this System.Linq.Expressions.Expression<Func<T, bool>> first, System.Linq.Expressions.Expression<Func<T, bool>> second)
+		{
+			return first.Compose(second, System.Linq.Expressions.Expression.OrElse);
+		}
+		public static System.Linq.Expressions.Expression<Func<T, bool>> Not<T>(this System.Linq.Expressions.Expression<Func<T, bool>> expression)
+		{
+			var negated = System.Linq.Expressions.Expression.Not(expression.Body);
+			return System.Linq.Expressions.Expression.Lambda<Func<T, bool>>(negated, expression.Parameters);
+		}
+		static System.Linq.Expressions.Expression<T> Compose<T>(this System.Linq.Expressions.Expression<T> first, System.Linq.Expressions.Expression<T> second, Func<System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, System.Linq.Expressions.Expression> merge)
+		{
+			// zip parameters (map from parameters of second to parameters of first)
+			var map = first.Parameters
+				.Select((f, i) => new { f, s = second.Parameters[i] })
+				.ToDictionary(p => p.s, p => p.f);
+	 
+			// replace parameters in the second lambda expression with the parameters in the first
+			var secondBody = ParameterRebinder.ReplaceParameters(map, second.Body);
+	 
+			// create a merged lambda expression with parameters from the first expression
+			return System.Linq.Expressions.Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
+		}
+	 
+		class ParameterRebinder : ExpressionVisitor
+		{
+			readonly Dictionary<ParameterExpression, ParameterExpression> map;
+	 
+			ParameterRebinder(Dictionary<ParameterExpression, ParameterExpression> map)
+			{
+				this.map = map ?? new Dictionary<ParameterExpression, ParameterExpression>();
+			}
+	 
+			public static System.Linq.Expressions.Expression ReplaceParameters(Dictionary<ParameterExpression, ParameterExpression> map, System.Linq.Expressions.Expression exp)
+			{
+				return new ParameterRebinder(map).Visit(exp);
+			}
+	 
+			protected override System.Linq.Expressions.Expression VisitParameter(ParameterExpression p)
+			{
+				ParameterExpression replacement;
+	 
+				if (map.TryGetValue(p, out replacement))
+				{
+					p = replacement;
+				}
+	 
+				return base.VisitParameter(p);
+			}
+		}
+	}
 	
 	public static class LinqExtensions {
 		public static IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, bool ascend) {
 			return ascend ? source.OrderBy(keySelector) : source.OrderByDescending(keySelector);
 		}
+		
+		public static bool ContainsAny<T>(this IEnumerable<T> sequence, params T[] matches)
+		{
+			return matches.Any(value => sequence.Contains(value));
+		}
+
+		public static bool ContainsAll<T>(this IEnumerable<T> sequence, params T[] matches)
+		{
+			return matches.All(value => sequence.Contains(value));
+		}		
 	}
 	
 // there are ~4000 bytes total of space for collection names in a database, with each import_id taking 8 bytes; I will set the limit of the number of import_groups to ~400
@@ -95,6 +169,9 @@ public class Database : Node {
 	public bool use_journal = true;	
 	public string metadata_path;
 	public void SetMetadataPath(string path) { metadata_path = path; }
+	
+	public int last_query_count = 0;
+	public int GetTagQueryCount() { return last_query_count; }	
 	
 	public LiteDatabase db_komi64;
 	public LiteDatabase db_import;
@@ -111,13 +188,20 @@ public class Database : Node {
 	
 	public HashSet<string> set_tags = new HashSet<string>();
 	
+	public Label time_display;
+	
+	public override void _Ready() { time_display = (Label)GetNode("/root/main/Label2"); }
+	
 	public int Create() {
 		try {
 			if (use_journal) {
 				db_komi64 = new LiteDatabase(metadata_path + "komi64_info.db");
 				BsonMapper.Global.Entity<Komi64Info>().Id(x => x.komi64);		
 				col_komi64 = db_komi64.GetCollection<Komi64Info>("komihashes");
-				col_komi64.EnsureIndex((Komi64Info x) => x.komi64, true);
+				//col_komi64.EnsureIndex((Komi64Info x) => x.komi64, true); // probably not needed since they are _Id
+				//col_komi64.EnsureIndex(x => x.tags);
+				//col_komi64.EnsureIndex("tags_index", "$.tags[*]");
+				col_komi64.EnsureIndex("tags_index", "$.tags[*]", false);
 				
 				db_import = new LiteDatabase(metadata_path + "import_info.db");
 				BsonMapper.Global.Entity<ImportInfo>().Id(x => x.import_id);
@@ -223,6 +307,11 @@ public class Database : Node {
 			dict_import_group.Clear();
 			IEnumerable<ImportGroup> imports;
 			
+			GD.Print("Querying...");
+			var now = DateTime.Now;
+			
+			bool random = sort_by == SortBy.Random;
+			
 			if (sort_by == SortBy.FilePath) {
 				if (ascend) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
 				else imports = col.Find(Query.All("file_path", Query.Descending), start, limit:count);
@@ -239,16 +328,20 @@ public class Database : Node {
 				if (ascend) imports = col.Find(Query.All(), start, limit:count);//imports = col.Find(Query.All(Query.Ascending), start, limit:count);
 				else imports = col.Find(Query.All(Query.Descending), start, limit:count);
 			}
-					
+			
+			GD.Print("IG Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
+			
+			last_query_count = 0;
 			foreach (ImportGroup import in imports) {
 				dict_import_group[import.komi64] = import;
 				list_komi64.Add(import.komi64);
+				last_query_count++;
 			} 
 			return list_komi64.ToArray();	
 		} 
 		catch (Exception ex) { GD.Print("Database::GetImportGroupRange() : ", ex); return new string[0]; }
 	}
-	public string GetFileSizeFromHash(string komi64) { return dict_import_group[komi64].file_size.ToString(); }
+	public string GetFileSizeFromHash(string komi64) { return dict_import_group.ContainsKey(komi64) ? dict_import_group[komi64].file_size.ToString() : ""; }
 	public void InsertImportGroup(string iid, string ikomi, string ipath, long isize, long itimeUTC) {
 		try {
 			var col = db_import.GetCollection<ImportGroup>(iid);
@@ -316,7 +409,9 @@ public class Database : Node {
 		}
 		catch (Exception ex) { GD.Print("Database::LoadOneKomi64() : ", ex); } 
 	}
-		
+	
+	public string GetFileSizeFromKomi(string komi64) { return dict_komi64.ContainsKey(komi64) ? dict_komi64[komi64].file_size.ToString() : ""; }
+	
 	public int InsertKomi64Info(string komi64_n, bool filter_n, string[] paths_n, string[] tags_n, long size_n, long utc_creation_n) {
 		try {
 			//var temp = col_komi64.FindOne(Query.EQ("_Id", komi64_n));
@@ -435,8 +530,7 @@ public class Database : Node {
 		}
 		return s;
 	}
-	public int last_query_count = 0;
-	public int GetTagQueryCount() { return last_query_count; }	
+	
 	//public void LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
 	public string[] LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
 		try {
@@ -455,33 +549,156 @@ public class Database : Node {
 					//GD.Print(khinfo.komi64);
 				}
 			return list.ToArray();
-		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return null; }
+		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return new string[0]; } //null; }
 	}
 	
-	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_in_all, string[] tags_in_one, string[] tags_ex_all, int sort_by=SortBy.FileHash, bool ascend=false) {					
+	//private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {	
+	private List<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {				
 		try {
 			GD.Print("Querying...");
 			var now = DateTime.Now;
 			string column_name = "komi64";
+			bool random = false;
+			
 			if (sort_by == SortBy.FileSize) column_name = "file_size";
 			else if (sort_by == SortBy.FileCreationUtc) column_name = "file_creation_utc";
-			
+			else if (sort_by == SortBy.Random) random = true;
+
 			// would like to add support for sorting by file paths; but any image could have any number of paths or filenames and even just choosing one would be difficult (syntax-wise)
 			// need to consider either removing file_paths from the sort_by dropdown while ALL is selected, or have 2 dropdowns and toggle their visibility depending on whether ALL is selected 
 			// need to add support for a global blacklist (tags/hashes in this case)
 			
-			var results = col_komi64.Find(Query.All())																// find all Komi64Info in col_komi64
-				.Where(x => x != null && x.tags != null)															// only check those that are not null and whose tags are not null
-				.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))		// if tags_in_all has tags, check only images that possess every tag inside of tags_in_all
-				.Where(x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains))		// if tags_in_one has tags, check only images that possess at least one tag inside of tags_in_one
-				.Where(x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains))	// if tags_ex_all has tags, check only images that do not possess any tags in tags_ex_all
-				.OrderBy(x => x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 						// order the results by column_name; ascending/descending
-				.Skip(start_index)																					// (OFFSET) skip to the starting point for this query (say 1000/5000 for example)
-				.Take(count);																						// (LIMIT)  take the specified number of images 
+			var rng = new Random();
+			
+			if (tags_all.Length == 0 && tags_any.Length == 0 && tags_none.Length == 0)
+				// NO TAGS
+				return col_komi64.Find(Query.All())
+					.OrderBy(x => (random) ? rng.Next() : x.GetType().GetProperty(column_name).GetValue(x, null), ascend)
+					.Skip(start_index).Take(count).ToList();
+			
+			var query = col_komi64.Query();
+			if (tags_all.Length == 0) {
+				// NONE
+				if (tags_any.Length == 0) foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+				else {
+					// ANY
+					if (tags_none.Length == 0) query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any));
+					// ANY + NONE
+					else {
+						var predicate = PredicateBuilder.False<Komi64Info>();
+						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						query = query.Where(predicate);
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+					}
+				}
+			} else {
+				if (tags_any.Length == 0) {
+					// ALL
+					if (tags_none.Length == 0) foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+					// ALL + NONE
+					else {
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+					}
+				} else {
+					// ALL + ANY
+					if (tags_none.Length == 0) {
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						var predicate = PredicateBuilder.False<Komi64Info>();
+						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						query = query.Where(predicate);
+					} else {
+					// ALL + ANY + NONE
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						var predicate = PredicateBuilder.False<Komi64Info>();
+						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						query = query.Where(predicate);
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+					}					
+				}
+			}
+			
+			// currently random only works when viewing all images
+			query = (ascend) ? query.OrderBy(column_name) : query.OrderByDescending(column_name);
 				
-			GD.Print("Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
-			return results;
+			return query.Skip(start_index).Limit(count).ToList();
 		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
+	}
+	
+	private int GetQueryCountFromTags(string[] tags_all, string[] tags_any, string[] tags_none) {
+		try {
+			var sw = new Stopwatch();
+			int count = 0;
+			string time = "";
+			
+			sw.Start();
+			if (tags_all.Length == 0) {
+				if (tags_any.Length == 0) {
+					// NO TAGS
+					if (tags_none.Length == 0) count = col_komi64.Count();
+					// NONE
+					else {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+						count = query.Count();
+					}
+				} else { 
+					// ANY
+					if (tags_none.Length == 0) count = col_komi64.Query().Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any)).Count();
+					// ANY + NONE
+					else {
+						var query = col_komi64.Query();
+						var predicate = PredicateBuilder.False<Komi64Info>();
+						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						query = query.Where(predicate);
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+						count = query.Count();
+					}
+				}
+			} else {
+				if (tags_any.Length == 0) {
+					// ALL
+					if (tags_none.Length == 0) {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						count = query.Count();
+					}
+					// ALL + NONE
+					else {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+						count = query.Count();
+					}
+				} else {
+					// ALL + ANY
+					if (tags_none.Length == 0) {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						var predicate = PredicateBuilder.False<Komi64Info>();
+						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						query = query.Where(predicate);
+						count = query.Count();
+					}
+					// ALL + ANY + NONE
+					else {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						var predicate = PredicateBuilder.False<Komi64Info>();
+						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						query = query.Where(predicate);
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+						count = query.Count();
+					}
+				}
+			}
+			sw.Stop();
+			
+			time += "counted: " + count.ToString() + " images\ntook: " + sw.Elapsed.ToString(@"m\:ss\.fff") + "\n";
+			time_display.Text = time;
+			
+			return count;
+		} catch (Exception ex) { GD.Print("Database::GetQueryCountFromTags() : ", ex); return -1; }
 	}
 	
 	

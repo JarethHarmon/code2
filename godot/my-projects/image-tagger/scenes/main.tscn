@@ -88,100 +88,6 @@ margin_right = 876.0
 margin_bottom = 1080.0
 size_flags_horizontal = 3
 
-[node name="vbox" parent="margin/hsplit/left/image_list/margin" index="0"]
-margin_right = 479.0
-
-[node name="sort_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="0"]
-margin_right = 474.0
-margin_bottom = 29.0
-
-[node name="sort_by_label" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="0"]
-margin_top = 0.0
-margin_right = 71.0
-margin_bottom = 29.0
-
-[node name="sort_by" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="1"]
-margin_left = 75.0
-margin_right = 180.0
-margin_bottom = 29.0
-
-[node name="ascend_descend" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="2"]
-margin_left = 184.0
-margin_right = 296.0
-margin_bottom = 29.0
-
-[node name="SPACE_3" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="3"]
-margin_left = 300.0
-margin_right = 375.0
-margin_bottom = 29.0
-
-[node name="refresh" parent="margin/hsplit/left/image_list/margin/vbox/sort_buttons" index="4"]
-margin_left = 379.0
-margin_right = 474.0
-margin_bottom = 29.0
-
-[node name="search_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="1"]
-margin_top = 33.0
-margin_right = 474.0
-margin_bottom = 128.0
-
-[node name="search_bars" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons" index="0"]
-margin_right = 381.0
-margin_bottom = 95.0
-
-[node name="include_all" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons/search_bars" index="0"]
-margin_right = 381.0
-margin_bottom = 29.0
-
-[node name="include_one" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons/search_bars" index="1"]
-margin_top = 33.0
-margin_right = 381.0
-margin_bottom = 62.0
-
-[node name="exclude_all" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons/search_bars" index="2"]
-margin_top = 66.0
-margin_right = 381.0
-margin_bottom = 95.0
-
-[node name="search_button" parent="margin/hsplit/left/image_list/margin/vbox/search_buttons" index="1"]
-margin_left = 385.0
-margin_right = 474.0
-margin_bottom = 95.0
-
-[node name="images" parent="margin/hsplit/left/image_list/margin/vbox" index="2"]
-margin_top = 132.0
-margin_right = 474.0
-margin_bottom = 1037.0
-
-[node name="page_buttons" parent="margin/hsplit/left/image_list/margin/vbox" index="3"]
-margin_top = 1041.0
-margin_right = 474.0
-
-[node name="prev_page" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="0"]
-margin_right = 60.0
-margin_bottom = 29.0
-
-[node name="SPACE_1" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="1"]
-margin_left = 64.0
-margin_right = 229.0
-margin_bottom = 29.0
-
-[node name="Label" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="2"]
-margin_left = 233.0
-margin_top = 0.0
-margin_right = 241.0
-margin_bottom = 29.0
-
-[node name="SPACE_2" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="3"]
-margin_left = 245.0
-margin_right = 411.0
-margin_bottom = 29.0
-
-[node name="next_page" parent="margin/hsplit/left/image_list/margin/vbox/page_buttons" index="4"]
-margin_left = 415.0
-margin_right = 474.0
-margin_bottom = 29.0
-
 [node name="right" type="HSplitContainer" parent="margin/hsplit"]
 margin_left = 884.0
 margin_right = 1920.0
@@ -560,7 +466,16 @@ access = 2
 current_dir = "/git/code2/godot/my-projects/image-tagger"
 current_path = "/git/code2/godot/my-projects/image-tagger/"
 
-[connection signal="button_up" from="margin/hsplit/left/image_list/margin/vbox/sort_buttons/refresh" to="margin/hsplit/left/image_list/margin/vbox/images" method="_on_refresh_button_up"]
+[node name="Label2" type="Label" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -931.0
+margin_top = -55.0
+margin_right = -595.0
+margin_bottom = 107.0
+
 [connection signal="gui_input" from="margin/hsplit/right/preview/viewport_display" to="margin/hsplit/right/preview/viewport_display" method="_on_viewport_display_gui_input"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_smooth_pixel" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_smooth_pixel_toggled"]
 [connection signal="toggled" from="margin/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_recursion" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_use_recursion_toggled"]
@@ -577,4 +492,3 @@ current_path = "/git/code2/godot/my-projects/image-tagger/"
 
 [editable path="preview_container"]
 [editable path="preview_container/ViewportContainer/Viewport/preview_view"]
-[editable path="margin/hsplit/left/image_list"]
