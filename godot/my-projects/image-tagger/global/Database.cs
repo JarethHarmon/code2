@@ -2,6 +2,7 @@ using Godot;							// access to Godot
 using System;							// access to System
 using System.IO;						// (?)
 using System.Linq;						// everything related to the database
+using System.Linq.Expressions;			// Predicate Builder
 using System.Collections.Generic;		// HashSet, Dictionary
 using System.Diagnostics;				// Stopwatch
 using System.Reflection;				// needed for x.GetType().GetProperty(column_name).GetValue(x, null) (I think)
@@ -84,6 +85,66 @@ using Alphaleonis.Win32.Filesystem;		// (?)
 		public const int INT_ERROR = -1;
 	}
 	
+	// https://petemontgomery.wordpress.com/2011/02/10/a-universal-predicatebuilder/
+	public static class PredicateBuilder{
+		public static System.Linq.Expressions.Expression<Func<T, bool>> True<T>() { return param => true; }
+		public static System.Linq.Expressions.Expression<Func<T, bool>> False<T>() { return param => false; }
+		public static System.Linq.Expressions.Expression<Func<T, bool>> Create<T>(System.Linq.Expressions.Expression<Func<T, bool>> predicate) { return predicate; }
+	
+		public static System.Linq.Expressions.Expression<Func<T, bool>> And<T>(this System.Linq.Expressions.Expression<Func<T, bool>> first, System.Linq.Expressions.Expression<Func<T, bool>> second)
+		{
+			return first.Compose(second, System.Linq.Expressions.Expression.AndAlso);
+		}
+		public static System.Linq.Expressions.Expression<Func<T, bool>> Or<T>(this System.Linq.Expressions.Expression<Func<T, bool>> first, System.Linq.Expressions.Expression<Func<T, bool>> second)
+		{
+			return first.Compose(second, System.Linq.Expressions.Expression.OrElse);
+		}
+		public static System.Linq.Expressions.Expression<Func<T, bool>> Not<T>(this System.Linq.Expressions.Expression<Func<T, bool>> expression)
+		{
+			var negated = System.Linq.Expressions.Expression.Not(expression.Body);
+			return System.Linq.Expressions.Expression.Lambda<Func<T, bool>>(negated, expression.Parameters);
+		}
+		static System.Linq.Expressions.Expression<T> Compose<T>(this System.Linq.Expressions.Expression<T> first, System.Linq.Expressions.Expression<T> second, Func<System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, System.Linq.Expressions.Expression> merge)
+		{
+			// zip parameters (map from parameters of second to parameters of first)
+			var map = first.Parameters
+				.Select((f, i) => new { f, s = second.Parameters[i] })
+				.ToDictionary(p => p.s, p => p.f);
+	 
+			// replace parameters in the second lambda expression with the parameters in the first
+			var secondBody = ParameterRebinder.ReplaceParameters(map, second.Body);
+	 
+			// create a merged lambda expression with parameters from the first expression
+			return System.Linq.Expressions.Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
+		}
+	 
+		class ParameterRebinder : ExpressionVisitor
+		{
+			readonly Dictionary<ParameterExpression, ParameterExpression> map;
+	 
+			ParameterRebinder(Dictionary<ParameterExpression, ParameterExpression> map)
+			{
+				this.map = map ?? new Dictionary<ParameterExpression, ParameterExpression>();
+			}
+	 
+			public static System.Linq.Expressions.Expression ReplaceParameters(Dictionary<ParameterExpression, ParameterExpression> map, System.Linq.Expressions.Expression exp)
+			{
+				return new ParameterRebinder(map).Visit(exp);
+			}
+	 
+			protected override System.Linq.Expressions.Expression VisitParameter(ParameterExpression p)
+			{
+				ParameterExpression replacement;
+	 
+				if (map.TryGetValue(p, out replacement))
+				{
+					p = replacement;
+				}
+	 
+				return base.VisitParameter(p);
+			}
+		}
+	}
 	
 	public static class LinqExtensions {
 		public static IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, bool ascend) {
@@ -98,8 +159,7 @@ using Alphaleonis.Win32.Filesystem;		// (?)
 		public static bool ContainsAll<T>(this IEnumerable<T> sequence, params T[] matches)
 		{
 			return matches.All(value => sequence.Contains(value));
-		}
-			
+		}		
 	}
 	
 // there are ~4000 bytes total of space for collection names in a database, with each import_id taking 8 bytes; I will set the limit of the number of import_groups to ~400
@@ -608,29 +668,87 @@ public class Database : Node {
 			var sw = new Stopwatch();
 			int count = 0;
 			string time = "";
-			//count = col_komi64.Query().Where(x => x.tags.Contains("example_tag")).Count();
-
+			
+			sw.Start();
+			
+			// use as a reference and move to above function
+			/*var q = col_komi64.Query();//
+			foreach (string tag in tags_all) 
+				q = q.Where(x => x.tags.Contains(tag));
+			
+			q = q.OrderBy("file_size"); //OrderByDescending
+			var l = q.Skip(0).Limit(5).ToList();
+			//var l = t.ToList();			
+			foreach (Komi64Info k in l) GD.Print(k.file_size);
+			
+			sw.Stop();
+			time += " : " + sw.Elapsed.ToString(@"m\:ss\.fff") + "\n";
+			sw.Reset();*/
+			
 			sw.Start();
 			if (tags_all.Length == 0) {
 				if (tags_any.Length == 0) {
+					// NO TAGS
 					if (tags_none.Length == 0) count = col_komi64.Count();
-					else count = col_komi64.Find(Query.All()).Where(x => !tags_none.All(x.tags.Contains)).Count();
+					// NONE
+					else {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+						count = query.Count();
+					}
 				} else { 
+					// ANY
 					if (tags_none.Length == 0) count = col_komi64.Query().Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any)).Count();
-					else count = col_komi64.Find(Query.All()).Where(x => tags_any.Any(x.tags.Contains) && !tags_none.All(x.tags.Contains)).Count();
+					// ANY + NONE
+					else {
+						var query = col_komi64.Query();
+						var predicate = PredicateBuilder.False<Komi64Info>();
+						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						query = query.Where(predicate);
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+						count = query.Count();
+					}
 				}
 			} else {
 				if (tags_any.Length == 0) {
-					if (tags_none.Length == 0) count = col_komi64.Query().Where("@0 ALL IN $.tags", BsonMapper.Global.Serialize(tags_all)).Count();
-					else count = col_komi64.Find(Query.All()).Where(x => tags_all.All(x.tags.Contains) && !tags_none.All(x.tags.Contains)).Count();
+					// ALL
+					if (tags_none.Length == 0) {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						count = query.Count();
+					}
+					// ALL + NONE
+					else {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+						count = query.Count();
+					}
 				} else {
-					if (tags_none.Length == 0) count = col_komi64.Query().Where("@0 ALL IN $.tags AND @1 ANY IN $.tags", BsonMapper.Global.Serialize(tags_all), BsonMapper.Global.Serialize(tags_any)).Count();
-					else count = col_komi64.Find(Query.All()).Where(x => tags_all.All(x.tags.Contains) && tags_any.Any(x.tags.Contains) && !tags_none.All(x.tags.Contains)).Count();
+					// ALL + ANY
+					if (tags_none.Length == 0) {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						var predicate = PredicateBuilder.False<Komi64Info>();
+						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						query = query.Where(predicate);
+						count = query.Count();
+					}
+					// ALL + ANY + NONE
+					else {
+						var query = col_komi64.Query();
+						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+						var predicate = PredicateBuilder.False<Komi64Info>();
+						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						query = query.Where(predicate);
+						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+						count = query.Count();
+					}
 				}
 			}
 			sw.Stop();
 			
-			time += count.ToString() + " : " + sw.Elapsed.ToString(@"m\:ss\.fff") + "\n";
+			time += "counted: " + count.ToString() + " images\ntook: " + sw.Elapsed.ToString(@"m\:ss\.fff") + "\n";
 			time_display.Text = time;
 			
 			return count;
