@@ -15,6 +15,7 @@ func set_import_count(value:int):
 	$hbox/import_name_count.text = "(" + String(import_count) + "):  " + tmp
 
 func _on_import_name_count_button_up() -> void:
+	if Globals.search_buttons_path != "": get_node(Globals.search_buttons_path).hide()
 	Signals.emit_signal("import_button_pressed", import_id)
 
 func _ready() -> void:

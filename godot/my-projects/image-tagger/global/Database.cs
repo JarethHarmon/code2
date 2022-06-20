@@ -579,15 +579,19 @@ public class Database : Node {
 			var query = col_komi64.Query();
 			if (tags_all.Length == 0) {
 				// NONE
-				if (tags_any.Length == 0) foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+				if (tags_any.Length == 0) {
+					//query = query.Where(x => x.tags.Count > 0); // no speed improvement, need to check if adding a default tag and checking for it improves speed
+					foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+				}
 				else {
 					// ANY
 					if (tags_none.Length == 0) query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any));
 					// ANY + NONE
 					else {
-						var predicate = PredicateBuilder.False<Komi64Info>();
-						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
-						query = query.Where(predicate);
+						//var predicate = PredicateBuilder.False<Komi64Info>();
+						//foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+						//query = query.Where(predicate);
+						query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any)); // does not improve speed when compared to predicate builder
 						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
 					}
 				}
@@ -604,15 +608,17 @@ public class Database : Node {
 					// ALL + ANY
 					if (tags_none.Length == 0) {
 						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
-						var predicate = PredicateBuilder.False<Komi64Info>();
-						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
-						query = query.Where(predicate);
+						query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any));
+//						var predicate = PredicateBuilder.False<Komi64Info>();
+//						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+//						query = query.Where(predicate);
 					} else {
 					// ALL + ANY + NONE
 						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
-						var predicate = PredicateBuilder.False<Komi64Info>();
-						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
-						query = query.Where(predicate);
+						query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any));
+//						var predicate = PredicateBuilder.False<Komi64Info>();
+//						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
+//						query = query.Where(predicate);
 						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
 					}					
 				}

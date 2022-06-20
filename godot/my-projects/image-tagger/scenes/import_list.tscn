@@ -1,8 +1,7 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://scripts/import_list.gd" type="Script" id=1]
 [ext_resource path="res://scripts/all_button.gd" type="Script" id=2]
-[ext_resource path="res://assets/red-X.png" type="Texture" id=3]
 
 [sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.994872 )
@@ -74,37 +73,11 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 1
 
-[node name="delete_button" type="TextureButton" parent="margin/vbox/all_button/hbox"]
-visible = false
-margin_right = 24.0
-margin_bottom = 24.0
-rect_min_size = Vector2( 24, 24 )
-texture_normal = ExtResource( 3 )
-expand = true
-
 [node name="load_all" type="Button" parent="margin/vbox/all_button/hbox"]
 margin_right = 1896.0
 margin_bottom = 20.0
 size_flags_horizontal = 3
 text = "       ALL       "
 
-[node name="SPACE2" type="Control" parent="margin/vbox/all_button/hbox"]
-visible = false
-margin_left = 950.0
-margin_right = 1896.0
-margin_bottom = 20.0
-mouse_filter = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="import_status" type="Label" parent="margin/vbox/all_button/hbox"]
-visible = false
-margin_left = 1849.0
-margin_top = 3.0
-margin_right = 1896.0
-margin_bottom = 17.0
-grow_horizontal = 0
-text = "STATUS"
-
-[connection signal="button_up" from="margin/vbox/all_button/hbox/delete_button" to="margin/vbox/all_button" method="_on_delete_button_button_up"]
 [connection signal="button_up" from="margin/vbox/all_button/hbox/load_all" to="." method="_on_load_all_button_up"]
+[connection signal="button_up" from="margin/vbox/all_button/hbox/load_all" to="margin/vbox/all_button" method="_on_load_all_button_up"]
