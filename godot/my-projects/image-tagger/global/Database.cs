@@ -3,6 +3,7 @@ using System;							// access to System
 using System.IO;						// (?)
 using System.Linq;						// everything related to the database
 using System.Collections.Generic;		// HashSet, Dictionary
+using System.Diagnostics;				// Stopwatch
 using System.Reflection;				// needed for x.GetType().GetProperty(column_name).GetValue(x, null) (I think)
 using System.Security.Cryptography;		// (?)
 using LiteDB;							// everything related to the database
@@ -88,6 +89,17 @@ using Alphaleonis.Win32.Filesystem;		// (?)
 		public static IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, bool ascend) {
 			return ascend ? source.OrderBy(keySelector) : source.OrderByDescending(keySelector);
 		}
+		
+		public static bool ContainsAny<T>(this IEnumerable<T> sequence, params T[] matches)
+		{
+			return matches.Any(value => sequence.Contains(value));
+		}
+
+		public static bool ContainsAll<T>(this IEnumerable<T> sequence, params T[] matches)
+		{
+			return matches.All(value => sequence.Contains(value));
+		}
+			
 	}
 	
 // there are ~4000 bytes total of space for collection names in a database, with each import_id taking 8 bytes; I will set the limit of the number of import_groups to ~400
@@ -127,8 +139,9 @@ public class Database : Node {
 				BsonMapper.Global.Entity<Komi64Info>().Id(x => x.komi64);		
 				col_komi64 = db_komi64.GetCollection<Komi64Info>("komihashes");
 				//col_komi64.EnsureIndex((Komi64Info x) => x.komi64, true); // probably not needed since they are _Id
-				col_komi64.EnsureIndex(x => x.tags);
-				col_komi64.EnsureIndex("tags_index", "$.tags[*]");
+				//col_komi64.EnsureIndex(x => x.tags);
+				//col_komi64.EnsureIndex("tags_index", "$.tags[*]");
+				col_komi64.EnsureIndex("tags_index", "$.tags[*]", false);
 				
 				db_import = new LiteDatabase(metadata_path + "import_info.db");
 				BsonMapper.Global.Entity<ImportInfo>().Id(x => x.import_id);
@@ -479,7 +492,8 @@ public class Database : Node {
 		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return new string[0]; } //null; }
 	}
 	
-	private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_in_all, string[] tags_in_one, string[] tags_ex_all, int sort_by=SortBy.FileHash, bool ascend=false) {					
+	//private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {	
+	private List<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {				
 		try {
 			GD.Print("Querying...");
 			var now = DateTime.Now;
@@ -496,46 +510,129 @@ public class Database : Node {
 			
 			var rng = new Random();
 			
-			var results = col_komi64.Find(Query.All())																// find all Komi64Info in col_komi64
+			// need to rewrite to support random (will likely mean 2 entire separate blocks 1 for random using Find(Query.All))
+			
+			if (tags_all.Length == 0) {
+				if (tags_any.Length == 0) {
+					if (tags_none.Length == 0) 
+						// No Tags
+						return col_komi64
+							.Find(Query.All())
+							.OrderBy(x => (random) ? rng.Next() : x.GetType().GetProperty(column_name).GetValue(x, null), ascend)
+							.Skip(start_index)
+							.Take(count)
+							.ToList();
+					else 
+						// NONE
+						return col_komi64
+							.Find(Query.All())
+							.Where(x => !tags_none.All(x.tags.Contains))
+							.OrderBy(x => (random) ? rng.Next() : x.GetType().GetProperty(column_name).GetValue(x, null), ascend)
+							.Skip(start_index)
+							.Take(count)
+							.ToList();
+				} else {
+					// ANY
+					if (tags_none.Length == 0) {
+						string command = String.Format("select $ from komihashes include tags where @0 any in $.tags order by {0} {1} limit {2} offset {3}", column_name, (ascend) ? "asc " : "desc ", count.ToString(), start_index.ToString());
+						var tmp =  db_komi64.Execute(command, BsonMapper.Global.Serialize(tags_any)).ToEnumerable();
+						var list = new List<Komi64Info>();
+						foreach (BsonValue b in tmp) list.Add(BsonMapper.Global.Deserialize<Komi64Info>(b));
+						return list;
+					} else 
+						// ANY + NONE
+						return col_komi64
+							.Find(Query.All())
+							.Where(x => tags_any.Any(x.tags.Contains) && !tags_none.All(x.tags.Contains))
+							.OrderBy(x => (random) ? rng.Next() : x.GetType().GetProperty(column_name).GetValue(x, null), ascend)
+							.Skip(start_index)
+							.Take(count)
+							.ToList();
+				}
+			} else {
+				if (tags_any.Length == 0) {
+					if (tags_none.Length == 0) {
+						// ALL
+						string command = String.Format("select $ from komihashes include tags where @0 all in $.tags order by {0} {1} limit {2} offset {3}", column_name, (ascend) ? "asc " : "desc ", count.ToString(), start_index.ToString());
+						var tmp = db_komi64.Execute(command, BsonMapper.Global.Serialize(tags_all)).ToEnumerable(); 
+						var list = new List<Komi64Info>();
+						foreach (BsonValue b in tmp) list.Add(BsonMapper.Global.Deserialize<Komi64Info>(b));
+						return list;
+					} else 
+						// ALL + NONE
+						return col_komi64
+							.Find(Query.All())
+							.Where(x => tags_all.All(x.tags.Contains) && !tags_none.All(x.tags.Contains))
+							.OrderBy(x => (random) ? rng.Next() : x.GetType().GetProperty(column_name).GetValue(x, null), ascend)
+							.Skip(start_index)
+							.Take(count)
+							.ToList();
+				} else {
+					if (tags_none.Length == 0) {
+						// ALL + ANY
+						string command = String.Format("select $ from komihashes include tags where @0 all in $.tags and @1 any in $.tags order by {0} {1} limit {2} offset {3}", column_name, (ascend) ? "asc " : "desc ", count.ToString(), start_index.ToString());
+						var tmp = db_komi64.Execute(command, BsonMapper.Global.Serialize(tags_all), BsonMapper.Global.Serialize(tags_any)).ToEnumerable(); 
+						var list = new List<Komi64Info>();
+						foreach (BsonValue b in tmp) list.Add(BsonMapper.Global.Deserialize<Komi64Info>(b));
+						return list;
+					} else 
+						// ALL + ANY + NONE
+						return col_komi64
+							.Find(Query.All())
+							.Where(x => tags_all.All(x.tags.Contains) && tags_any.Any(x.tags.Contains) && !tags_none.All(x.tags.Contains))
+							.OrderBy(x => (random) ? rng.Next() : x.GetType().GetProperty(column_name).GetValue(x, null), ascend)
+							.Skip(start_index)
+							.Take(count)
+							.ToList();
+				}
+			}
+			
+			/*var results = col_komi64.Find(Query.All())																// find all Komi64Info in col_komi64
 				.Where(x => x != null && x.tags != null)															// only check those that are not null and whose tags are not null
-				.Where(x => tags_in_all == null || tags_in_all.Length == 0 || tags_in_all.All(x.tags.Contains))		// if tags_in_all has tags, check only images that possess every tag inside of tags_in_all
-				.Where(x => tags_in_one == null || tags_in_one.Length == 0 || tags_in_one.Any(x.tags.Contains))		// if tags_in_one has tags, check only images that possess at least one tag inside of tags_in_one
-				.Where(x => tags_ex_all == null || tags_ex_all.Length == 0 || !tags_ex_all.All(x.tags.Contains))	// if tags_ex_all has tags, check only images that do not possess any tags in tags_ex_all
+				.Where(x => tags_all == null || tags_all.Length == 0 || tags_all.All(x.tags.Contains))		// if tags_in_all has tags, check only images that possess every tag inside of tags_in_all
+				.Where(x => tags_any == null || tags_any.Length == 0 || tags_any.Any(x.tags.Contains))		// if tags_in_one has tags, check only images that possess at least one tag inside of tags_in_one
+				.Where(x => tags_none == null || tags_none.Length == 0 || !tags_none.All(x.tags.Contains))	// if tags_ex_all has tags, check only images that do not possess any tags in tags_ex_all
 				//.OrderBy(x => x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 					// order the results by column_name; ascending/descending
 				.OrderBy(x => (random) ? rng.Next() : x.GetType().GetProperty(column_name).GetValue(x, null), ascend) 
 				//.OrderBy(x => sort_by == SortBy.Random ? rng.Next() : x, ascend)
 				.Skip(start_index)																					// (OFFSET) skip to the starting point for this query (say 1000/5000 for example)
-				.Take(count);																						// (LIMIT)  take the specified number of images 
+				.Take(count);		*/																				// (LIMIT)  take the specified number of images 
 				
-			GD.Print("Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
-			return results;
+			//GD.Print("Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
+			//return results;
 		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
 	}
 	
 	private int GetQueryCountFromTags(string[] tags_all, string[] tags_any, string[] tags_none) {
 		try {
-			var now = DateTime.Now;
+			var sw = new Stopwatch();
 			int count = 0;
-			
+			string time = "";
+			//count = col_komi64.Query().Where(x => x.tags.Contains("example_tag")).Count();
+
+			sw.Start();
 			if (tags_all.Length == 0) {
 				if (tags_any.Length == 0) {
 					if (tags_none.Length == 0) count = col_komi64.Count();
 					else count = col_komi64.Find(Query.All()).Where(x => !tags_none.All(x.tags.Contains)).Count();
 				} else { 
-					if (tags_none.Length == 0) count = col_komi64.Query().Where("$.tags[*] ANY IN @0", BsonMapper.Global.Serialize(tags_any)).Count();
+					if (tags_none.Length == 0) count = col_komi64.Query().Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any)).Count();
 					else count = col_komi64.Find(Query.All()).Where(x => tags_any.Any(x.tags.Contains) && !tags_none.All(x.tags.Contains)).Count();
 				}
 			} else {
 				if (tags_any.Length == 0) {
-					if (tags_none.Length == 0) count = db_komi64.Execute("select $ from komihashes include tags where @0 all in $.tags", BsonMapper.Global.Serialize(tags_all)).ToArray().Length;
+					if (tags_none.Length == 0) count = col_komi64.Query().Where("@0 ALL IN $.tags", BsonMapper.Global.Serialize(tags_all)).Count();
 					else count = col_komi64.Find(Query.All()).Where(x => tags_all.All(x.tags.Contains) && !tags_none.All(x.tags.Contains)).Count();
 				} else {
-					if (tags_none.Length == 0) count = db_komi64.Execute("select $ from komihashes include tags where @0 all in $.tags and @1 any in $.tags", BsonMapper.Global.Serialize(tags_all), BsonMapper.Global.Serialize(tags_any)).ToArray().Length;
+					if (tags_none.Length == 0) count = col_komi64.Query().Where("@0 ALL IN $.tags AND @1 ANY IN $.tags", BsonMapper.Global.Serialize(tags_all), BsonMapper.Global.Serialize(tags_any)).Count();
 					else count = col_komi64.Find(Query.All()).Where(x => tags_all.All(x.tags.Contains) && tags_any.Any(x.tags.Contains) && !tags_none.All(x.tags.Contains)).Count();
 				}
 			}
+			sw.Stop();
 			
-			time_display.Text = count.ToString() + " : " + (DateTime.Now-now).Milliseconds.ToString() + " ms";
+			time += count.ToString() + " : " + sw.Elapsed.ToString(@"m\:ss\.fff") + "\n";
+			time_display.Text = time;
+			
 			return count;
 		} catch (Exception ex) { GD.Print("Database::GetQueryCountFromTags() : ", ex); return -1; }
 	}

@@ -106,9 +106,7 @@ func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[
 	var komi_arr:Array = []
 	if import_id == "all":
 		var tmp = Database.LoadRangeKomi64FromTags(offset, Settings.settings.images_per_page, tag_in_all, tag_in_one, tag_ex_all, current_sort, ascending)
-		var t = OS.get_ticks_msec()
 		var count:int = Database.GetQueryCountFromTags(tag_in_all, tag_in_one, tag_ex_all)
-		#get_node("/root/main/Label2").text = String(OS.get_ticks_msec()-t) + " ms"
 		print(count)
 		if tmp != null: komi_arr = tmp
 	else:
