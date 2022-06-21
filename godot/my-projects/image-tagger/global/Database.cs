@@ -536,7 +536,7 @@ public class Database : Node {
 		try {
 			// may need to be moved elsewhere / only done if komihashes != null
 			dict_komi64.Clear();
-			last_query_count = 0;
+			//last_query_count = 0;
 			var list = new List<string>();
 			
 			var komihashes = GetKomi64RangeFromTags(start_index, count, tags_have_all, tags_have_one, tags_have_none, sort_by, ascend);
@@ -545,17 +545,20 @@ public class Database : Node {
 				{
 					dict_komi64[khinfo.komi64] = khinfo;
 					list.Add(khinfo.komi64);
-					last_query_count++;
+					//last_query_count++;
 					//GD.Print(khinfo.komi64);
 				}
 			return list.ToArray();
 		} catch (Exception ex) { GD.Print("Database::LoadRangeKomi64FromTags() : ", ex); return new string[0]; } //null; }
 	}
 	
+	
+	// consider adding a SELECT statement since I only actually want the komi64 hash from this (would likely increase speed & reduce memory)
+	
 	//private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {	
 	private List<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {				
 		try {
-			GD.Print("Querying...");
+			//GD.Print("Querying...");
 			var now = DateTime.Now;
 			string column_name = "komi64";
 			bool random = false;
@@ -569,61 +572,13 @@ public class Database : Node {
 			// need to add support for a global blacklist (tags/hashes in this case)
 			
 			var rng = new Random();
-			
-			if (tags_all.Length == 0 && tags_any.Length == 0 && tags_none.Length == 0)
-				// NO TAGS
-				return col_komi64.Find(Query.All())
-					.OrderBy(x => (random) ? rng.Next() : x.GetType().GetProperty(column_name).GetValue(x, null), ascend)
-					.Skip(start_index).Take(count).ToList();
-			
 			var query = col_komi64.Query();
-			if (tags_all.Length == 0) {
-				// NONE
-				if (tags_any.Length == 0) {
-					//query = query.Where(x => x.tags.Count > 0); // no speed improvement, need to check if adding a default tag and checking for it improves speed
-					foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
-				}
-				else {
-					// ANY
-					if (tags_none.Length == 0) query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any));
-					// ANY + NONE
-					else {
-						//var predicate = PredicateBuilder.False<Komi64Info>();
-						//foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
-						//query = query.Where(predicate);
-						query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any)); // does not improve speed when compared to predicate builder
-						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
-					}
-				}
-			} else {
-				if (tags_any.Length == 0) {
-					// ALL
-					if (tags_none.Length == 0) foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
-					// ALL + NONE
-					else {
-						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
-						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
-					}
-				} else {
-					// ALL + ANY
-					if (tags_none.Length == 0) {
-						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
-						query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any));
-//						var predicate = PredicateBuilder.False<Komi64Info>();
-//						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
-//						query = query.Where(predicate);
-					} else {
-					// ALL + ANY + NONE
-						foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
-						query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any));
-//						var predicate = PredicateBuilder.False<Komi64Info>();
-//						foreach (string tag in tags_any) predicate = predicate.Or(x => x.tags.Contains(tag));
-//						query = query.Where(predicate);
-						foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
-					}					
-				}
-			}
 			
+			if (tags_all.Length > 0) foreach (string tag in tags_all) query = query.Where(x => x.tags.Contains(tag));
+			if (tags_any.Length > 0) query = query.Where("$.tags ANY IN @0", BsonMapper.Global.Serialize(tags_any));
+			if (tags_none.Length > 0) foreach (string tag in tags_none) query = query.Where(x => !x.tags.Contains(tag));
+			
+			tqc = query.Count();
 			// currently random only works when viewing all images
 			query = (ascend) ? query.OrderBy(column_name) : query.OrderByDescending(column_name);
 				
@@ -631,11 +586,14 @@ public class Database : Node {
 		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
 	}
 	
+	public int tqc = 0;
+	public int GetTestQueryCount() { return tqc; }
+	
 	private int GetQueryCountFromTags(string[] tags_all, string[] tags_any, string[] tags_none) {
 		try {
 			var sw = new Stopwatch();
 			int count = 0;
-			string time = "";
+			//string time = "";
 			
 			sw.Start();
 			if (tags_all.Length == 0) {
@@ -700,8 +658,8 @@ public class Database : Node {
 			}
 			sw.Stop();
 			
-			time += "counted: " + count.ToString() + " images\ntook: " + sw.Elapsed.ToString(@"m\:ss\.fff") + "\n";
-			time_display.Text = time;
+			//time += "counted: " + count.ToString() + " images\ntook: " + sw.Elapsed.ToString(@"m\:ss\.fff") + "\n";
+			//time_display.Text = time;
 			
 			return count;
 		} catch (Exception ex) { GD.Print("Database::GetQueryCountFromTags() : ", ex); return -1; }

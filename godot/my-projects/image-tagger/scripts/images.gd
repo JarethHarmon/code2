@@ -105,9 +105,13 @@ func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[
 
 	var komi_arr:Array = []
 	if import_id == "all":
+		var time:int = OS.get_ticks_usec()
 		var tmp = Database.LoadRangeKomi64FromTags(offset, Settings.settings.images_per_page, tag_in_all, tag_in_one, tag_ex_all, current_sort, ascending)
-		var count:int = Database.GetQueryCountFromTags(tag_in_all, tag_in_one, tag_ex_all)
-		print(count)
+		#var count:int = Database.GetQueryCountFromTags(tag_in_all, tag_in_one, tag_ex_all)
+		var count:int = Database.GetTestQueryCount()
+		var s:String = String(count) + " : %1.3f ms" % [float(OS.get_ticks_usec()-time)/1000.0]
+		get_node("/root/main/Label2").text = s
+		
 		if tmp != null: komi_arr = tmp
 	else:
 		komi_arr = Database.GetImportGroupRange(import_id, offset, Settings.settings.images_per_page, current_sort, ascending)
