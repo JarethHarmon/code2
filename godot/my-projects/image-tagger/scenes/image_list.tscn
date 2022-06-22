@@ -69,7 +69,7 @@ margin_left = 53.0
 margin_right = 141.0
 margin_bottom = 24.0
 text = "File Hash"
-items = [ "File Hash", null, false, 0, null, "File Path", null, false, 1, null, "File Size", null, false, 2, null, "File Creation Time", null, false, 3, null, "Random", null, false, 4, null ]
+items = [ "File Hash", null, false, 0, null, "File Path", null, false, 1, null, "File Size", null, false, 2, null, "File Creation Time", null, false, 3, null, "Tag Count", null, false, 4, null ]
 selected = 0
 
 [node name="ascend_descend" type="OptionButton" parent="margin/vbox/sort_buttons"]

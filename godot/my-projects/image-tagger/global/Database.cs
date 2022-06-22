@@ -75,7 +75,7 @@ using Alphaleonis.Win32.Filesystem;		// (?)
 		public const int FilePath = 1;			
 		public const int FileSize = 2;			
 		public const int FileCreationUtc = 3;
-		public const int Random = 4; 
+		public const int TagCount = 4;
 	}
 	
 	public class ErrorCodes {
@@ -310,7 +310,7 @@ public class Database : Node {
 			GD.Print("Querying...");
 			var now = DateTime.Now;
 			
-			bool random = sort_by == SortBy.Random;
+			//bool random = sort_by == SortBy.Random;
 			
 			if (sort_by == SortBy.FilePath) {
 				if (ascend) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
@@ -542,8 +542,11 @@ public class Database : Node {
 			var komihashes = GetKomi64RangeFromTags(start_index, count, tags_have_all, tags_have_one, tags_have_none, sort_by, ascend);
 			if (komihashes != null)
 				foreach (Komi64Info khinfo in komihashes)
+				//foreach (string khash in komihashes)
 				{
-					dict_komi64[khinfo.komi64] = khinfo;
+					//dict_komi64
+					//dict_komi64[khinfo.komi64] = khinfo; // not sure if dict actually does anything right now
+					//list.Add(khash);
 					list.Add(khinfo.komi64);
 					//last_query_count++;
 					//GD.Print(khinfo.komi64);
@@ -556,17 +559,25 @@ public class Database : Node {
 	// consider adding a SELECT statement since I only actually want the komi64 hash from this (would likely increase speed & reduce memory)
 	
 	//private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {	
-	private List<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {				
+	private List<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {	
+	//private List<string> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {				
 		try {
 			//GD.Print("Querying...");
 			var now = DateTime.Now;
-			string column_name = "komi64";
-			bool random = false;
+			string column_name = "_Id";
+			//bool random = true;
+			bool sort_by_tag_count = false;
 			
 			if (sort_by == SortBy.FileSize) column_name = "file_size";
 			else if (sort_by == SortBy.FileCreationUtc) column_name = "file_creation_utc";
-			else if (sort_by == SortBy.Random) random = true;
-
+			else if (sort_by == SortBy.TagCount) sort_by_tag_count = true;
+			//else if (sort_by == SortBy.Random) random = true;
+			
+			if (tags_all.Length == 0 && tags_any.Length == 0 && tags_none.Length == 0 && column_name == "_Id" && !sort_by_tag_count) {
+				tqc = col_komi64.Count();
+				return col_komi64.Find(Query.All((ascend) ? Query.Ascending : Query.Descending), start_index, count).ToList();
+			}
+			
 			// would like to add support for sorting by file paths; but any image could have any number of paths or filenames and even just choosing one would be difficult (syntax-wise)
 			// need to consider either removing file_paths from the sort_by dropdown while ALL is selected, or have 2 dropdowns and toggle their visibility depending on whether ALL is selected 
 			// need to add support for a global blacklist (tags/hashes in this case)
@@ -580,8 +591,19 @@ public class Database : Node {
 			
 			tqc = query.Count();
 			// currently random only works when viewing all images
-			query = (ascend) ? query.OrderBy(column_name) : query.OrderByDescending(column_name);
-				
+			
+			//GD.Print(sort_by_tag_count, " : ", sort_by, " : ", SortBy.TagCount);
+			
+			if (sort_by_tag_count) 
+				query = (ascend) ? query.OrderBy(x => x.tags.Count) : query.OrderByDescending(x => x.tags.Count);
+			else {
+				//if (random)
+				//	query = (ascend) ? query.OrderBy(x => rng.Next()) : query.OrderByDescending(x => rng.Next());
+				//else
+					query = (ascend) ? query.OrderBy(column_name) : query.OrderByDescending(column_name);
+			}
+			//var list = query.Select(x => x.komi64).Skip(start_index).Limit(count).ToList();
+			//return list;
 			return query.Skip(start_index).Limit(count).ToList();
 		} catch (Exception ex) { GD.Print("Database::GetKomi64RangeFromTags() : ", ex); return null; }
 	}

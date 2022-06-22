@@ -32,7 +32,9 @@ var page_image_count:int = 0			# the number of images for the current page
 var current_import_id:String = ""		# the import_id for the current group
 
 var loading:bool = false				# whether the threads are currently loading
+var starting_load_process:bool = false	# """
 var stop_all:bool = false				# whether the threads should stop
+var current_id_type:int = Globals.IdType.All
 
 func stop_threads() -> void:
 	stop_all = true
@@ -58,6 +60,7 @@ func import_group_button_pressed(import_id:String) -> void:
 	total_page_count = 1
 	total_image_count = 0
 	current_import_id = import_id
+	current_id_type = Globals.IdType.ImportGroup
 	load_import_group(import_id)		# not sure if I will use "" to represent all, or just create another function for that
 
 func all_button_pressed() -> void:
@@ -74,9 +77,62 @@ func all_button_pressed() -> void:
 	var tags_in_one:Array = text_in_one.split(",", false) 
 	var tags_ex_all:Array = text_ex_all.split(",", false) 
 	
+	current_id_type = Globals.IdType.All
 	load_import_group("all", tags_in_all, tags_in_one, tags_ex_all)
 
+func load_images(id_type:int, load_id:String, tags_all:Array=[], tags_any:Array=[], tags_none:Array=[]) -> void:
+	if starting_load_process: return
+	if load_id == "": return
+	starting_load_process = true
+	stop_threads()
+	
+  # temporary variables
+	var komi_arr:Array = []
+	var images_per_page:int = Settings.settings.images_per_page
+	var curr_page:Array = [current_page_number, load_id]
+	
+  # get total number of images
+	if id_type == Globals.IdType.All:
+		total_image_count = Database.GetTotalRowCountKomi()
+	elif id_type == Globals.IdType.ImportGroup:
+		total_image_count = Database.GetImportSuccessCountFromID(load_id)
+	elif id_type == Globals.IdType.ImageGroup: pass
+	Signals.emit_signal("update_button", total_image_count, load_id)
+	
+  # calculate offset
+	offset = (current_page_number-1) * images_per_page
 
+  # query database
+	if id_type == Globals.IdType.All: 
+		komi_arr = Database.LoadRangeKomi64FromTags(offset, images_per_page, tags_all, tags_any, tags_none, current_sort, ascending)
+	elif id_type == Globals.IdType.ImportGroup:
+		komi_arr = Database.GetImportGroupRange()
+	elif id_type == Globals.IdType.ImageGroup: pass
+
+  # get queried image count
+	queried_image_count = Database.GetTestQueryCount()
+	total_page_count = ceil(float(queried_image_count)/float(images_per_page)) as int
+
+  # remove from page history if needed
+	if pages.size() >= Settings.settings.pages_to_store:
+		var page_to_remove:Array = page_history.pop_front()
+		var komi_to_remove:Array = pages[page_to_remove]
+		lt.lock()
+		for komi in komi_to_remove:
+			var _had:bool = loaded_thumbnails.erase(komi)
+		lt.unlock()
+		var _had:bool = pages.erase(page_to_remove)
+		# delete from C# here if relevant
+
+  # add to page history if needed
+	if not page_history.has(curr_page):
+		page_history.push_back(curr_page)
+	pages[curr_page] = komi_arr
+
+  # set page image count
+	page_image_count = komi_arr.size()
+
+	self.call_deferred("_threadsafe_clear", load_id, current_page_number)
 
 func load_import_group(import_id:String, tag_in_all:Array=[], tag_in_one:Array=[], tag_ex_all:Array=[]) -> void:
 	if loading: return
