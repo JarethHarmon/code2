@@ -1,11 +1,13 @@
 extends Control
 
+# currently tag colors are random; I may change them to be based on hierarchy/type/user-defined
+
 onready var tag_entry:LineEdit = $margin/vbox/hbox/tag_entry
 #onready var column_L:VBoxContainer = $margin/vbox/scroll/hsplit/vbox1
 #onready var column_R:VBoxContainer = $margin/vbox/scroll/hsplit/vbox2
 
 #onready var grid:GridContainer = $margin/vbox/scroll/grid
-onready var list:ItemList = $margin/vbox/list
+onready var list:ItemList = $margin/vbox/margin/list
 
 var curr_column:bool = true # true=L false=R
 var curr_hash:String = ""
@@ -78,3 +80,4 @@ func _on_new_tag_button_up(text:String="") -> void:
 func _on_tag_entry_focus_entered() -> void:
 	if tag_entry.text == "Type a tag..": tag_entry.text = ""
 
+func _on_list_nothing_selected() -> void: list.unselect_all()

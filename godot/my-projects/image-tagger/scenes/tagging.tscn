@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://scripts/tagging.gd" type="Script" id=1]
 
@@ -8,6 +8,26 @@ colors = PoolColorArray( 0.0901961, 0.0901961, 0.0901961, 1, 0.0901961, 0.090196
 
 [sub_resource type="GradientTexture" id=3]
 gradient = SubResource( 2 )
+
+[sub_resource type="StyleBoxEmpty" id=5]
+
+[sub_resource type="StyleBoxFlat" id=4]
+bg_color = Color( 0.6, 0.6, 0.6, 0.498039 )
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color( 1, 1, 1, 1 )
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_bottom = 3.0
+
+[sub_resource type="StyleBoxEmpty" id=6]
 
 [node name="tagging" type="Control"]
 anchor_right = 1.0
@@ -62,7 +82,6 @@ size_flags_horizontal = 3
 margin_right = 1862.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
-align = 1
 placeholder_text = "Type a tag.."
 
 [node name="new_tag" type="Button" parent="margin/vbox/hbox"]
@@ -77,14 +96,35 @@ margin_right = 1910.0
 margin_bottom = 32.0
 mouse_filter = 2
 
-[node name="list" type="ItemList" parent="margin/vbox"]
+[node name="margin" type="MarginContainer" parent="margin/vbox"]
 margin_top = 36.0
 margin_right = 1910.0
 margin_bottom = 1070.0
+mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_constants/vseparation = 4
-custom_constants/hseparation = 4
+custom_constants/margin_right = 10
+custom_constants/margin_top = 10
+custom_constants/margin_left = 10
+custom_constants/margin_bottom = 10
+
+[node name="list" type="ItemList" parent="margin/vbox/margin"]
+margin_left = 10.0
+margin_top = 10.0
+margin_right = 1900.0
+margin_bottom = 1024.0
+grow_horizontal = 2
+grow_vertical = 2
+rect_clip_content = false
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_constants/vseparation = 10
+custom_constants/line_separation = 10
+custom_constants/hseparation = 10
+custom_styles/cursor = SubResource( 5 )
+custom_styles/selected_focus = SubResource( 4 )
+custom_styles/selected = SubResource( 4 )
+custom_styles/bg = SubResource( 6 )
 max_text_lines = 2
 max_columns = 100
 
@@ -140,3 +180,4 @@ columns = 100
 [connection signal="focus_entered" from="margin/vbox/hbox/tag_entry" to="." method="_on_tag_entry_focus_entered"]
 [connection signal="text_entered" from="margin/vbox/hbox/tag_entry" to="." method="_on_tag_entry_text_entered"]
 [connection signal="button_up" from="margin/vbox/hbox/new_tag" to="." method="_on_new_tag_button_up"]
+[connection signal="nothing_selected" from="margin/vbox/margin/list" to="." method="_on_list_nothing_selected"]
