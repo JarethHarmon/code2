@@ -45,3 +45,7 @@ signal load_image(image_path)
 signal load_tags(komi64)
 signal image_import_finished(import_id)
 
+signal filter_toggled(active)
+signal edge_mix_toggled(active)
+signal color_grade_toggled(active)
+signal smooth_pixel_toggled(active)

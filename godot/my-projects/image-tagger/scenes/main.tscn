@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://scenes/preview_container.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scenes/preview.tscn" type="PackedScene" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://scenes/image_list.tscn" type="PackedScene" id=5]
 [ext_resource path="res://scenes/import_list.tscn" type="PackedScene" id=6]
 [ext_resource path="res://scenes/tagging.tscn" type="PackedScene" id=7]
+[ext_resource path="res://scripts/import_images.gd" type="Script" id=8]
 
 [sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.295082 )
@@ -33,7 +34,7 @@ margin_right = 3840.0
 [node name="vbox" parent="preview_container/ViewportContainer/Viewport/preview_view" index="0"]
 ViewportDisplay = NodePath("../../../../../margin/vsplit/hsplit/right/preview/viewport_display")
 FileD = NodePath("../../../../../FileDialog")
-SmoothPixelButton = NodePath("../../../../../margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2/use_smooth_pixel")
+SmoothPixelButton = NodePath("../../../../../margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb/use_smooth_pixel")
 
 [node name="background_color" type="TextureRect" parent="."]
 anchor_right = 1.0
@@ -83,21 +84,33 @@ mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Button" type="Button" parent="margin/vsplit/settings/panel"]
+[node name="hbox" type="HBoxContainer" parent="margin/vsplit/settings/panel"]
 margin_left = 2.0
 margin_top = 2.0
 margin_right = 1902.0
 margin_bottom = 31.0
-text = "BUTTON"
+mouse_filter = 2
+
+[node name="import_images" type="Button" parent="margin/vsplit/settings/panel/hbox"]
+margin_right = 124.0
+margin_bottom = 29.0
+text = "Import Images"
+script = ExtResource( 8 )
+
+[node name="recursive" type="CheckButton" parent="margin/vsplit/settings/panel/hbox"]
+margin_left = 128.0
+margin_right = 262.0
+margin_bottom = 29.0
+text = "Recursive"
 
 [node name="hsplit" type="HSplitContainer" parent="margin/vsplit"]
 margin_top = 41.0
 margin_right = 1904.0
 margin_bottom = 1064.0
-split_offset = -290
+split_offset = -280
 
 [node name="left" type="VSplitContainer" parent="margin/vsplit/hsplit"]
-margin_right = 658.0
+margin_right = 668.0
 margin_bottom = 1023.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -106,24 +119,24 @@ split_offset = -160
 [node name="import_list" parent="margin/vsplit/hsplit/left" instance=ExtResource( 6 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 658.0
+margin_right = 668.0
 margin_bottom = 347.0
 
 [node name="image_list" parent="margin/vsplit/hsplit/left" instance=ExtResource( 5 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 355.0
-margin_right = 658.0
+margin_right = 668.0
 margin_bottom = 1023.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="vbox" parent="margin/vsplit/hsplit/left/image_list/margin" index="0"]
-margin_right = 653.0
+margin_right = 663.0
 margin_bottom = 663.0
 
 [node name="sort_buttons" parent="margin/vsplit/hsplit/left/image_list/margin/vbox" index="0"]
-margin_right = 648.0
+margin_right = 658.0
 margin_bottom = 29.0
 
 [node name="sort_by_label" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/sort_buttons" index="0"]
@@ -145,26 +158,26 @@ items = [ "Ascending", null, false, 0, null, "Descending", null, false, 1, null 
 
 [node name="SPACE_3" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/sort_buttons" index="3"]
 margin_left = 300.0
-margin_right = 568.0
+margin_right = 578.0
 margin_bottom = 29.0
 
 [node name="clear" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/sort_buttons" index="4"]
-margin_left = 572.0
-margin_right = 648.0
+margin_left = 582.0
+margin_right = 658.0
 margin_bottom = 29.0
 
 [node name="margin" parent="margin/vsplit/hsplit/left/image_list/margin/vbox" index="2"]
 margin_top = 33.0
-margin_right = 648.0
+margin_right = 658.0
 margin_bottom = 625.0
 
 [node name="images" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/margin" index="0"]
-margin_right = 638.0
+margin_right = 648.0
 margin_bottom = 582.0
 
 [node name="page_buttons" parent="margin/vsplit/hsplit/left/image_list/margin/vbox" index="3"]
 margin_top = 629.0
-margin_right = 648.0
+margin_right = 658.0
 margin_bottom = 658.0
 
 [node name="prev_page" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/page_buttons" index="0"]
@@ -173,27 +186,27 @@ margin_bottom = 29.0
 
 [node name="SPACE_1" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/page_buttons" index="1"]
 margin_left = 64.0
-margin_right = 316.0
+margin_right = 321.0
 margin_bottom = 29.0
 
 [node name="page_label" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/page_buttons" index="2"]
-margin_left = 320.0
+margin_left = 325.0
 margin_top = 0.0
-margin_right = 328.0
+margin_right = 333.0
 margin_bottom = 29.0
 
 [node name="SPACE_2" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/page_buttons" index="3"]
-margin_left = 332.0
-margin_right = 585.0
+margin_left = 337.0
+margin_right = 595.0
 margin_bottom = 29.0
 
 [node name="next_page" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/page_buttons" index="4"]
-margin_left = 589.0
-margin_right = 648.0
+margin_left = 599.0
+margin_right = 658.0
 margin_bottom = 29.0
 
 [node name="right" type="VSplitContainer" parent="margin/vsplit/hsplit"]
-margin_left = 666.0
+margin_left = 676.0
 margin_right = 1904.0
 margin_bottom = 1023.0
 size_flags_horizontal = 3
@@ -201,7 +214,7 @@ size_flags_vertical = 3
 split_offset = -240
 
 [node name="hsplit" type="HSplitContainer" parent="margin/vsplit/hsplit/right"]
-margin_right = 1238.0
+margin_right = 1228.0
 margin_bottom = 267.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -209,14 +222,14 @@ size_flags_vertical = 3
 [node name="tagging" parent="margin/vsplit/hsplit/right/hsplit" instance=ExtResource( 7 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 1238.0
+margin_right = 1228.0
 margin_bottom = 267.0
 
 [node name="preview" parent="margin/vsplit/hsplit/right" instance=ExtResource( 2 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 275.0
-margin_right = 1238.0
+margin_right = 1228.0
 margin_bottom = 1023.0
 
 [node name="viewport_display" parent="margin/vsplit/hsplit/right/preview" index="3"]
@@ -226,121 +239,58 @@ ColorGrade = NodePath("../../../../../../preview_container/ViewportContainer/Vie
 EdgeDefaultMotionMix = NodePath("../../../../../../preview_container/ViewportContainer/Viewport/preview_view/EdgeCustomDefaultMix")
 
 [node name="vb" parent="margin/vsplit/hsplit/right/preview/margin" index="0"]
-margin_right = 1233.0
+margin_right = 1223.0
 margin_bottom = 743.0
 
 [node name="SPACE" parent="margin/vsplit/hsplit/right/preview/margin/vb" index="0"]
-margin_right = 1228.0
-margin_bottom = 638.0
+margin_right = 1218.0
+margin_bottom = 686.0
 
 [node name="vbox" parent="margin/vsplit/hsplit/right/preview/margin/vb" index="1"]
-margin_top = 642.0
-margin_right = 1228.0
+margin_top = 690.0
+margin_right = 1218.0
 margin_bottom = 738.0
 
-[node name="bg_panel2" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox" index="0"]
-margin_right = 1228.0
-margin_bottom = 33.0
-
-[node name="hb2" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2" index="0"]
-margin_left = 2.0
-margin_top = 2.0
-margin_right = 1226.0
-
-[node name="SPACE5" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="0"]
-margin_right = 129.0
-margin_bottom = 29.0
-
-[node name="SPACE8" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="1"]
-margin_left = 133.0
-margin_right = 262.0
-margin_bottom = 29.0
-
-[node name="SPACE13" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="2"]
-margin_left = 266.0
-margin_right = 395.0
-margin_bottom = 29.0
-
-[node name="SPACE11" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="3"]
-margin_left = 399.0
-margin_right = 528.0
-margin_bottom = 29.0
-
-[node name="use_smooth_pixel" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="4"]
-margin_left = 532.0
-margin_right = 666.0
-margin_bottom = 29.0
-
-[node name="SPACE9" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="5"]
-margin_left = 670.0
-margin_right = 799.0
-margin_bottom = 29.0
-
-[node name="SPACE12" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="6"]
-margin_left = 803.0
-margin_right = 932.0
-margin_bottom = 29.0
-
-[node name="SPACE10" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="7"]
-margin_left = 936.0
-margin_right = 1065.0
-margin_bottom = 29.0
-
-[node name="use_recursion" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="8"]
-margin_left = 1069.0
-margin_right = 1215.0
-margin_bottom = 29.0
-
-[node name="SPACE6" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="9"]
-margin_left = 1219.0
-margin_right = 1223.0
-margin_bottom = 29.0
-
-[node name="bg_panel" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox" index="1"]
-margin_top = 37.0
-margin_right = 1228.0
-margin_bottom = 81.0
+[node name="bg_panel" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox" index="0"]
+margin_right = 1218.0
+margin_bottom = 44.0
 
 [node name="hb" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel" index="0"]
 margin_left = 2.0
 margin_top = 2.0
-margin_right = 1226.0
+margin_right = 1216.0
 margin_bottom = 42.0
 
 [node name="SPACE4" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="1"]
-margin_right = 627.0
+margin_right = 589.0
 
-[node name="filter" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="2"]
-margin_left = 631.0
-margin_right = 726.0
+[node name="use_smooth_pixel" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="2"]
+margin_left = 593.0
+margin_right = 753.0
 
-[node name="SPACE6" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="3"]
-margin_left = 730.0
-margin_right = 746.0
+[node name="SPACE7" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="3"]
+margin_left = 757.0
+margin_right = 773.0
 
-[node name="edge_mix" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="4"]
-margin_left = 750.0
-margin_right = 878.0
+[node name="filter" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="4"]
+margin_left = 777.0
+margin_right = 872.0
 
-[node name="SPACE3" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="5"]
-margin_left = 882.0
-margin_right = 898.0
+[node name="SPACE6" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="5"]
+margin_left = 876.0
+margin_right = 892.0
 
-[node name="color_grade" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="6"]
-margin_left = 902.0
-margin_right = 1068.0
+[node name="edge_mix" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="6"]
+margin_left = 896.0
+margin_right = 1024.0
 
-[node name="SPACE2" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="7"]
-margin_left = 1072.0
-margin_right = 1088.0
+[node name="SPACE3" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="7"]
+margin_left = 1028.0
+margin_right = 1044.0
 
-[node name="import_images" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="10"]
-margin_left = 1092.0
-margin_right = 1216.0
-
-[node name="SPACE5" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="11"]
-margin_left = 1220.0
-margin_right = 1224.0
+[node name="color_grade" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="8"]
+margin_left = 1048.0
+margin_right = 1214.0
 
 [node name="Label" type="Label" parent="."]
 visible = false
@@ -373,7 +323,7 @@ margin_top = -49.0
 margin_right = 360.0
 margin_bottom = -12.0
 
-[connection signal="dir_selected" from="FileDialog" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_FileDialog_dir_selected"]
+[connection signal="toggled" from="margin/vsplit/settings/panel/hbox/recursive" to="margin/vsplit/settings/panel/hbox/import_images" method="_on_recursive_toggled"]
 [connection signal="file_selected" from="FileDialog" to="preview_container/ViewportContainer/Viewport/preview_view/vbox" method="_on_FileDialog_file_selected"]
 
 [editable path="preview_container"]

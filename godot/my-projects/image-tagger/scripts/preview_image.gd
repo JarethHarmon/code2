@@ -10,21 +10,22 @@ export (NodePath) var ViewportDisplay ; onready var viewport_display = get_node(
 export (NodePath) var FileD ; onready var fd:FileDialog = get_node(FileD)
 export (NodePath) var ColorGrade ; onready var color_grade:Control = get_node(ColorGrade)
 export (NodePath) var EdgeMix ; onready var edge_mix:Control = get_node(EdgeMix)
-export (NodePath) var SmoothPixelButton ; onready var smooth_pixel_button:CheckBox = get_node(SmoothPixelButton)
+export (NodePath) var SmoothPixelButton ; onready var smooth_pixel_button:CheckButton = get_node(SmoothPixelButton)
 
 onready var preview:TextureRect = $hbox_0/image_0
 
 onready var image_mutex:Mutex = Mutex.new()
 onready var image_thread:Thread = Thread.new()
-
-enum selection { THUMBNAIL, IMPORT }
-var select:int = selection.IMPORT
 var current_image:Texture
 
 func _ready() -> void:
 	var _err:int = Signals.connect("load_image", self, "_on_FileDialog_file_selected") # should just work
 	_err = Signals.connect("settings_loaded", self, "_settings_loaded")
 	_err = Signals.connect("resize_preview_image", self, "resize_current_image")
+	_err = Signals.connect("filter_toggled", self, "_on_filter_toggled")
+	_err = Signals.connect("edge_mix_toggled", self, "_on_edge_mix_toggled")
+	_err = Signals.connect("color_grade_toggled", self, "_on_color_grade_toggled")
+	_err = Signals.connect("smooth_pixel_toggled", self, "_on_use_smooth_pixel_toggled")
 
 func create_current_image(im:Image=null) -> void:
 	if im == null:
@@ -49,13 +50,6 @@ func _settings_loaded() -> void:
 	_on_use_smooth_pixel_toggled(Globals.settings.use_smooth_pixel)
 	_on_filter_toggled(Globals.settings.use_filter)
 	_on_use_recursion_toggled(Globals.settings.use_recursion)
-
-func _on_FileDialog_dir_selected(dir:String) -> void: 
-	match select:
-		selection.IMPORT: 
-			if ImageOp.thumbnail_path == "": return
-			Import.queue_append(dir, Globals.settings.use_recursion)
-			Globals.settings.last_used_directory = dir.get_base_dir()
 
 func _on_FileDialog_file_selected(path:String) -> void:
 	fd.hide()
@@ -108,15 +102,6 @@ func calc_size(it:ImageTexture) -> Vector2:
 		if ratio_s.y < ratio_s.x: size *= ratio_s.y
 		else: size *= ratio_s.x
 	return size
-
-func _on_import_images_pressed() -> void:
-	if fd.visible: return
-	select = selection.IMPORT
-	fd.mode = 2 	# choose folder
-	fd.access = 2	# file system
-	fd.window_title = "Choose a folder to import from"
-	if Globals.settings.last_used_directory != "": fd.current_dir = Globals.settings.last_used_directory
-	fd.popup()
 	
 func _on_choose_image_pressed() -> void:
 	if fd.visible: return
@@ -149,7 +134,8 @@ func _on_filter_toggled(button_pressed:bool) -> void:
 	
 	create_current_image()
 	resize_current_image()
-	
+
+# need to ensure it loads and applies the value from the settings file
 func _on_use_smooth_pixel_toggled(button_pressed:bool) -> void:
 	Globals.settings.use_smooth_pixel = button_pressed
 	if button_pressed: 
