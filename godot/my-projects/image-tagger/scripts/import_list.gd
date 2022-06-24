@@ -2,7 +2,7 @@ extends Control
 
 func _ready() -> void:
 	var _err:int = Signals.connect("import_info_load_finished", self, "_import_info_load_finished")
-	Signals.emit_signal("import_list_location", $margin/vbox.get_path())
+	Signals.emit_signal("import_list_location", $margin/vbox/scroll/buttons.get_path())
 
 func _import_info_load_finished() -> void:
 	var import_ids:Array = Database.GetImportIDsFromDict(Globals.SortBy.FilePath)
