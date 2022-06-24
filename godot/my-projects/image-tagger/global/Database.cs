@@ -305,7 +305,7 @@ public class Database : Node {
 /*=========================================================================================
 									  IMPORT GROUP
 =========================================================================================*/	
-	public string[] GetImportGroupRange(string import_id, int start, int count, int sort_by=SortBy.FileHash, bool ascend=false) {
+	public string[] GetImportGroupRange(string import_id, int start, int count, int sort_by=SortBy.FileHash, int order_by=OrderBy.Ascending) { //bool ascend=false) {	
 		// clears dict_import_group, loads the specifed range of ImportGroups into dict_import_group, then returns the komi64 keys
 		try {
 			var col = db_import.GetCollection<ImportGroup>(import_id);
@@ -319,20 +319,24 @@ public class Database : Node {
 			//bool random = sort_by == SortBy.Random;
 			
 			if (sort_by == SortBy.FilePath) {
-				if (ascend) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
-				else imports = col.Find(Query.All("file_path", Query.Descending), start, limit:count);
+				if (order_by == OrderBy.Ascending) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
+				else if (order_by == OrderBy.Descending) imports = col.Find(Query.All("file_path", Query.Descending), start, limit:count);
+				else imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
 			}
 			else if (sort_by == SortBy.FileSize) {
-				if (ascend) imports = col.Find(Query.All("file_size", Query.Ascending), start, limit:count);
-				else imports = col.Find(Query.All("file_size", Query.Descending), start, limit:count);
+				if (order_by == OrderBy.Ascending) imports = col.Find(Query.All("file_size", Query.Ascending), start, limit:count);
+				else if (order_by == OrderBy.Descending) imports = col.Find(Query.All("file_size", Query.Descending), start, limit:count);
+				else imports = col.Find(Query.All("file_size", Query.Ascending), start, limit:count);
 			}
 			else if (sort_by == SortBy.FileCreationUtc) {
-				if (ascend) imports = col.Find(Query.All("file_creation_utc", Query.Ascending), start, limit:count);
-				else imports = col.Find(Query.All("file_creation_utc", Query.Descending), start, limit:count);
+				if (order_by == OrderBy.Ascending) imports = col.Find(Query.All("file_creation_utc", Query.Ascending), start, limit:count);
+				else if (order_by == OrderBy.Descending) imports = col.Find(Query.All("file_creation_utc", Query.Descending), start, limit:count);
+				else imports = col.Find(Query.All("file_creation_utc", Query.Ascending), start, limit:count);
 			}
 			else  { // SortBy.FileHash
-				if (ascend) imports = col.Find(Query.All(), start, limit:count);//imports = col.Find(Query.All(Query.Ascending), start, limit:count);
-				else imports = col.Find(Query.All(Query.Descending), start, limit:count);
+				if (order_by == OrderBy.Ascending) imports = col.Find(Query.All(), start, limit:count);//imports = col.Find(Query.All(Query.Ascending), start, limit:count);
+				else if (order_by == OrderBy.Descending) imports = col.Find(Query.All(Query.Descending), start, limit:count);
+				else imports = col.Find(Query.All(), start, limit:count);
 			}
 			
 			GD.Print("IG Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");

@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://scripts/preview_buttons.gd" type="Script" id=1]
 [ext_resource path="res://scripts/viewport_display.gd" type="Script" id=2]
+[ext_resource path="res://assets/1.png" type="Texture" id=3]
 
 [sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.994872 )
@@ -76,28 +77,34 @@ mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="bg_panel2" type="PanelContainer" parent="margin/vb"]
+[node name="vbox" type="VBoxContainer" parent="margin/vb"]
 margin_top = 974.0
 margin_right = 1910.0
-margin_bottom = 1012.0
+margin_bottom = 1070.0
+rect_min_size = Vector2( 0, 96 )
+size_flags_horizontal = 3
+
+[node name="bg_panel2" type="PanelContainer" parent="margin/vb/vbox"]
+margin_right = 1910.0
+margin_bottom = 38.0
 rect_min_size = Vector2( 0, 32 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="hb2" type="HBoxContainer" parent="margin/vb/bg_panel2"]
+[node name="hb2" type="HBoxContainer" parent="margin/vb/vbox/bg_panel2"]
 margin_left = 7.0
 margin_top = 7.0
 margin_right = 1903.0
 margin_bottom = 31.0
 
-[node name="SPACE5" type="Control" parent="margin/vb/bg_panel2/hb2"]
+[node name="SPACE5" type="Control" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_right = 232.0
 margin_bottom = 24.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="SPACE8" type="Control" parent="margin/vb/bg_panel2/hb2"]
+[node name="SPACE8" type="Control" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_left = 236.0
 margin_right = 468.0
 margin_bottom = 24.0
@@ -105,7 +112,7 @@ rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="SPACE13" type="Control" parent="margin/vb/bg_panel2/hb2"]
+[node name="SPACE13" type="Control" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_left = 472.0
 margin_right = 704.0
 margin_bottom = 24.0
@@ -113,7 +120,7 @@ rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="SPACE11" type="Control" parent="margin/vb/bg_panel2/hb2"]
+[node name="SPACE11" type="Control" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_left = 708.0
 margin_right = 940.0
 margin_bottom = 24.0
@@ -121,13 +128,13 @@ rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="use_smooth_pixel" type="CheckBox" parent="margin/vb/bg_panel2/hb2"]
+[node name="use_smooth_pixel" type="CheckBox" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_left = 944.0
 margin_right = 1056.0
 margin_bottom = 24.0
 text = "Smooth Pixel"
 
-[node name="SPACE9" type="Control" parent="margin/vb/bg_panel2/hb2"]
+[node name="SPACE9" type="Control" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_left = 1060.0
 margin_right = 1292.0
 margin_bottom = 24.0
@@ -135,7 +142,7 @@ rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="SPACE12" type="Control" parent="margin/vb/bg_panel2/hb2"]
+[node name="SPACE12" type="Control" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_left = 1296.0
 margin_right = 1528.0
 margin_bottom = 24.0
@@ -143,7 +150,7 @@ rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="SPACE10" type="Control" parent="margin/vb/bg_panel2/hb2"]
+[node name="SPACE10" type="Control" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_left = 1532.0
 margin_right = 1764.0
 margin_bottom = 24.0
@@ -151,28 +158,28 @@ rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="use_recursion" type="CheckBox" parent="margin/vb/bg_panel2/hb2"]
+[node name="use_recursion" type="CheckBox" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_left = 1768.0
 margin_right = 1888.0
 margin_bottom = 24.0
 text = "Use Recursion"
 
-[node name="SPACE6" type="Control" parent="margin/vb/bg_panel2/hb2"]
+[node name="SPACE6" type="Control" parent="margin/vb/vbox/bg_panel2/hb2"]
 margin_left = 1892.0
 margin_right = 1896.0
 margin_bottom = 24.0
 rect_min_size = Vector2( 4, 0 )
 mouse_filter = 2
 
-[node name="bg_panel" type="PanelContainer" parent="margin/vb"]
-margin_top = 1016.0
+[node name="bg_panel" type="PanelContainer" parent="margin/vb/vbox"]
+margin_top = 42.0
 margin_right = 1910.0
-margin_bottom = 1070.0
+margin_bottom = 96.0
 rect_min_size = Vector2( 0, 32 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="hb" type="HBoxContainer" parent="margin/vb/bg_panel"]
+[node name="hb" type="HBoxContainer" parent="margin/vb/vbox/bg_panel"]
 margin_left = 7.0
 margin_top = 7.0
 margin_right = 1903.0
@@ -180,61 +187,70 @@ margin_bottom = 47.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="SPACE4" type="Control" parent="margin/vb/bg_panel/hb"]
+[node name="visibility" type="TextureButton" parent="margin/vb/vbox/bg_panel/hb"]
+self_modulate = Color( 0.792157, 0.792157, 0.792157, 1 )
+margin_right = 40.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 40, 40 )
+texture_normal = ExtResource( 3 )
+expand = true
+
+[node name="SPACE4" type="Control" parent="margin/vb/vbox/bg_panel/hb"]
+margin_left = 44.0
 margin_right = 1289.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="filter" type="CheckButton" parent="margin/vb/bg_panel/hb"]
+[node name="filter" type="CheckButton" parent="margin/vb/vbox/bg_panel/hb"]
 margin_left = 1293.0
 margin_right = 1406.0
 margin_bottom = 40.0
 pressed = true
 text = "Filter"
 
-[node name="SPACE6" type="Control" parent="margin/vb/bg_panel/hb"]
+[node name="SPACE6" type="Control" parent="margin/vb/vbox/bg_panel/hb"]
 margin_left = 1410.0
 margin_right = 1426.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
-[node name="edge_mix" type="CheckButton" parent="margin/vb/bg_panel/hb"]
+[node name="edge_mix" type="CheckButton" parent="margin/vb/vbox/bg_panel/hb"]
 margin_left = 1430.0
 margin_right = 1567.0
 margin_bottom = 40.0
 text = "Edge Mix"
 
-[node name="SPACE3" type="Control" parent="margin/vb/bg_panel/hb"]
+[node name="SPACE3" type="Control" parent="margin/vb/vbox/bg_panel/hb"]
 margin_left = 1571.0
 margin_right = 1587.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
-[node name="color_grade" type="CheckButton" parent="margin/vb/bg_panel/hb"]
+[node name="color_grade" type="CheckButton" parent="margin/vb/vbox/bg_panel/hb"]
 margin_left = 1591.0
 margin_right = 1757.0
 margin_bottom = 40.0
 text = "Color Grading"
 
-[node name="SPACE2" type="Control" parent="margin/vb/bg_panel/hb"]
+[node name="SPACE2" type="Control" parent="margin/vb/vbox/bg_panel/hb"]
 margin_left = 1761.0
 margin_right = 1777.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
-[node name="choose_image" type="Button" parent="margin/vb/bg_panel/hb"]
+[node name="choose_image" type="Button" parent="margin/vb/vbox/bg_panel/hb"]
 visible = false
 margin_left = 963.0
 margin_right = 1090.0
 margin_bottom = 32.0
 text = "Choose Image"
 
-[node name="SPACE1" type="Control" parent="margin/vb/bg_panel/hb"]
+[node name="SPACE1" type="Control" parent="margin/vb/vbox/bg_panel/hb"]
 visible = false
 margin_left = 1094.0
 margin_right = 1110.0
@@ -242,13 +258,13 @@ margin_bottom = 32.0
 rect_min_size = Vector2( 16, 0 )
 mouse_filter = 2
 
-[node name="import_images" type="Button" parent="margin/vb/bg_panel/hb"]
+[node name="import_images" type="Button" parent="margin/vb/vbox/bg_panel/hb"]
 margin_left = 1781.0
 margin_right = 1888.0
 margin_bottom = 40.0
 text = "Import Images"
 
-[node name="SPACE5" type="Control" parent="margin/vb/bg_panel/hb"]
+[node name="SPACE5" type="Control" parent="margin/vb/vbox/bg_panel/hb"]
 margin_left = 1892.0
 margin_right = 1896.0
 margin_bottom = 40.0
@@ -256,3 +272,4 @@ rect_min_size = Vector2( 4, 0 )
 mouse_filter = 2
 
 [connection signal="gui_input" from="viewport_display" to="viewport_display" method="_on_viewport_display_gui_input"]
+[connection signal="button_up" from="margin/vb/vbox/bg_panel/hb/visibility" to="margin/vb" method="_on_visibility_button_up"]

@@ -33,7 +33,7 @@ margin_right = 3840.0
 [node name="vbox" parent="preview_container/ViewportContainer/Viewport/preview_view" index="0"]
 ViewportDisplay = NodePath("../../../../../margin/vsplit/hsplit/right/preview/viewport_display")
 FileD = NodePath("../../../../../FileDialog")
-SmoothPixelButton = NodePath("../../../../../margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2/use_smooth_pixel")
+SmoothPixelButton = NodePath("../../../../../margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2/use_smooth_pixel")
 
 [node name="background_color" type="TextureRect" parent="."]
 anchor_right = 1.0
@@ -135,11 +135,13 @@ margin_bottom = 29.0
 margin_left = 75.0
 margin_right = 180.0
 margin_bottom = 29.0
+items = [ "File Hash", null, false, 0, null, "File Path", null, false, 1, null, "File Size", null, false, 2, null, "File Creation Time", null, false, 3, null, "Tag Count", null, false, 4, null ]
 
 [node name="order_by" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/sort_buttons" index="2"]
 margin_left = 184.0
 margin_right = 296.0
 margin_bottom = 29.0
+items = [ "Ascending", null, false, 0, null, "Descending", null, false, 1, null ]
 
 [node name="SPACE_3" parent="margin/vsplit/hsplit/left/image_list/margin/vbox/sort_buttons" index="3"]
 margin_left = 300.0
@@ -229,121 +231,116 @@ margin_bottom = 743.0
 
 [node name="SPACE" parent="margin/vsplit/hsplit/right/preview/margin/vb" index="0"]
 margin_right = 1228.0
-margin_bottom = 664.0
+margin_bottom = 638.0
 
-[node name="bg_panel2" parent="margin/vsplit/hsplit/right/preview/margin/vb" index="1"]
-margin_top = 668.0
+[node name="vbox" parent="margin/vsplit/hsplit/right/preview/margin/vb" index="1"]
+margin_top = 642.0
 margin_right = 1228.0
-margin_bottom = 701.0
+margin_bottom = 738.0
 
-[node name="hb2" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2" index="0"]
+[node name="bg_panel2" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox" index="0"]
+margin_right = 1228.0
+margin_bottom = 33.0
+
+[node name="hb2" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2" index="0"]
 margin_left = 2.0
 margin_top = 2.0
 margin_right = 1226.0
 
-[node name="SPACE5" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="0"]
+[node name="SPACE5" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="0"]
 margin_right = 129.0
 margin_bottom = 29.0
 
-[node name="SPACE8" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="1"]
+[node name="SPACE8" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="1"]
 margin_left = 133.0
 margin_right = 262.0
 margin_bottom = 29.0
 
-[node name="SPACE13" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="2"]
+[node name="SPACE13" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="2"]
 margin_left = 266.0
 margin_right = 395.0
 margin_bottom = 29.0
 
-[node name="SPACE11" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="3"]
+[node name="SPACE11" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="3"]
 margin_left = 399.0
 margin_right = 528.0
 margin_bottom = 29.0
 
-[node name="use_smooth_pixel" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="4"]
+[node name="use_smooth_pixel" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="4"]
 margin_left = 532.0
 margin_right = 666.0
 margin_bottom = 29.0
 
-[node name="SPACE9" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="5"]
+[node name="SPACE9" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="5"]
 margin_left = 670.0
 margin_right = 799.0
 margin_bottom = 29.0
 
-[node name="SPACE12" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="6"]
+[node name="SPACE12" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="6"]
 margin_left = 803.0
 margin_right = 932.0
 margin_bottom = 29.0
 
-[node name="SPACE10" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="7"]
+[node name="SPACE10" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="7"]
 margin_left = 936.0
 margin_right = 1065.0
 margin_bottom = 29.0
 
-[node name="use_recursion" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="8"]
+[node name="use_recursion" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="8"]
 margin_left = 1069.0
 margin_right = 1215.0
 margin_bottom = 29.0
 
-[node name="SPACE6" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel2/hb2" index="9"]
+[node name="SPACE6" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel2/hb2" index="9"]
 margin_left = 1219.0
 margin_right = 1223.0
 margin_bottom = 29.0
 
-[node name="bg_panel" parent="margin/vsplit/hsplit/right/preview/margin/vb" index="2"]
-margin_top = 705.0
+[node name="bg_panel" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox" index="1"]
+margin_top = 37.0
 margin_right = 1228.0
-margin_bottom = 738.0
+margin_bottom = 81.0
 
-[node name="hb" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel" index="0"]
+[node name="hb" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel" index="0"]
 margin_left = 2.0
 margin_top = 2.0
 margin_right = 1226.0
-margin_bottom = 31.0
+margin_bottom = 42.0
 
-[node name="SPACE4" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel/hb" index="0"]
+[node name="SPACE4" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="1"]
 margin_right = 627.0
-margin_bottom = 29.0
 
-[node name="filter" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel/hb" index="1"]
+[node name="filter" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="2"]
 margin_left = 631.0
 margin_right = 726.0
-margin_bottom = 29.0
 
-[node name="SPACE6" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel/hb" index="2"]
+[node name="SPACE6" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="3"]
 margin_left = 730.0
 margin_right = 746.0
-margin_bottom = 29.0
 
-[node name="edge_mix" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel/hb" index="3"]
+[node name="edge_mix" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="4"]
 margin_left = 750.0
 margin_right = 878.0
-margin_bottom = 29.0
 
-[node name="SPACE3" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel/hb" index="4"]
+[node name="SPACE3" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="5"]
 margin_left = 882.0
 margin_right = 898.0
-margin_bottom = 29.0
 
-[node name="color_grade" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel/hb" index="5"]
+[node name="color_grade" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="6"]
 margin_left = 902.0
 margin_right = 1068.0
-margin_bottom = 29.0
 
-[node name="SPACE2" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel/hb" index="6"]
+[node name="SPACE2" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="7"]
 margin_left = 1072.0
 margin_right = 1088.0
-margin_bottom = 29.0
 
-[node name="import_images" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel/hb" index="9"]
+[node name="import_images" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="10"]
 margin_left = 1092.0
 margin_right = 1216.0
-margin_bottom = 29.0
 
-[node name="SPACE5" parent="margin/vsplit/hsplit/right/preview/margin/vb/bg_panel/hb" index="10"]
+[node name="SPACE5" parent="margin/vsplit/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="11"]
 margin_left = 1220.0
 margin_right = 1224.0
-margin_bottom = 29.0
 
 [node name="Label" type="Label" parent="."]
 visible = false

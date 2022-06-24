@@ -42,5 +42,5 @@ func refresh_page(import_id:String) -> void:
 	if import_id == "": return
 	if import_id == Globals.current_load_id: page_changed()
 
-func all_button_pressed() -> void: 	self.show()
+func all_button_pressed() -> void: self.show()
 func import_button_pressed() -> void: self.hide()
