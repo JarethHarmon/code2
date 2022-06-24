@@ -5,11 +5,9 @@ const import_button = preload("res://scenes/import_button.tscn")
 signal settings_loaded
 
 signal load_all_images
-signal load_image(image_path)
-signal load_tags(komi64)
 signal image_import_finished
 signal import_info_load_finished
-signal import_button_pressed(import_id)
+#signal import_button_pressed(import_id)
 signal import_list_location(node_path)
 signal update_button(import_count, import_id)
 signal delete_pressed(import_id)
@@ -28,7 +26,20 @@ func create_import_button(id:String) -> void:
 	if Database.ImportDictHasID(id):
 		var _name:String = Database.GetImportNameFromID(id)
 		if _name == "": _name = Database.GetImportFolderFromID(id).get_file()
+		get_node(import_list).add_child(ibutton)
+		ibutton.import_id = id
 		ibutton.set_import_name(_name)
 		ibutton.set_import_count(Database.GetImportSuccessCountFromID(id))
-	ibutton.import_id = id
-	get_node(import_list).add_child(ibutton)
+
+##################################################################
+signal search_pressed(tags_all, tags_any, tags_none, new_query)
+signal import_button_pressed
+signal all_button_pressed
+signal clear_pressed
+signal prev_page_pressed
+signal next_page_pressed
+signal sort_changed
+signal order_changed
+signal page_changed
+signal load_image(image_path)
+signal load_tags(komi64)

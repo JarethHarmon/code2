@@ -1,27 +1,22 @@
 extends PanelContainer
 
-var import_name:String = "ALL" setget set_import_name
-var tmp:String = ""
-var import_count:int = 0 setget set_import_count
-var import_id:String = "all"
+onready var load_all_button:Button = $hbox/load_all
 
-func set_import_name(_value:String):
-	$hbox/load_all.text = "(" + String(import_count) + "):  ALL" 
-
-func set_import_count(value:int):
-	import_count = value
-	$hbox/load_all.text = "(" + String(import_count) + "):  ALL"
-
-func _on_import_name_count_button_up() -> void:
-	Signals.emit_signal("import_button_pressed", import_id)
+var image_count:int = 0 setget set_image_count
+var load_id:String = "all"
 
 func _ready() -> void:
-	var _err:int = Signals.connect("update_button", self, "test")
+	var _err:int = Signals.connect("update_button", self, "_set_image_count")
+	_err = load_all_button.connect("button_up", self, "all_button_pressed")
 
-func test(count:int, id:String) -> void:
-	if import_id == id: set_import_count(count)
-	
-# this needs to create a confirmation popup() instead of just deleting
-func _on_delete_button_button_up() -> void:
-	Signals.emit_signal("delete_pressed", import_id)
-	self.queue_free()
+func _set_image_count(count:int, id:String) -> void: 
+	if load_id == id: 
+		set_image_count(count)
+func set_image_count(value:int):
+	image_count = value
+	$hbox/load_all.text = "(" + String(image_count) + "):  ALL"
+
+func all_button_pressed() -> void: 
+	Globals.current_load_id = load_id
+	Globals.current_type_id = Globals.TypeId.All
+	Signals.emit_signal("all_button_pressed") 

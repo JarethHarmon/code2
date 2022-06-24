@@ -33,7 +33,7 @@ func create_current_image(im:Image=null) -> void:
 		im = tex.get_data()
 	
 	var it:ImageTexture = ImageTexture.new()
-	it.create_from_image(im, 4 if Settings.settings.use_filter else 0)
+	it.create_from_image(im, 4 if Globals.settings.use_filter else 0)
 	current_image = it
 
 func resize_current_image() -> void:
@@ -44,18 +44,18 @@ func resize_current_image() -> void:
 	preview.set_texture(current_image)
 
 func _settings_loaded() -> void:
-	_on_color_grade_toggled(Settings.settings.use_color_grade)
-	_on_edge_mix_toggled(Settings.settings.use_edge_mix)
-	_on_use_smooth_pixel_toggled(Settings.settings.use_smooth_pixel)
-	_on_filter_toggled(Settings.settings.use_filter)
-	_on_use_recursion_toggled(Settings.settings.use_recursion)
+	_on_color_grade_toggled(Globals.settings.use_color_grade)
+	_on_edge_mix_toggled(Globals.settings.use_edge_mix)
+	_on_use_smooth_pixel_toggled(Globals.settings.use_smooth_pixel)
+	_on_filter_toggled(Globals.settings.use_filter)
+	_on_use_recursion_toggled(Globals.settings.use_recursion)
 
 func _on_FileDialog_dir_selected(dir:String) -> void: 
 	match select:
 		selection.IMPORT: 
 			if ImageOp.thumbnail_path == "": return
-			Import.queue_append(dir, Settings.settings.use_recursion)
-			Settings.settings.last_used_directory = dir.get_base_dir()
+			Import.queue_append(dir, Globals.settings.use_recursion)
+			Globals.settings.last_used_directory = dir.get_base_dir()
 
 func _on_FileDialog_file_selected(path:String) -> void:
 	fd.hide()
@@ -115,7 +115,7 @@ func _on_import_images_pressed() -> void:
 	fd.mode = 2 	# choose folder
 	fd.access = 2	# file system
 	fd.window_title = "Choose a folder to import from"
-	if Settings.settings.last_used_directory != "": fd.current_dir = Settings.settings.last_used_directory
+	if Globals.settings.last_used_directory != "": fd.current_dir = Globals.settings.last_used_directory
 	fd.popup()
 	
 func _on_choose_image_pressed() -> void:
@@ -126,32 +126,32 @@ func _on_choose_image_pressed() -> void:
 	fd.popup()
 	
 func _on_color_grade_toggled(button_pressed:bool) -> void: 
-	Settings.settings.use_color_grade = button_pressed
+	Globals.settings.use_color_grade = button_pressed
 	color_grade.visible = button_pressed
 	
 func _on_edge_mix_toggled(button_pressed:bool): 
-	Settings.settings.use_edge_mix = button_pressed
+	Globals.settings.use_edge_mix = button_pressed
 	edge_mix.visible = button_pressed
 	
-func _on_use_recursion_toggled(button_pressed:bool) -> void: Settings.settings.use_recursion = button_pressed
+func _on_use_recursion_toggled(button_pressed:bool) -> void: Globals.settings.use_recursion = button_pressed
 func _on_filter_toggled(button_pressed:bool) -> void:	
-	Settings.settings.use_filter = button_pressed
+	Globals.settings.use_filter = button_pressed
 	if button_pressed:
 		smooth_pixel_button.disabled = false
-		if Settings.settings.use_smooth_pixel: 
+		if Globals.settings.use_smooth_pixel: 
 			_on_use_smooth_pixel_toggled(true)
 	else:
 		smooth_pixel_button.disabled = true
-		if Settings.settings.use_smooth_pixel:
+		if Globals.settings.use_smooth_pixel:
 			_on_use_smooth_pixel_toggled(false)
-			Settings.settings.use_smooth_pixel = true
+			Globals.settings.use_smooth_pixel = true
 		else: _on_use_smooth_pixel_toggled(false)
 	
 	create_current_image()
 	resize_current_image()
 	
 func _on_use_smooth_pixel_toggled(button_pressed:bool) -> void:
-	Settings.settings.use_smooth_pixel = button_pressed
+	Globals.settings.use_smooth_pixel = button_pressed
 	if button_pressed: 
 		$hbox_0/image_0.set_material(pixel_smooth)
 	else: $hbox_0/image_0.set_material(null)
