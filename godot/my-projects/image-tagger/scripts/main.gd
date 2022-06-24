@@ -23,6 +23,7 @@ func _input(event:InputEvent) -> void:
 			_notification(MainLoop.NOTIFICATION_WM_QUIT_REQUEST)
 
 func _ready() -> void:
+	randomize()
  # closing the program instead calls _notification(MainLoop.NOTIFICATION_WM_QUIT_REQUEST)
 	get_tree().set_auto_accept_quit(false)
  # ensure other scripts have time to connect to any signals (they should even without this)

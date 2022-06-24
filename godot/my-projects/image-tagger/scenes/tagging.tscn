@@ -77,21 +77,27 @@ margin_right = 1910.0
 margin_bottom = 32.0
 mouse_filter = 2
 
-[node name="scroll" type="ScrollContainer" parent="margin/vbox"]
+[node name="list" type="ItemList" parent="margin/vbox"]
 margin_top = 36.0
 margin_right = 1910.0
 margin_bottom = 1070.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+custom_constants/vseparation = 4
+custom_constants/hseparation = 4
+max_text_lines = 2
+max_columns = 100
 
-[node name="hsplit" type="HBoxContainer" parent="margin/vbox/scroll"]
+[node name="hsplit" type="HBoxContainer" parent="margin/vbox"]
+visible = false
+margin_top = 36.0
 margin_right = 1910.0
-margin_bottom = 1034.0
+margin_bottom = 1070.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="vbox1" type="VBoxContainer" parent="margin/vbox/scroll/hsplit"]
+[node name="vbox1" type="VBoxContainer" parent="margin/vbox/hsplit"]
 margin_right = 949.0
 margin_bottom = 1034.0
 mouse_filter = 2
@@ -99,13 +105,13 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 8
 
-[node name="vsep" type="VSeparator" parent="margin/vbox/scroll/hsplit"]
+[node name="vsep" type="VSeparator" parent="margin/vbox/hsplit"]
 margin_left = 953.0
 margin_right = 957.0
 margin_bottom = 1034.0
 mouse_filter = 2
 
-[node name="vbox2" type="VBoxContainer" parent="margin/vbox/scroll/hsplit"]
+[node name="vbox2" type="VBoxContainer" parent="margin/vbox/hsplit"]
 margin_left = 961.0
 margin_right = 1910.0
 margin_bottom = 1034.0
@@ -113,6 +119,23 @@ mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 8
+
+[node name="scroll" type="ScrollContainer" parent="margin/vbox"]
+visible = false
+margin_top = 40.0
+margin_right = 1910.0
+margin_bottom = 1070.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+scroll_horizontal_enabled = false
+
+[node name="grid" type="GridContainer" parent="margin/vbox/scroll"]
+margin_right = 1910.0
+margin_bottom = 1030.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 100
 
 [connection signal="focus_entered" from="margin/vbox/hbox/tag_entry" to="." method="_on_tag_entry_focus_entered"]
 [connection signal="text_entered" from="margin/vbox/hbox/tag_entry" to="." method="_on_tag_entry_text_entered"]

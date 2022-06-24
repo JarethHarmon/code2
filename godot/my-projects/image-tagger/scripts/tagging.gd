@@ -1,11 +1,17 @@
 extends Control
 
 onready var tag_entry:LineEdit = $margin/vbox/hbox/tag_entry
-onready var column_L:VBoxContainer = $margin/vbox/scroll/hsplit/vbox1
-onready var column_R:VBoxContainer = $margin/vbox/scroll/hsplit/vbox2
+#onready var column_L:VBoxContainer = $margin/vbox/scroll/hsplit/vbox1
+#onready var column_R:VBoxContainer = $margin/vbox/scroll/hsplit/vbox2
+
+#onready var grid:GridContainer = $margin/vbox/scroll/grid
+onready var list:ItemList = $margin/vbox/list
+
 var curr_column:bool = true # true=L false=R
 var curr_hash:String = ""
 var curr_tags:Dictionary = {}
+
+var index:int = 0
 
 func _ready() -> void: var _err:int = Signals.connect("load_tags", self, "_load_tags")
 
@@ -16,19 +22,28 @@ func _load_tags(komi64:String) -> void:
 	var tags:Array = Database.GetKomiTagsFromDict(komi64)
 	for tag in tags: curr_tags[tag] = null
 	
-	for c in column_L.get_children(): c.queue_free()
-	for c in column_R.get_children(): c.queue_free()
-	curr_column = true
+	list.clear()
+	index = 0
+	#for c in grid.get_children(): c.queue_free()
+	#for c in column_L.get_children(): c.queue_free()
+	#for c in column_R.get_children(): c.queue_free()
+	#curr_column = true
 	
 	while not tags.empty():
-		var b:Button = Button.new()
-		b.text = tags.pop_front()
-		if curr_column: 
-			column_L.add_child(b)
-			curr_column = false
-		else:
-			column_R.add_child(b)
-			curr_column = true	
+		list.add_item(tags.pop_front())
+		var color:Color = Color(randf(), randf(), randf(), 1.0)
+		list.set_item_custom_fg_color(index, color * 1.5)
+		list.set_item_custom_bg_color(index, color * 0.25)
+		index += 1
+		#var b:Button = Button.new()
+		#b.text = tags.pop_front()
+		#grid.add_child(b)
+#		if curr_column: 
+#			column_L.add_child(b)
+#			curr_column = false
+#		else:
+#			column_R.add_child(b)
+#			curr_column = true	
 
 # pop-up tag entry
 func _on_tag_entry_text_entered(new_text:String) -> void: _on_new_tag_button_up(new_text)
@@ -40,15 +55,22 @@ func _on_new_tag_button_up(text:String="") -> void:
 	if curr_hash == "": return
 	if curr_tags.has(text_n): return
 	
-	var b:Button = Button.new()
-	b.text = text_n
+	#var b:Button = Button.new()
+	#b.text = text_n
 	
-	if curr_column: 
-		column_L.add_child(b)
-		curr_column = false
-	else:
-		column_R.add_child(b)
-		curr_column = true
+	list.add_item(text_n)
+	var color:Color = Color(randf(), randf(), randf(), 1.0)
+	list.set_item_custom_fg_color(index, color * 1.5)
+	list.set_item_custom_bg_color(index, color * 0.25)
+	index += 1
+	#grid.add_child(b)
+	
+#	if curr_column: 
+#		column_L.add_child(b)
+#		curr_column = false
+#	else:
+#		column_R.add_child(b)
+#		curr_column = true
 	
 	Database.AddTagToKomi(curr_hash, text_n)
 	Database.AddHashToTag(text_n, curr_hash)
