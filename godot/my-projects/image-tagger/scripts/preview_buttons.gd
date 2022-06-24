@@ -10,8 +10,8 @@ func _ready() -> void:
 	var _err:int = Signals.connect("settings_loaded", self, "_settings_loaded")
 
 func _settings_loaded() -> void:
-	filter.pressed = Settings.settings.use_filter
-	edge_mix.pressed = Settings.settings.use_edge_mix
-	color_grade.pressed = Settings.settings.use_color_grade
-	smooth_pixel.pressed = Settings.settings.use_smooth_pixel
-	recursion.pressed = Settings.settings.use_recursion
+	filter.pressed = Globals.settings.use_filter
+	edge_mix.pressed = Globals.settings.use_edge_mix
+	color_grade.pressed = Globals.settings.use_color_grade
+	smooth_pixel.pressed = Globals.settings.use_smooth_pixel
+	recursion.pressed = Globals.settings.use_recursion

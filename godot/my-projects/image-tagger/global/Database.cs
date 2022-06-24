@@ -78,6 +78,12 @@ using Alphaleonis.Win32.Filesystem;		// (?)
 		public const int TagCount = 4;
 	}
 	
+	public class OrderBy {
+		public const int Ascending = 0;
+		public const int Descending = 1;
+		public const int Random = 2;
+	}
+	
 	public class ErrorCodes {
 		public const int OK = 0;
 		public const int ERROR = 1;
@@ -532,14 +538,14 @@ public class Database : Node {
 	}
 	
 	//public void LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
-	public string[] LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, bool ascend=false) {
+	public string[] LoadRangeKomi64FromTags(int start_index, int count, string[] tags_have_all, string[] tags_have_one, string[] tags_have_none, int sort_by=SortBy.FileHash, int order_by=OrderBy.Ascending) { //bool ascend=false) {	
 		try {
 			// may need to be moved elsewhere / only done if komihashes != null
 			dict_komi64.Clear();
 			//last_query_count = 0;
 			var list = new List<string>();
 			
-			var komihashes = GetKomi64RangeFromTags(start_index, count, tags_have_all, tags_have_one, tags_have_none, sort_by, ascend);
+			var komihashes = GetKomi64RangeFromTags(start_index, count, tags_have_all, tags_have_one, tags_have_none, sort_by, order_by); // ascend);
 			if (komihashes != null)
 				foreach (Komi64Info khinfo in komihashes)
 				//foreach (string khash in komihashes)
@@ -559,7 +565,7 @@ public class Database : Node {
 	// consider adding a SELECT statement since I only actually want the komi64 hash from this (would likely increase speed & reduce memory)
 	
 	//private IEnumerable<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {	
-	private List<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {	
+	private List<Komi64Info> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, int order_by=OrderBy.Ascending) { //bool ascend=false) {	
 	//private List<string> GetKomi64RangeFromTags(int start_index, int count, string[] tags_all, string[] tags_any, string[] tags_none, int sort_by=SortBy.FileHash, bool ascend=false) {				
 		try {
 			//GD.Print("Querying...");
@@ -575,7 +581,10 @@ public class Database : Node {
 			
 			if (tags_all.Length == 0 && tags_any.Length == 0 && tags_none.Length == 0 && column_name == "_Id" && !sort_by_tag_count) {
 				tqc = col_komi64.Count();
-				return col_komi64.Find(Query.All((ascend) ? Query.Ascending : Query.Descending), start_index, count).ToList();
+				if (order_by == OrderBy.Ascending) return col_komi64.Find(Query.All(Query.Ascending), start_index, count).ToList();
+				else if (order_by == OrderBy.Descending) return col_komi64.Find(Query.All(Query.Descending), start_index, count).ToList();
+				else return col_komi64.Find(Query.All(Query.Ascending), start_index, count).ToList();
+				//return col_komi64.Find(Query.All((ascend) ? Query.Ascending : Query.Descending), start_index, count).ToList();
 			}
 			
 			// would like to add support for sorting by file paths; but any image could have any number of paths or filenames and even just choosing one would be difficult (syntax-wise)
@@ -594,14 +603,23 @@ public class Database : Node {
 			
 			//GD.Print(sort_by_tag_count, " : ", sort_by, " : ", SortBy.TagCount);
 			
-			if (sort_by_tag_count) 
-				query = (ascend) ? query.OrderBy(x => x.tags.Count) : query.OrderByDescending(x => x.tags.Count);
-			else {
-				//if (random)
-				//	query = (ascend) ? query.OrderBy(x => rng.Next()) : query.OrderByDescending(x => rng.Next());
-				//else
-					query = (ascend) ? query.OrderBy(column_name) : query.OrderByDescending(column_name);
+			if (sort_by_tag_count) {
+				if (order_by == OrderBy.Ascending) query = query.OrderBy(x => x.tags.Count);
+				else if (order_by == OrderBy.Descending) query = query.OrderByDescending(x => x.tags.Count);
+				else query = query.OrderBy(x => x.tags.Count);
+			} else {
+				if (order_by == OrderBy.Ascending) query = query.OrderBy(column_name);
+				else if (order_by == OrderBy.Descending)query = query.OrderByDescending(column_name);
+				else query = query.OrderBy(column_name);
 			}
+//			if (sort_by_tag_count) 
+//				query = (ascend) ? query.OrderBy(x => x.tags.Count) : query.OrderByDescending(x => x.tags.Count);
+//			else {
+//				//if (random)
+//				//	query = (ascend) ? query.OrderBy(x => rng.Next()) : query.OrderByDescending(x => rng.Next());
+//				//else
+//					query = (ascend) ? query.OrderBy(column_name) : query.OrderByDescending(column_name);
+//			}
 			//var list = query.Select(x => x.komi64).Skip(start_index).Limit(count).ToList();
 			//return list;
 			return query.Skip(start_index).Limit(count).ToList();

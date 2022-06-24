@@ -1,7 +1,9 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://scripts/images.gd" type="Script" id=1]
 [ext_resource path="res://scripts/search_buttons.gd" type="Script" id=2]
+[ext_resource path="res://scripts/sort_buttons.gd" type="Script" id=3]
+[ext_resource path="res://scripts/page_buttons.gd" type="Script" id=4]
 
 [sub_resource type="Gradient" id=1]
 colors = PoolColorArray( 0.0235294, 0.0156863, 0.0705882, 1, 0.0745098, 0.0235294, 0.141176, 1 )
@@ -57,6 +59,7 @@ margin_bottom = 24.0
 rect_min_size = Vector2( 0, 24 )
 mouse_filter = 2
 size_flags_horizontal = 3
+script = ExtResource( 3 )
 
 [node name="sort_by_label" type="Label" parent="margin/vbox/sort_buttons"]
 margin_top = 5.0
@@ -72,7 +75,7 @@ text = "File Hash"
 items = [ "File Hash", null, false, 0, null, "File Path", null, false, 1, null, "File Size", null, false, 2, null, "File Creation Time", null, false, 3, null, "Tag Count", null, false, 4, null ]
 selected = 0
 
-[node name="ascend_descend" type="OptionButton" parent="margin/vbox/sort_buttons"]
+[node name="order_by" type="OptionButton" parent="margin/vbox/sort_buttons"]
 margin_left = 145.0
 margin_right = 240.0
 margin_bottom = 24.0
@@ -82,16 +85,16 @@ selected = 0
 
 [node name="SPACE_3" type="Control" parent="margin/vbox/sort_buttons"]
 margin_left = 244.0
-margin_right = 1830.0
+margin_right = 1846.0
 margin_bottom = 24.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="refresh" type="Button" parent="margin/vbox/sort_buttons"]
-margin_left = 1834.0
+[node name="clear" type="Button" parent="margin/vbox/sort_buttons"]
+margin_left = 1850.0
 margin_right = 1910.0
 margin_bottom = 24.0
-text = "  Refresh  "
+text = "  Clear  "
 
 [node name="search_buttons" type="HBoxContainer" parent="margin/vbox"]
 visible = false
@@ -115,7 +118,7 @@ margin_bottom = 24.0
 size_flags_horizontal = 3
 placeholder_text = "(Include All) comma separated tags.."
 
-[node name="include_one" type="LineEdit" parent="margin/vbox/search_buttons/search_bars"]
+[node name="include_any" type="LineEdit" parent="margin/vbox/search_buttons/search_bars"]
 margin_top = 28.0
 margin_right = 1836.0
 margin_bottom = 52.0
@@ -148,10 +151,7 @@ fixed_column_width = 150
 icon_mode = 0
 fixed_icon_size = Vector2( 150, 150 )
 script = ExtResource( 1 )
-IncludeAllBar = NodePath("../search_buttons/search_bars/include_all")
-IncludeOneBar = NodePath("../search_buttons/search_bars/include_one")
-ExcludeAllBar = NodePath("../search_buttons/search_bars/exclude_all")
-SearchButton = NodePath("../search_buttons/search_button")
+page_label = NodePath("../page_buttons/page_label")
 
 [node name="Timer" type="Timer" parent="margin/vbox/images"]
 wait_time = 0.5
@@ -162,6 +162,7 @@ margin_right = 1910.0
 margin_bottom = 1070.0
 mouse_filter = 2
 size_flags_horizontal = 3
+script = ExtResource( 4 )
 
 [node name="prev_page" type="Button" parent="margin/vbox/page_buttons"]
 margin_right = 43.0
@@ -175,7 +176,7 @@ margin_bottom = 20.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="Label" type="Label" parent="margin/vbox/page_buttons"]
+[node name="page_label" type="Label" parent="margin/vbox/page_buttons"]
 margin_left = 954.0
 margin_top = 3.0
 margin_right = 954.0
@@ -196,10 +197,4 @@ margin_right = 1910.0
 margin_bottom = 20.0
 text = "NEXT"
 
-[connection signal="item_selected" from="margin/vbox/sort_buttons/sort_by" to="margin/vbox/images" method="_on_sort_by_item_selected"]
-[connection signal="item_selected" from="margin/vbox/sort_buttons/ascend_descend" to="margin/vbox/images" method="_on_ascend_descend_item_selected"]
-[connection signal="button_up" from="margin/vbox/search_buttons/search_button" to="margin/vbox/images" method="_on_search_button_button_up"]
 [connection signal="item_selected" from="margin/vbox/images" to="margin/vbox/images" method="_on_images_item_selected"]
-[connection signal="timeout" from="margin/vbox/images/Timer" to="margin/vbox/images" method="_on_Timer_timeout"]
-[connection signal="button_up" from="margin/vbox/page_buttons/prev_page" to="margin/vbox/images" method="_on_prev_page_button_up"]
-[connection signal="button_up" from="margin/vbox/page_buttons/next_page" to="margin/vbox/images" method="_on_next_page_button_up"]

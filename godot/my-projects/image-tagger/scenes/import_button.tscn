@@ -29,7 +29,7 @@ rect_min_size = Vector2( 24, 24 )
 texture_normal = ExtResource( 2 )
 expand = true
 
-[node name="import_name_count" type="Button" parent="hbox"]
+[node name="import_button" type="Button" parent="hbox"]
 margin_left = 28.0
 margin_right = 150.0
 margin_bottom = 24.0
@@ -50,6 +50,3 @@ margin_right = 205.0
 margin_bottom = 19.0
 grow_horizontal = 0
 text = "STATUS"
-
-[connection signal="button_up" from="hbox/delete_button" to="." method="_on_delete_button_button_up"]
-[connection signal="button_up" from="hbox/import_name_count" to="." method="_on_import_name_count_button_up"]

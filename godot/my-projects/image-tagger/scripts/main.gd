@@ -12,7 +12,7 @@ func _notification(what) -> void:
 		Database.Destroy() 
 		#print_stray_nodes() # checks for orphan nodes, currently there are none
 		images.stop_threads()
-		Settings.save_settings()
+		Globals.save_settings()
 		print("exiting program")
 		get_tree().quit()
 
@@ -31,14 +31,14 @@ func _ready() -> void:
 func _begin() -> void:
  # make and set default metadata folder
 	var dir:Directory = Directory.new()
-	if Settings.settings.use_default_metadata_path:
-		var err:int = dir.make_dir_recursive(Settings.settings.default_metadata_path)
-		if err == OK: Database.SetMetadataPath(Settings.settings.default_metadata_path)
+	if Globals.settings.use_default_metadata_path:
+		var err:int = dir.make_dir_recursive(Globals.settings.default_metadata_path)
+		if err == OK: Database.SetMetadataPath(Globals.settings.default_metadata_path)
 	
  # make and set default thumbnail folder
-	if Settings.settings.use_default_thumbnail_path:
-		var err:int = dir.make_dir_recursive(Settings.settings.default_thumbnail_path)
-		if err == OK: ImageOp.SetThumbnailPath(Settings.settings.default_thumbnail_path)
+	if Globals.settings.use_default_thumbnail_path:
+		var err:int = dir.make_dir_recursive(Globals.settings.default_thumbnail_path)
+		if err == OK: ImageOp.SetThumbnailPath(Globals.settings.default_thumbnail_path)
 	
  # create database and print its folder
 	if (Database.Create() == OK): print("successfully opened databases")

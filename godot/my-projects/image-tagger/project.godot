@@ -32,7 +32,6 @@ ImageOp="*res://global/ImageOp.cs"
 ImageScanner="*res://global/ImageScanner.cs"
 Import="*res://global/import.gd"
 Signals="*res://global/signals.gd"
-Settings="*res://global/settings.gd"
 Globals="*res://global/globals.gd"
 
 [debug]

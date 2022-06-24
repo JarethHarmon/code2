@@ -78,6 +78,3 @@ margin_right = 1896.0
 margin_bottom = 20.0
 size_flags_horizontal = 3
 text = "       ALL       "
-
-[connection signal="button_up" from="margin/vbox/all_button/hbox/load_all" to="." method="_on_load_all_button_up"]
-[connection signal="button_up" from="margin/vbox/all_button/hbox/load_all" to="margin/vbox/all_button" method="_on_load_all_button_up"]
