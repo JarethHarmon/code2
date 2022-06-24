@@ -196,5 +196,3 @@ margin_left = 1866.0
 margin_right = 1910.0
 margin_bottom = 20.0
 text = "NEXT"
-
-[connection signal="item_selected" from="margin/vbox/images" to="margin/vbox/images" method="_on_images_item_selected"]

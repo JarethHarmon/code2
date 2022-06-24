@@ -40,7 +40,7 @@ func _ready() -> void:
 	_err = Signals.connect("import_button_pressed", self, "prepare_query")
 	_err = Signals.connect("prev_page_pressed", self, "prev_page_button_pressed")
 	_err = Signals.connect("next_page_pressed", self, "next_page_button_pressed")
-	
+	_err = self.connect("item_selected", self, "image_selected")
 func prepare_query(tags_all:Array=[], tags_any:Array=[], tags_none:Array=[], new_query:bool=true) -> void:
 	if new_query:
 		current_page_number = 1
@@ -246,3 +246,21 @@ func next_page_button_pressed() -> void:
 	current_page_number += 1
 	Signals.emit_signal("page_changed")
 
+func image_selected(index:int) -> void:
+	if index < 0: return
+	if index >= self.get_item_count(): return	
+	var im_tex:Texture = self.get_item_icon(index)
+	if im_tex == null: return
+	if im_tex is StreamTexture: return			# return if broken icon or loading icon
+	
+	var komi64:String = im_tex.get_meta("komi64")
+	var paths:Array = Database.GetKomiPathsFromDict(komi64)
+	if !paths.empty(): 
+		var f:File = File.new()
+		for path in paths:
+			if f.file_exists(path):
+				# these 
+				# the functions connected to these signals probably need to be threaded (with thread queue)
+				Signals.emit_signal("load_image", path)
+				Signals.emit_signal("load_tags", komi64)
+				break
