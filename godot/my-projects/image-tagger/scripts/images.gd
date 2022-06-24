@@ -41,6 +41,7 @@ func _ready() -> void:
 	_err = Signals.connect("prev_page_pressed", self, "prev_page_button_pressed")
 	_err = Signals.connect("next_page_pressed", self, "next_page_button_pressed")
 	_err = self.connect("item_selected", self, "image_selected")
+	
 func prepare_query(tags_all:Array=[], tags_any:Array=[], tags_none:Array=[], new_query:bool=true) -> void:
 	if new_query:
 		current_page_number = 1

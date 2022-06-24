@@ -31,18 +31,19 @@ func queue_append(import_folder:String, recursive:bool=true) -> void:
 	if (!importer_active): start_importer()
 
 func _thread() -> void:
+	var import_id:String =""
 	while not queue.empty():
 		var time:int = OS.get_ticks_msec()
 		var import:Array = queue.pop_front()
-		ImageOp.ImportImages(import[0], import[1])
+		import_id = ImageOp.ImportImages(import[0], import[1])
 		print("DONE  (R=" + ("t" if import[1] else "f") + "):   ", import[0], "\t; took %1.3f" % [float(OS.get_ticks_msec()-time)/1000.0], " seconds") 
 		OS.delay_msec(50)
-	call_deferred("_done")
+	call_deferred("_done", import_id)
 	
-func _done() -> void:
+func _done(import_id:String) -> void:
 	if import_thread.is_alive() or import_thread.is_active(): import_thread.wait_to_finish()
 	importer_active = false
 	import_mutex.unlock()
 	print("DONE IMPORTING")
-	Signals.emit_signal("image_import_finished")
+	Signals.emit_signal("image_import_finished", import_id)
 	

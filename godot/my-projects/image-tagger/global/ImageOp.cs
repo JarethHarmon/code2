@@ -110,9 +110,9 @@ public class ImageOp : Node
 		catch (Exception) { return null; }
 	}
 	
-	public void ImportImages(string path, bool recursive) {
+	public string ImportImages(string path, bool recursive) {
 		int image_count = iscan.ScanDirectories(@path, recursive);
-		if (image_count <= 0) return; 								// no images to import
+		if (image_count <= 0) return ""; 							// no images to import
 		int success_count = 0;
 		
 		string iid = db.GetRandomID(4); 							// gets a random 32 bit ID	
@@ -135,6 +135,7 @@ public class ImageOp : Node
 	
 		db.CheckpointImport();
 		db.CheckpointKomi64();
+		return iid;
 	}
 	
 	//public void ImportImage(string image_path, string import_id) {
