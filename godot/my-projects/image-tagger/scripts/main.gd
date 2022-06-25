@@ -2,6 +2,7 @@ extends Control
 
 export (NodePath) var Images ; onready var images:ItemList = get_node(Images)
 
+func _on_close_pressed() -> void: _notification(MainLoop.NOTIFICATION_WM_QUIT_REQUEST)
 func _notification(what) -> void:
  # if user tried to close the program, or the program crashed (though not sure if latter actually works)
 	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST or what == MainLoop.NOTIFICATION_CRASH or what == MainLoop.NOTIFICATION_WM_GO_BACK_REQUEST:
@@ -46,6 +47,7 @@ func _begin() -> void:
 	if (Database.LoadImportInfoFromDatabase() == OK): print("successfully loaded imports")
 	Database.LoadTagsFromDatabase()
 	Signals.emit_signal("import_info_load_finished")
+
 
 
 

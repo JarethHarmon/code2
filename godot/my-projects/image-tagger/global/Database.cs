@@ -313,8 +313,8 @@ public class Database : Node {
 			dict_import_group.Clear();
 			IEnumerable<ImportGroup> imports;
 			
-			GD.Print("Querying...");
-			var now = DateTime.Now;
+			//GD.Print("Querying...");
+			//var now = DateTime.Now;
 			
 			//bool random = sort_by == SortBy.Random;
 			
@@ -339,7 +339,7 @@ public class Database : Node {
 				else imports = col.Find(Query.All(), start, limit:count);
 			}
 			
-			GD.Print("IG Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
+			//GD.Print("IG Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
 			
 			last_query_count = 0;
 			foreach (ImportGroup import in imports) {
@@ -473,6 +473,7 @@ public class Database : Node {
 			if (tmp == null) return;
 			if (tmp.tags == null) tmp.tags = new HashSet<string>();
 			tmp.tags.Add(tag);
+			dict_komi64[komi64] = tmp;
 			col_komi64.Update(tmp);
 		} catch (Exception ex) { GD.Print("Database::AddTagToKomi() : ", ex); return; }
 	}

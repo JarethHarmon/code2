@@ -40,7 +40,8 @@ func _ready() -> void:
 	_err = Signals.connect("import_button_pressed", self, "prepare_query")
 	_err = Signals.connect("prev_page_pressed", self, "prev_page_button_pressed")
 	_err = Signals.connect("next_page_pressed", self, "next_page_button_pressed")
-	_err = self.connect("item_selected", self, "image_selected")
+	#_err = self.connect("item_selected", self, "image_selected")
+	_err = self.connect("multi_selected", self, "image_selected")
 	
 func prepare_query(tags_all:Array=[], tags_any:Array=[], tags_none:Array=[], new_query:bool=true) -> void:
 	if new_query:
@@ -247,14 +248,19 @@ func next_page_button_pressed() -> void:
 	current_page_number += 1
 	Signals.emit_signal("page_changed")
 
-func image_selected(index:int) -> void:
-	if index < 0: return
-	if index >= self.get_item_count(): return	
-	var im_tex:Texture = self.get_item_icon(index)
-	if im_tex == null: return
-	if im_tex is StreamTexture: return			# return if broken icon or loading icon
+# this will store a dict of item_index:komi64 for selected items (can be used for batch tagging)
+var selected_items:Dictionary = {}
+#func image_selected(index:int) -> void:
+func image_selected(index:int, selected:bool) -> void:
+	selected_items.clear()
+	var arr_index:Array = self.get_selected_items()
 	
-	var komi64:String = im_tex.get_meta("komi64")
+	for idx in arr_index: 
+		var komi64:String = prepare_image(idx)
+		if komi64 == "": continue
+		selected_items[idx] = komi64
+	
+	var komi64:String = selected_items[index]
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
 	if !paths.empty(): 
 		var f:File = File.new()
@@ -263,5 +269,16 @@ func image_selected(index:int) -> void:
 				# these 
 				# the functions connected to these signals probably need to be threaded (with thread queue)
 				Signals.emit_signal("load_image", path)
-				Signals.emit_signal("load_tags", komi64)
+				Signals.emit_signal("load_tags", komi64, selected_items)
 				break
+	
+func prepare_image(index:int) -> String:
+	if index < 0: return ""
+	if index >= self.get_item_count(): return ""	
+
+	var im_tex:Texture = self.get_item_icon(index)
+	if im_tex == null: return ""
+	if im_tex is StreamTexture: return ""			# return if broken icon or loading icon
+	
+	var komi64:String = im_tex.get_meta("komi64")
+	return komi64

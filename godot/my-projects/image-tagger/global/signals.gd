@@ -42,7 +42,7 @@ signal sort_changed
 signal order_changed
 signal page_changed
 signal load_image(image_path)
-signal load_tags(komi64)
+signal load_tags(komi64, selected_items)
 signal image_import_finished(import_id)
 
 signal filter_toggled(active)

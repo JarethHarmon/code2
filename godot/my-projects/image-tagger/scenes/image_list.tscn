@@ -139,10 +139,16 @@ margin_right = 1910.0
 margin_bottom = 80.0
 text = "  Search  "
 
-[node name="margin" type="MarginContainer" parent="margin/vbox"]
+[node name="hsep1" type="HSeparator" parent="margin/vbox"]
 margin_top = 28.0
 margin_right = 1910.0
-margin_bottom = 1046.0
+margin_bottom = 32.0
+mouse_filter = 2
+
+[node name="margin" type="MarginContainer" parent="margin/vbox"]
+margin_top = 36.0
+margin_right = 1910.0
+margin_bottom = 1038.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -155,9 +161,10 @@ custom_constants/margin_bottom = 10
 margin_left = 10.0
 margin_top = 10.0
 margin_right = 1900.0
-margin_bottom = 1008.0
+margin_bottom = 992.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+select_mode = 1
 allow_rmb_select = true
 max_columns = 200
 same_column_width = true
@@ -169,6 +176,12 @@ page_label = NodePath("../../page_buttons/page_label")
 
 [node name="Timer" type="Timer" parent="margin/vbox/margin/images"]
 wait_time = 0.5
+
+[node name="hsep2" type="HSeparator" parent="margin/vbox"]
+margin_top = 1042.0
+margin_right = 1910.0
+margin_bottom = 1046.0
+mouse_filter = 2
 
 [node name="page_buttons" type="HBoxContainer" parent="margin/vbox"]
 margin_top = 1050.0
