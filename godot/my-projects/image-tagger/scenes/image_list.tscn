@@ -168,9 +168,9 @@ select_mode = 1
 allow_rmb_select = true
 max_columns = 200
 same_column_width = true
-fixed_column_width = 150
+fixed_column_width = 240
 icon_mode = 0
-fixed_icon_size = Vector2( 150, 150 )
+fixed_icon_size = Vector2( 240, 240 )
 script = ExtResource( 1 )
 page_label = NodePath("../../page_buttons/page_label")
 

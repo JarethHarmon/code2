@@ -42,6 +42,7 @@ func _ready() -> void:
 	_err = Signals.connect("next_page_pressed", self, "next_page_button_pressed")
 	#_err = self.connect("item_selected", self, "image_selected")
 	_err = self.connect("multi_selected", self, "image_selected")
+	_err = Signals.connect("delete_pressed", self, "import_group_deleted")
 	
 func prepare_query(tags_all:Array=[], tags_any:Array=[], tags_none:Array=[], new_query:bool=true) -> void:
 	if new_query:
@@ -282,3 +283,9 @@ func prepare_image(index:int) -> String:
 	
 	var komi64:String = im_tex.get_meta("komi64")
 	return komi64
+
+func import_group_deleted(load_id:String) -> void:
+	Database.DeleteImportInfoByID(load_id)
+	Database.DropImportTableByID(load_id)
+	
+	
