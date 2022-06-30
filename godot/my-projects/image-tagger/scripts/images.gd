@@ -269,10 +269,12 @@ func image_selected(index:int, _selected:bool) -> void:
 func select_items() -> void:
 	selected_items.clear()
 	var arr_index:Array = self.get_selected_items()
+	if arr_index.size() == 0: return
 	for i in arr_index.size():
 		selected_items[arr_index[i]] = current_page_komi64s[arr_index[i]]
 	
-	var komi64:String = selected_items[last_index]
+	print(selected_items)
+	var komi64:String = current_page_komi64s[last_index]#selected_items[last_index]
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
 	if !paths.empty(): 
 		var f:File = File.new()
