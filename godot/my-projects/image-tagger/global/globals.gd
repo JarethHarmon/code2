@@ -42,6 +42,11 @@ var settings:Dictionary = {
 	
   # Edge Mix
 	"use_edge_mix" : false,
+
+  # UI
+	"hsplit_offset" : -175,
+	"left_offset" : -160,
+	"right_offset" : 240,
 }
 
 func _ready() -> void:

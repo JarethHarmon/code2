@@ -80,3 +80,4 @@ func _on_viewport_display_gui_input(event) -> void:
 		var rot_mult:Vector2 = Vector2((cos_rot * event.relative.x) - (sin_rot * event.relative.y), (sin_rot * event.relative.x) + (cos_rot * event.relative.y))
 		camera.position -= rot_mult * camera.zoom * drag_speed
 		camera.position = lerp(camera.position, camera.position - (rot_mult * camera.zoom * drag_speed), drag_step)
+

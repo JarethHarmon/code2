@@ -305,7 +305,7 @@ public class Database : Node {
 /*=========================================================================================
 									  IMPORT GROUP
 =========================================================================================*/	
-	public string[] GetImportGroupRange(string import_id, int start, int count, int sort_by=SortBy.FileHash, bool ascend=false) {
+	public string[] GetImportGroupRange(string import_id, int start, int count, int sort_by=SortBy.FileHash, int order_by=OrderBy.Ascending) { //bool ascend=false) {	
 		// clears dict_import_group, loads the specifed range of ImportGroups into dict_import_group, then returns the komi64 keys
 		try {
 			var col = db_import.GetCollection<ImportGroup>(import_id);
@@ -313,29 +313,33 @@ public class Database : Node {
 			dict_import_group.Clear();
 			IEnumerable<ImportGroup> imports;
 			
-			GD.Print("Querying...");
-			var now = DateTime.Now;
+			//GD.Print("Querying...");
+			//var now = DateTime.Now;
 			
 			//bool random = sort_by == SortBy.Random;
 			
 			if (sort_by == SortBy.FilePath) {
-				if (ascend) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
-				else imports = col.Find(Query.All("file_path", Query.Descending), start, limit:count);
+				if (order_by == OrderBy.Ascending) imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
+				else if (order_by == OrderBy.Descending) imports = col.Find(Query.All("file_path", Query.Descending), start, limit:count);
+				else imports = col.Find(Query.All("file_path", Query.Ascending), start, limit:count);
 			}
 			else if (sort_by == SortBy.FileSize) {
-				if (ascend) imports = col.Find(Query.All("file_size", Query.Ascending), start, limit:count);
-				else imports = col.Find(Query.All("file_size", Query.Descending), start, limit:count);
+				if (order_by == OrderBy.Ascending) imports = col.Find(Query.All("file_size", Query.Ascending), start, limit:count);
+				else if (order_by == OrderBy.Descending) imports = col.Find(Query.All("file_size", Query.Descending), start, limit:count);
+				else imports = col.Find(Query.All("file_size", Query.Ascending), start, limit:count);
 			}
 			else if (sort_by == SortBy.FileCreationUtc) {
-				if (ascend) imports = col.Find(Query.All("file_creation_utc", Query.Ascending), start, limit:count);
-				else imports = col.Find(Query.All("file_creation_utc", Query.Descending), start, limit:count);
+				if (order_by == OrderBy.Ascending) imports = col.Find(Query.All("file_creation_utc", Query.Ascending), start, limit:count);
+				else if (order_by == OrderBy.Descending) imports = col.Find(Query.All("file_creation_utc", Query.Descending), start, limit:count);
+				else imports = col.Find(Query.All("file_creation_utc", Query.Ascending), start, limit:count);
 			}
 			else  { // SortBy.FileHash
-				if (ascend) imports = col.Find(Query.All(), start, limit:count);//imports = col.Find(Query.All(Query.Ascending), start, limit:count);
-				else imports = col.Find(Query.All(Query.Descending), start, limit:count);
+				if (order_by == OrderBy.Ascending) imports = col.Find(Query.All(), start, limit:count);//imports = col.Find(Query.All(Query.Ascending), start, limit:count);
+				else if (order_by == OrderBy.Descending) imports = col.Find(Query.All(Query.Descending), start, limit:count);
+				else imports = col.Find(Query.All(), start, limit:count);
 			}
 			
-			GD.Print("IG Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
+			//GD.Print("IG Query finished, took ", (DateTime.Now-now).Milliseconds, " ms\n");
 			
 			last_query_count = 0;
 			foreach (ImportGroup import in imports) {
@@ -469,8 +473,27 @@ public class Database : Node {
 			if (tmp == null) return;
 			if (tmp.tags == null) tmp.tags = new HashSet<string>();
 			tmp.tags.Add(tag);
+			dict_komi64[komi64] = tmp;
 			col_komi64.Update(tmp);
 		} catch (Exception ex) { GD.Print("Database::AddTagToKomi() : ", ex); return; }
+	}
+
+	public void BulkAddTagToKomis(string[] komi64s, string tag) {
+		try {
+			var list = new List<Komi64Info>();
+			foreach (string komi64 in komi64s) {
+				var tmp = col_komi64.FindById(komi64);
+				if (tmp == null) continue;
+				if (tmp.tags == null) tmp.tags = new HashSet<string>();
+				tmp.tags.Add(tag);
+				dict_komi64[komi64] = tmp;
+				list.Add(tmp);
+			}
+			db_komi64.BeginTrans();
+			//GD.Print(list.Count);
+			foreach (Komi64Info komi in list) col_komi64.Update(komi);
+			db_komi64.Commit();
+		} catch (Exception ex) { GD.Print("Database::BulkAddTagToKomis() : ", ex); return; }
 	}
 
 /*=========================================================================================
@@ -518,6 +541,21 @@ public class Database : Node {
 				col_tag_info.Update(tmp);
 			}
 		} catch (Exception ex) { GD.Print("Database::AddHashToTag() : ", ex); return; }
+	}
+	public void BulkAddHashesToTag(string tag, string[] hashes) {
+		try {
+			var list = new List<TagInfo>();
+			foreach (string hash in hashes) {
+				var tmp = col_tag_info.FindById(tag);
+				if (tmp == null) CreateTag(tag, hashes);
+				else tmp.hashes.Add(hash);
+				set_tags.Add(tag);
+			}
+			db_tag.BeginTrans();
+			//foreach (string hash in hashes) AddHashToTag(tag, hash);
+			foreach (TagInfo tinfo in list) col_tag_info.Update(tinfo);
+			db_tag.Commit();
+		} catch (Exception ex) { GD.Print("Database::BulkAddHashesToTag() : ", ex); return; }
 	}
 	
 	// probably possible to use same function for all 4 checks (ContainsTags()) ; need to step through boolean logic to confirm

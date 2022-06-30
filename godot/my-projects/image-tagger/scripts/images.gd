@@ -21,6 +21,8 @@ var current_page_images:Array = []		# fifo queue :: stores komi64 hashes of thum
 var loaded_thumbnails:Dictionary = {}	# komi64:ImageTexture :: stores last X loaded thumbnails
 var loading_threads:Array = []			# an array of threads used for loading thumbnails
 
+var current_page_komi64s:Array = []		# move to C#
+
 var item_index:int = 0					# current index in the item list
 var current_page_number:int = 1			# page the user is on in the current query
 var total_page_count:int = 0			# the total number of pages for the current query
@@ -40,7 +42,11 @@ func _ready() -> void:
 	_err = Signals.connect("import_button_pressed", self, "prepare_query")
 	_err = Signals.connect("prev_page_pressed", self, "prev_page_button_pressed")
 	_err = Signals.connect("next_page_pressed", self, "next_page_button_pressed")
-	_err = self.connect("item_selected", self, "image_selected")
+	#_err = self.connect("item_selected", self, "image_selected")
+	_err = self.connect("multi_selected", self, "image_selected")
+	_err = Signals.connect("delete_pressed", self, "import_group_deleted")
+	_err = Signals.connect("select_all_pressed", self, "select_all_items")
+	
 func prepare_query(tags_all:Array=[], tags_any:Array=[], tags_none:Array=[], new_query:bool=true) -> void:
 	if new_query:
 		current_page_number = 1
@@ -140,7 +146,9 @@ func prepare_thumbnail_loading(load_id:String, page_number:int, num_threads:int)
 	ii.lock() ; item_index = 0 ; ii.unlock()
 	ci.lock() 
 	current_page_images.clear()
+	current_page_komi64s.clear()
 	current_page_images = pages[[page_number, load_id]].duplicate()
+	current_page_komi64s = current_page_images.duplicate()
 	ci.unlock()
 	
 	stopping_load_process = false
@@ -246,14 +254,27 @@ func next_page_button_pressed() -> void:
 	current_page_number += 1
 	Signals.emit_signal("page_changed")
 
-func image_selected(index:int) -> void:
-	if index < 0: return
-	if index >= self.get_item_count(): return	
-	var im_tex:Texture = self.get_item_icon(index)
-	if im_tex == null: return
-	if im_tex is StreamTexture: return			# return if broken icon or loading icon
+var called_already:bool = false
+var last_index:int = 0
+# gets called for every selected image (for some reason)
+# this will store a dict of item_index:komi64 for selected items (can be used for batch tagging)
+var selected_items:Dictionary = {}
+#func image_selected(index:int) -> void:
+func image_selected(index:int, _selected:bool) -> void:
+	last_index = index
+	if called_already: return
+	called_already = true
+	call_deferred("select_items")
+
+func select_items() -> void:
+	selected_items.clear()
+	var arr_index:Array = self.get_selected_items()
+	if arr_index.size() == 0: return
+	for i in arr_index.size():
+		selected_items[arr_index[i]] = current_page_komi64s[arr_index[i]]
 	
-	var komi64:String = im_tex.get_meta("komi64")
+	print(selected_items)
+	var komi64:String = current_page_komi64s[last_index]#selected_items[last_index]
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
 	if !paths.empty(): 
 		var f:File = File.new()
@@ -262,5 +283,18 @@ func image_selected(index:int) -> void:
 				# these 
 				# the functions connected to these signals probably need to be threaded (with thread queue)
 				Signals.emit_signal("load_image", path)
-				Signals.emit_signal("load_tags", komi64)
+				Signals.emit_signal("load_tags", komi64, selected_items)
 				break
+	called_already = false
+
+func select_all_items() -> void: 
+	selected_items.clear()
+	for i in current_page_image_count: 
+		selected_items[i] = current_page_komi64s[i]
+		self.select(i, false)
+
+func import_group_deleted(load_id:String) -> void:
+	Database.DeleteImportInfoByID(load_id)
+	Database.DropImportTableByID(load_id)
+	
+	

@@ -5,7 +5,7 @@ const import_button = preload("res://scenes/import_button.tscn")
 signal settings_loaded
 
 signal load_all_images
-signal image_import_finished
+
 signal import_info_load_finished
 #signal import_button_pressed(import_id)
 signal import_list_location(node_path)
@@ -36,10 +36,17 @@ signal search_pressed(tags_all, tags_any, tags_none, new_query)
 signal import_button_pressed
 signal all_button_pressed
 signal clear_pressed
+signal select_all_pressed
 signal prev_page_pressed
 signal next_page_pressed
 signal sort_changed
 signal order_changed
 signal page_changed
 signal load_image(image_path)
-signal load_tags(komi64)
+signal load_tags(komi64, selected_items)
+signal image_import_finished(import_id)
+
+signal filter_toggled(active)
+signal edge_mix_toggled(active)
+signal color_grade_toggled(active)
+signal smooth_pixel_toggled(active)
