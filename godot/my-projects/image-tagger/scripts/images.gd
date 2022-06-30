@@ -255,22 +255,24 @@ func next_page_button_pressed() -> void:
 	Signals.emit_signal("page_changed")
 
 var called_already:bool = false
+var last_index:int = 0
 # gets called for every selected image (for some reason)
 # this will store a dict of item_index:komi64 for selected items (can be used for batch tagging)
 var selected_items:Dictionary = {}
 #func image_selected(index:int) -> void:
 func image_selected(index:int, selected:bool) -> void:
+	last_index = index
 	if called_already: return
 	called_already = true
-	call_deferred("select_items", index)
+	call_deferred("select_items")
 
-func select_items(index:int) -> void:
+func select_items() -> void:
 	selected_items.clear()
 	var arr_index:Array = self.get_selected_items()
 	for i in arr_index.size():
-		selected_items[arr_index[i]] = current_page_komi64s[i]
-
-	var komi64:String = selected_items[index]
+		selected_items[arr_index[i]] = current_page_komi64s[arr_index[i]]
+	
+	var komi64:String = selected_items[last_index]
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
 	if !paths.empty(): 
 		var f:File = File.new()
