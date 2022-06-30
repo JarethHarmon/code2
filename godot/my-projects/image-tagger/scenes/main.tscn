@@ -151,6 +151,7 @@ texture_pressed = ExtResource( 10 )
 margin_top = 46.0
 margin_right = 1904.0
 margin_bottom = 1064.0
+rect_clip_content = true
 size_flags_horizontal = 3
 size_flags_vertical = 3
 split_offset = -175
@@ -159,6 +160,8 @@ script = ExtResource( 11 )
 [node name="left" type="VSplitContainer" parent="margin/vbox/hsplit"]
 margin_right = 773.0
 margin_bottom = 1018.0
+rect_clip_content = true
+mouse_filter = 1
 size_flags_horizontal = 3
 size_flags_vertical = 3
 split_offset = -160
@@ -216,6 +219,34 @@ margin_left = 687.0
 margin_right = 763.0
 margin_bottom = 29.0
 
+[node name="search_buttons" parent="margin/vbox/hsplit/left/image_list/margin/vbox" index="1"]
+margin_top = 33.0
+margin_right = 763.0
+margin_bottom = 128.0
+
+[node name="search_bars" parent="margin/vbox/hsplit/left/image_list/margin/vbox/search_buttons" index="0"]
+margin_right = 670.0
+margin_bottom = 95.0
+
+[node name="include_all" parent="margin/vbox/hsplit/left/image_list/margin/vbox/search_buttons/search_bars" index="0"]
+margin_right = 670.0
+margin_bottom = 29.0
+
+[node name="include_any" parent="margin/vbox/hsplit/left/image_list/margin/vbox/search_buttons/search_bars" index="1"]
+margin_top = 33.0
+margin_right = 670.0
+margin_bottom = 62.0
+
+[node name="exclude_all" parent="margin/vbox/hsplit/left/image_list/margin/vbox/search_buttons/search_bars" index="2"]
+margin_top = 66.0
+margin_right = 670.0
+margin_bottom = 95.0
+
+[node name="search_button" parent="margin/vbox/hsplit/left/image_list/margin/vbox/search_buttons" index="1"]
+margin_left = 674.0
+margin_right = 763.0
+margin_bottom = 95.0
+
 [node name="hsep1" parent="margin/vbox/hsplit/left/image_list/margin/vbox" index="2"]
 margin_top = 33.0
 margin_right = 763.0
@@ -269,6 +300,7 @@ margin_bottom = 29.0
 margin_left = 781.0
 margin_right = 1904.0
 margin_bottom = 1018.0
+rect_clip_content = true
 size_flags_horizontal = 3
 size_flags_vertical = 3
 split_offset = 240
