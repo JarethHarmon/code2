@@ -36,6 +36,7 @@ signal search_pressed(tags_all, tags_any, tags_none, new_query)
 signal import_button_pressed
 signal all_button_pressed
 signal clear_pressed
+signal select_all_pressed
 signal prev_page_pressed
 signal next_page_pressed
 signal sort_changed

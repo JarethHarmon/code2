@@ -76,6 +76,8 @@ func prep_threads() -> void:
 		thread_queue.append(Thread.new())
 		thread_active.append(false)
 
+var use_loading_icon:bool = true # add to settings and create a button
+
 func _on_FileDialog_file_selected(path:String) -> void:
 	fd.hide()
 	#if (image_mutex.try_lock() != OK): return
@@ -84,7 +86,7 @@ func _on_FileDialog_file_selected(path:String) -> void:
 	image_mutex.lock()
 	for i in thread_active.size(): thread_active[i] = false
 	image_mutex.unlock()
-	preview.set_texture(loading_icon)
+	if use_loading_icon: preview.set_texture(loading_icon)
 	___thread(path)
 
 func ___thread(path:String) -> void:

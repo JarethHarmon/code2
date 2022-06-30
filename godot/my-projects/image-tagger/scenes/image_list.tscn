@@ -86,10 +86,16 @@ selected = 0
 
 [node name="SPACE_3" type="Control" parent="margin/vbox/sort_buttons"]
 margin_left = 244.0
-margin_right = 1846.0
+margin_right = 1754.0
 margin_bottom = 24.0
 mouse_filter = 2
 size_flags_horizontal = 3
+
+[node name="select_all" type="Button" parent="margin/vbox/sort_buttons"]
+margin_left = 1758.0
+margin_right = 1846.0
+margin_bottom = 24.0
+text = "  Select All  "
 
 [node name="clear" type="Button" parent="margin/vbox/sort_buttons"]
 margin_left = 1850.0
