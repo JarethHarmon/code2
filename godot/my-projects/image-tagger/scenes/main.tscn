@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://scenes/preview_container.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scenes/preview.tscn" type="PackedScene" id=2]
@@ -10,6 +10,7 @@
 [ext_resource path="res://scripts/import_images.gd" type="Script" id=8]
 [ext_resource path="res://assets/red-X.png" type="Texture" id=9]
 [ext_resource path="res://assets/red-X-darker.png" type="Texture" id=10]
+[ext_resource path="res://scripts/hsplit.gd" type="Script" id=11]
 
 [sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.295082 )
@@ -152,10 +153,11 @@ margin_right = 1904.0
 margin_bottom = 1064.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-split_offset = -280
+split_offset = -175
+script = ExtResource( 11 )
 
 [node name="left" type="VSplitContainer" parent="margin/vbox/hsplit"]
-margin_right = 668.0
+margin_right = 773.0
 margin_bottom = 1018.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -164,24 +166,24 @@ split_offset = -160
 [node name="import_list" parent="margin/vbox/hsplit/left" instance=ExtResource( 6 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 668.0
+margin_right = 773.0
 margin_bottom = 345.0
 
 [node name="image_list" parent="margin/vbox/hsplit/left" instance=ExtResource( 5 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 353.0
-margin_right = 668.0
+margin_right = 773.0
 margin_bottom = 1018.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="vbox" parent="margin/vbox/hsplit/left/image_list/margin" index="0"]
-margin_right = 663.0
+margin_right = 768.0
 margin_bottom = 660.0
 
 [node name="sort_buttons" parent="margin/vbox/hsplit/left/image_list/margin/vbox" index="0"]
-margin_right = 658.0
+margin_right = 763.0
 margin_bottom = 29.0
 
 [node name="sort_by_label" parent="margin/vbox/hsplit/left/image_list/margin/vbox/sort_buttons" index="0"]
@@ -201,41 +203,41 @@ margin_bottom = 29.0
 
 [node name="SPACE_3" parent="margin/vbox/hsplit/left/image_list/margin/vbox/sort_buttons" index="3"]
 margin_left = 300.0
-margin_right = 464.0
+margin_right = 569.0
 margin_bottom = 29.0
 
 [node name="select_all" parent="margin/vbox/hsplit/left/image_list/margin/vbox/sort_buttons" index="4"]
-margin_left = 468.0
-margin_right = 578.0
+margin_left = 573.0
+margin_right = 683.0
 margin_bottom = 29.0
 
 [node name="clear" parent="margin/vbox/hsplit/left/image_list/margin/vbox/sort_buttons" index="5"]
-margin_left = 582.0
-margin_right = 658.0
+margin_left = 687.0
+margin_right = 763.0
 margin_bottom = 29.0
 
 [node name="hsep1" parent="margin/vbox/hsplit/left/image_list/margin/vbox" index="2"]
 margin_top = 33.0
-margin_right = 658.0
+margin_right = 763.0
 margin_bottom = 37.0
 
 [node name="margin" parent="margin/vbox/hsplit/left/image_list/margin/vbox" index="3"]
 margin_top = 41.0
-margin_right = 658.0
+margin_right = 763.0
 margin_bottom = 614.0
 
 [node name="images" parent="margin/vbox/hsplit/left/image_list/margin/vbox/margin" index="0"]
-margin_right = 648.0
+margin_right = 753.0
 margin_bottom = 563.0
 
 [node name="hsep2" parent="margin/vbox/hsplit/left/image_list/margin/vbox" index="4"]
 margin_top = 618.0
-margin_right = 658.0
+margin_right = 763.0
 margin_bottom = 622.0
 
 [node name="page_buttons" parent="margin/vbox/hsplit/left/image_list/margin/vbox" index="5"]
 margin_top = 626.0
-margin_right = 658.0
+margin_right = 763.0
 margin_bottom = 655.0
 
 [node name="prev_page" parent="margin/vbox/hsplit/left/image_list/margin/vbox/page_buttons" index="0"]
@@ -244,27 +246,27 @@ margin_bottom = 29.0
 
 [node name="SPACE_1" parent="margin/vbox/hsplit/left/image_list/margin/vbox/page_buttons" index="1"]
 margin_left = 64.0
-margin_right = 321.0
+margin_right = 374.0
 margin_bottom = 29.0
 
 [node name="page_label" parent="margin/vbox/hsplit/left/image_list/margin/vbox/page_buttons" index="2"]
-margin_left = 325.0
+margin_left = 378.0
 margin_top = 0.0
-margin_right = 333.0
+margin_right = 386.0
 margin_bottom = 29.0
 
 [node name="SPACE_2" parent="margin/vbox/hsplit/left/image_list/margin/vbox/page_buttons" index="3"]
-margin_left = 337.0
-margin_right = 595.0
+margin_left = 390.0
+margin_right = 700.0
 margin_bottom = 29.0
 
 [node name="next_page" parent="margin/vbox/hsplit/left/image_list/margin/vbox/page_buttons" index="4"]
-margin_left = 599.0
-margin_right = 658.0
+margin_left = 704.0
+margin_right = 763.0
 margin_bottom = 29.0
 
 [node name="right" type="VSplitContainer" parent="margin/vbox/hsplit"]
-margin_left = 676.0
+margin_left = 781.0
 margin_right = 1904.0
 margin_bottom = 1018.0
 size_flags_horizontal = 3
@@ -274,7 +276,7 @@ split_offset = 240
 [node name="preview" parent="margin/vbox/hsplit/right" instance=ExtResource( 2 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 1228.0
+margin_right = 1123.0
 margin_bottom = 745.0
 
 [node name="viewport_display" parent="margin/vbox/hsplit/right/preview" index="3"]
@@ -284,26 +286,26 @@ ColorGrade = NodePath("../../../../../../preview_container/ViewportContainer/Vie
 EdgeDefaultMotionMix = NodePath("../../../../../../preview_container/ViewportContainer/Viewport/preview_view/EdgeCustomDefaultMix")
 
 [node name="vb" parent="margin/vbox/hsplit/right/preview/margin" index="0"]
-margin_right = 1223.0
+margin_right = 1118.0
 margin_bottom = 740.0
 
 [node name="SPACE" parent="margin/vbox/hsplit/right/preview/margin/vb" index="0"]
-margin_right = 1218.0
+margin_right = 1113.0
 margin_bottom = 683.0
 
 [node name="vbox" parent="margin/vbox/hsplit/right/preview/margin/vb" index="1"]
 margin_top = 687.0
-margin_right = 1218.0
+margin_right = 1113.0
 margin_bottom = 735.0
 
 [node name="bg_panel" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox" index="0"]
-margin_right = 1218.0
+margin_right = 1113.0
 margin_bottom = 44.0
 
 [node name="hb" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel" index="0"]
 margin_left = 2.0
 margin_top = 2.0
-margin_right = 1216.0
+margin_right = 1111.0
 margin_bottom = 42.0
 
 [node name="visibility" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="0"]
@@ -311,39 +313,39 @@ margin_right = 49.0
 
 [node name="SPACE4" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="1"]
 margin_left = 53.0
-margin_right = 589.0
+margin_right = 484.0
 
 [node name="use_smooth_pixel" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="2"]
-margin_left = 593.0
-margin_right = 753.0
+margin_left = 488.0
+margin_right = 648.0
 
 [node name="SPACE7" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="3"]
-margin_left = 757.0
-margin_right = 773.0
+margin_left = 652.0
+margin_right = 668.0
 
 [node name="filter" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="4"]
-margin_left = 777.0
-margin_right = 872.0
+margin_left = 672.0
+margin_right = 767.0
 
 [node name="SPACE6" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="5"]
-margin_left = 876.0
-margin_right = 892.0
+margin_left = 771.0
+margin_right = 787.0
 
 [node name="edge_mix" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="6"]
-margin_left = 896.0
-margin_right = 1024.0
+margin_left = 791.0
+margin_right = 919.0
 
 [node name="SPACE3" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="7"]
-margin_left = 1028.0
-margin_right = 1044.0
+margin_left = 923.0
+margin_right = 939.0
 
 [node name="color_grade" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="8"]
-margin_left = 1048.0
-margin_right = 1214.0
+margin_left = 943.0
+margin_right = 1109.0
 
 [node name="hsplit" type="HSplitContainer" parent="margin/vbox/hsplit/right"]
 margin_top = 753.0
-margin_right = 1228.0
+margin_right = 1123.0
 margin_bottom = 1018.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -351,7 +353,7 @@ size_flags_vertical = 3
 [node name="tagging" parent="margin/vbox/hsplit/right/hsplit" instance=ExtResource( 7 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 1228.0
+margin_right = 1123.0
 margin_bottom = 265.0
 
 [node name="Label" type="Label" parent="."]

@@ -260,7 +260,7 @@ var last_index:int = 0
 # this will store a dict of item_index:komi64 for selected items (can be used for batch tagging)
 var selected_items:Dictionary = {}
 #func image_selected(index:int) -> void:
-func image_selected(index:int, selected:bool) -> void:
+func image_selected(index:int, _selected:bool) -> void:
 	last_index = index
 	if called_already: return
 	called_already = true

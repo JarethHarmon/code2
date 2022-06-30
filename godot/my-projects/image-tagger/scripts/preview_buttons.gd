@@ -7,7 +7,7 @@ onready var smooth_pixel:CheckButton = $vbox/bg_panel/hb/use_smooth_pixel
 
 onready var vbox:VBoxContainer = $vbox
 
-func _input(event:InputEvent) -> void: 
+func _input(_event:InputEvent) -> void: 
 	if Input.is_action_just_pressed("hide_ui"):
 		_on_visibility_button_up()
 

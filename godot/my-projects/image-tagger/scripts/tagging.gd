@@ -80,7 +80,7 @@ func _on_new_tag_button_up(text:String="") -> void:
 	for idx in selected_items: selection_array.append(selected_items[idx])
 
 	var thread:Thread = Thread.new()
-	thread.start(self, "_thread", [thread, text_n, selection_array])
+	var _err:int = thread.start(self, "_thread", [thread, text_n, selection_array])
 	
 func _thread(args:Array) -> void:
 	var thread:Thread = args[0]

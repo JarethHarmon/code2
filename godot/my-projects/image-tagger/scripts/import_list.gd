@@ -6,8 +6,8 @@ onready var buttons:VBoxContainer = $margin/vbox/scroll/buttons
 func _ready() -> void:
 	var _err:int = Signals.connect("import_info_load_finished", self, "_import_info_load_finished")
 	Signals.emit_signal("import_list_location", $margin/vbox/scroll/buttons.get_path())
-	Signals.connect("all_button_pressed", self, "set_button_color")
-	Signals.connect("import_button_pressed", self, "set_button_color")
+	_err = Signals.connect("all_button_pressed", self, "set_button_color")
+	_err = Signals.connect("import_button_pressed", self, "set_button_color")
 
 func _import_info_load_finished() -> void:
 	var import_ids:Array = Database.GetImportIDsFromDict(Globals.SortBy.FilePath)

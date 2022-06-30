@@ -104,7 +104,7 @@ func ___thread(path:String) -> void:
 	p = path
 	image_mutex.unlock()
 	if not image_thread.is_active():
-		image_thread.start(self, "__thread")
+		var _err:int = image_thread.start(self, "__thread")
 
 func _test() -> void:
 	image_thread.wait_to_finish()
