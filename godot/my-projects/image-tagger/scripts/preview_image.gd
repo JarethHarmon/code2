@@ -28,7 +28,17 @@ func _ready() -> void:
 	_err = Signals.connect("color_grade_toggled", self, "_on_color_grade_toggled")
 	_err = Signals.connect("smooth_pixel_toggled", self, "_on_use_smooth_pixel_toggled")
 	
+	_err = Signals.connect("all_button_pressed", self, "clear_image_preview")
+	_err = Signals.connect("import_button_pressed", self, "clear_image_preview")
+	_err = Signals.connect("page_changed", self, "clear_image_preview")
+	
 	self.call_deferred("prep_threads")
+
+func clear_image_preview() -> void:
+	image_mutex.lock()
+	preview.set_texture(null)
+	current_image = null
+	image_mutex.unlock()
 
 func create_current_image(thread_id:int=-1, im:Image=null, path:String="") -> void:
 	if im == null:
