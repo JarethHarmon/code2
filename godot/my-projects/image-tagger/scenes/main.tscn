@@ -193,11 +193,13 @@ margin_bottom = 29.0
 margin_left = 75.0
 margin_right = 180.0
 margin_bottom = 29.0
+items = [ "File Hash", null, false, 0, null, "File Path", null, false, 1, null, "File Size", null, false, 2, null, "File Creation Time", null, false, 3, null, "Tag Count", null, false, 4, null ]
 
 [node name="order_by" parent="margin/vbox/hsplit/left/image_list/margin/vbox/sort_buttons" index="2"]
 margin_left = 184.0
 margin_right = 296.0
 margin_bottom = 29.0
+items = [ "Ascending", null, false, 0, null, "Descending", null, false, 1, null ]
 
 [node name="SPACE_3" parent="margin/vbox/hsplit/left/image_list/margin/vbox/sort_buttons" index="3"]
 margin_left = 300.0
@@ -301,7 +303,11 @@ margin_top = 2.0
 margin_right = 1216.0
 margin_bottom = 42.0
 
+[node name="visibility" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="0"]
+margin_right = 49.0
+
 [node name="SPACE4" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="1"]
+margin_left = 53.0
 margin_right = 589.0
 
 [node name="use_smooth_pixel" parent="margin/vbox/hsplit/right/preview/margin/vb/vbox/bg_panel/hb" index="2"]

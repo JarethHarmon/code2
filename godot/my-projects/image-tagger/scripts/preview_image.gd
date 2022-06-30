@@ -2,6 +2,7 @@ extends VBoxContainer
 
 # button logic needs to be moved out of this script (especially image importing) (create a preview_buttons node & script)
 
+const loading_icon:StreamTexture = preload("res://assets/buffer-01.png")
 const pixel_smooth = preload("res://shaders/SmoothPixel.tres")
 const BASE_MAX_DIMENSIONS=16384
 
@@ -26,8 +27,10 @@ func _ready() -> void:
 	_err = Signals.connect("edge_mix_toggled", self, "_on_edge_mix_toggled")
 	_err = Signals.connect("color_grade_toggled", self, "_on_color_grade_toggled")
 	_err = Signals.connect("smooth_pixel_toggled", self, "_on_use_smooth_pixel_toggled")
+	
+	self.call_deferred("prep_threads")
 
-func create_current_image(im:Image=null) -> void:
+func create_current_image(thread_id:int=-1, im:Image=null, path:String="") -> void:
 	if im == null:
 		var tex:Texture = preview.get_texture()
 		if tex == null: return
@@ -35,13 +38,20 @@ func create_current_image(im:Image=null) -> void:
 	
 	var it:ImageTexture = ImageTexture.new()
 	it.create_from_image(im, 4 if Globals.settings.use_filter else 0)
+	
+	if thread_id >= 0 and path != "": 
+		if check_stop_thread(thread_id): 
+			return
 	current_image = it
 
-func resize_current_image() -> void:
+func resize_current_image(path:String="") -> void:
 	if current_image == null: return
+	if path != "" and path != p: return
+	
 	preview.set_texture(null)
 	current_image.set_size_override(calc_size(current_image))
 	yield(get_tree(), "idle_frame")
+	
 	preview.set_texture(current_image)
 
 func _settings_loaded() -> void:
@@ -51,17 +61,74 @@ func _settings_loaded() -> void:
 	_on_filter_toggled(Globals.settings.use_filter)
 	_on_use_recursion_toggled(Globals.settings.use_recursion)
 
+
+var max_threads:int = 3
+var thread_queue:Array = []
+var thread_active:Array = []
+
+func prep_threads() -> void:
+	for t in thread_queue:
+		if t == null: continue
+		if t.is_active() or t.is_alive(): t.wait_to_finish()
+		t = null
+	thread_queue.clear()
+	for i in max_threads: 
+		thread_queue.append(Thread.new())
+		thread_active.append(false)
+
 func _on_FileDialog_file_selected(path:String) -> void:
 	fd.hide()
-	if (image_mutex.try_lock() != OK): return
-	if (image_thread.is_alive()): return
+	#if (image_mutex.try_lock() != OK): return
+	#if (image_thread.is_alive()): return
+	#image_mutex.lock()
 	image_mutex.lock()
-	var _err:int = image_thread.start(self, "_thread", path)
+	for i in thread_active.size(): thread_active[i] = false
+	image_mutex.unlock()
+	preview.set_texture(loading_icon)
+	___thread(path)
 
-func _thread(path:String) -> void:
+func ___thread(path:String) -> void:
+	image_mutex.lock()
+	p = path
+	image_mutex.unlock()
+	if not image_thread.is_active():
+		image_thread.start(self, "__thread")
+
+func _test() -> void:
+	image_thread.wait_to_finish()
+	image_thread = Thread.new()
+
+var p:String = ""
+
+func __thread() -> void:	
+	var all_threads_busy:bool = true
+	while all_threads_busy:
+		for thread_id in thread_queue.size():
+			image_mutex.lock()
+			var thread:Thread = thread_queue[thread_id]
+			image_mutex.unlock()
+			if not thread.is_active():
+				all_threads_busy = false
+				thread_active[thread_id] = true
+				var _err:int = thread.start(self, "_thread", [thread_id, p])
+				break
+		OS.delay_msec(50)
+	self.call_deferred("_test")
+	
+func _thread(args:Array) -> void:
+	var thread_id:int = args[0]
+	var path:String = args[1]
+	if check_stop_thread(thread_id): 
+		call_deferred("_done", thread_id, path)
+		return
+	
 	var actual_format:String = ImageOp.GetActualFormat(path)
 	var saved_format:String = path.get_extension().to_upper().replace("JPEG", "JPG")
 	var im:Image ; var e:int = 0
+	if check_stop_thread(thread_id):
+		call_deferred("_done", thread_id, path) 
+		return
+	
 	if (actual_format != saved_format): 
 		print("\n", path, "\n\tactual format: ", actual_format, "\n\tsaved format: ", saved_format)
 		im = ImageOp.LoadUnknownFormat(path)
@@ -69,14 +136,28 @@ func _thread(path:String) -> void:
 		im = Image.new() 
 		e = im.load(path)
 		if e != OK: im = ImageOp.LoadUnknownFormatAlt(path)
+	if check_stop_thread(thread_id): 
+		call_deferred("_done", thread_id, path)
+		return
 	
-	create_current_image(im)
-	call_deferred("_done")
-
-func _done() -> void:
-	if image_thread.is_alive() or image_thread.is_active(): image_thread.wait_to_finish()
+	create_current_image(thread_id, im, path)
+	call_deferred("_done", thread_id, path)
+	
+func check_stop_thread(thread_id:int) -> bool:
+	var stop_thread:bool = true
+	image_mutex.lock()
+	stop_thread = not thread_active[thread_id]
 	image_mutex.unlock()
-	resize_current_image()
+	return stop_thread
+
+func _done(thread_id:int, path:String) -> void:
+	image_mutex.lock()
+	if thread_queue[thread_id].is_alive() or thread_queue[thread_id].is_active(): 
+		thread_queue[thread_id].wait_to_finish()
+	thread_queue[thread_id] = Thread.new()
+	thread_active[thread_id] = false
+	image_mutex.unlock()
+	resize_current_image(path)
 
 func calc_size(it:ImageTexture) -> Vector2:
 	var size_1:Vector2 = viewport_display.rect_size
@@ -141,3 +222,4 @@ func _on_use_smooth_pixel_toggled(button_pressed:bool) -> void:
 	if button_pressed: 
 		$hbox_0/image_0.set_material(pixel_smooth)
 	else: $hbox_0/image_0.set_material(null)
+

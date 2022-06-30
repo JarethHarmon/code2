@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://scripts/preview_buttons.gd" type="Script" id=1]
 [ext_resource path="res://scripts/viewport_display.gd" type="Script" id=2]
-[ext_resource path="res://assets/1.png" type="Texture" id=3]
 
 [sub_resource type="Gradient" id=2]
 offsets = PoolRealArray( 0, 0.994872 )
@@ -99,19 +98,18 @@ margin_bottom = 47.0
 mouse_filter = 2
 size_flags_horizontal = 3
 
-[node name="visibility" type="TextureButton" parent="margin/vb/vbox/bg_panel/hb"]
+[node name="visibility" type="Button" parent="margin/vb/vbox/bg_panel/hb"]
 self_modulate = Color( 0.792157, 0.792157, 0.792157, 1 )
-margin_right = 40.0
+margin_right = 42.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 40, 40 )
 hint_tooltip = "[F3]
 Toggles visibility of these settings
 "
-texture_normal = ExtResource( 3 )
-expand = true
+text = "Hide"
 
 [node name="SPACE4" type="Control" parent="margin/vb/vbox/bg_panel/hb"]
-margin_left = 44.0
+margin_left = 46.0
 margin_right = 1240.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 16, 0 )
