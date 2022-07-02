@@ -44,6 +44,7 @@ signal order_changed
 signal page_changed
 signal load_image(image_path)
 signal load_tags(komi64, selected_items)
+signal set_paths(komi64, paths)
 signal image_import_finished(import_id)
 
 signal filter_toggled(active)

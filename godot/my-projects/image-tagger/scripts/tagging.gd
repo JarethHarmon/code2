@@ -24,6 +24,7 @@ func _ready() -> void:
 	_err = Signals.connect("all_button_pressed", self, "clear_tag_list")
 	_err = Signals.connect("import_button_pressed", self, "clear_tag_list")
 	_err = Signals.connect("page_changed", self, "clear_tag_list")
+	_err = Signals.connect("clear_pressed", self, "clear_tag_list")
 
 func clear_tag_list() -> void:
 	curr_tags.clear()

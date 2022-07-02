@@ -144,6 +144,12 @@ public class ImageOp : Node
 			(string image_path, long image_creation_utc, long image_size) = tuple;
 			if (IsImageCorrupt(image_path)) return -1;
 			
+			// currently program is crashing on import without this line
+			// which of course means that it is a threading issue
+			// no errors are printed
+			// most likely an issue with trying to insert into the database too quickly
+			//GD.Print(image_path); 
+			
 			string komihash = (string) import.Call("get_komi_hash", image_path);
 			string save_path = thumbnail_path + komihash;
 			

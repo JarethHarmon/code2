@@ -29,7 +29,7 @@ expand_margin_bottom = 3.0
 
 [sub_resource type="StyleBoxEmpty" id=6]
 
-[node name="tagging" type="Control"]
+[node name="Tags" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2

@@ -204,7 +204,7 @@ func load_thumbnail(komi64:String, index:int) -> void:
 		
 		if stopping_load_process: return
 		var it:ImageTexture = ImageTexture.new()
-		it.create_from_image(i, 4) # FLAGS
+		it.create_from_image(i, 0) # FLAGS # 4
 		it.set_meta("komi64", komi64)
 		
 		lt.lock()
@@ -273,7 +273,7 @@ func select_items() -> void:
 	for i in arr_index.size():
 		selected_items[arr_index[i]] = current_page_komi64s[arr_index[i]]
 	
-	print(selected_items)
+	#print(selected_items)
 	var komi64:String = current_page_komi64s[last_index]#selected_items[last_index]
 	var paths:Array = Database.GetKomiPathsFromDict(komi64)
 	if !paths.empty(): 
@@ -284,6 +284,7 @@ func select_items() -> void:
 				# the functions connected to these signals probably need to be threaded (with thread queue)
 				Signals.emit_signal("load_image", path)
 				Signals.emit_signal("load_tags", komi64, selected_items)
+				Signals.emit_signal("set_paths", komi64, paths)
 				break
 	called_already = false
 

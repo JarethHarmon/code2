@@ -31,6 +31,7 @@ func _ready() -> void:
 	_err = Signals.connect("all_button_pressed", self, "clear_image_preview")
 	_err = Signals.connect("import_button_pressed", self, "clear_image_preview")
 	_err = Signals.connect("page_changed", self, "clear_image_preview")
+	_err = Signals.connect("clear_pressed", self, "clear_image_preview")
 	
 	self.call_deferred("prep_threads")
 
