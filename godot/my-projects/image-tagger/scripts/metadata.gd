@@ -10,7 +10,7 @@ func _ready() -> void:
 
 func clear_paths_list() -> void: for child in paths_list.get_children(): child.queue_free()
 
-func create_path_buttons(komi64:String, paths:Array) -> void:
+func create_path_buttons(_komi64:String, paths:Array) -> void:
 	clear_paths_list()
 	
 	for path in paths:
@@ -18,7 +18,7 @@ func create_path_buttons(komi64:String, paths:Array) -> void:
 		b.text = path
 		b.align = b.ALIGN_LEFT
 		b.size_flags_horizontal = SIZE_EXPAND_FILL
-		b.connect("pressed", self, "set_clipboard", [path])
+		var _err:int = b.connect("pressed", self, "set_clipboard", [path])
 		paths_list.add_child(b)
 
 func set_clipboard(path:String) -> void: OS.set_clipboard(path)
