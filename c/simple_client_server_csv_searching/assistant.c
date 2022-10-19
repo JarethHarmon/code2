@@ -39,7 +39,7 @@ int increment_index() {
 
 int get_index() {
 	int index = 0;
-	printf(":::%d:::\n", count_lines());
+	//printf(":::%d:::\n", count_lines());
 	if (count_lines() >= HISTORY_SIZE) {
 		index = oldest_entry_index;
 		increment_index();
